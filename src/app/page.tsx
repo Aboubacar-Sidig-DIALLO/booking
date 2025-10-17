@@ -25,24 +25,8 @@ import Onboarding from "@/components/onboarding/Onboarding";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Settings } from "lucide-react";
 
-export default function Home() {
-  const {
-    isOnboardingActive,
-    completeOnboarding,
-    hasSeenOnboarding,
-    resetOnboarding,
-    isReady,
-  } = useOnboarding();
-
-  // Eviter les early returns avant initialisation du hook
-  if (!isReady) {
-    return null;
-  }
-
-  // Afficher l'onboarding si c'est la première visite
-  if (isOnboardingActive) {
-    return <Onboarding onComplete={completeOnboarding} />;
-  }
+function HomeContent() {
+  const { hasSeenOnboarding, resetOnboarding } = useOnboarding();
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
@@ -61,29 +45,88 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Design moderne et convaincant */}
-      <div className="relative min-h-screen">
-        {/* Background avec effets visuels */}
+      <div className="relative min-h-screen overflow-hidden">
+        {/* Background avec effets visuels sophistiqués */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
 
-        {/* Particules flottantes */}
+        {/* Grille de fond animée */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(59,130,246,0.1)_50%,transparent_100%)] bg-[length:200px_200px] animate-pulse" />
+        </div>
+
+        {/* Formes géométriques flottantes */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(15)].map((_, i) => (
+          {/* Cercles décoratifs */}
+          <motion.div
+            className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full blur-xl"
+            animate={{
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-lg"
+            animate={{
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+              scale: [1, 0.8, 1],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          />
+          <motion.div
+            className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full blur-2xl"
+            animate={{
+              x: [0, 60, 0],
+              y: [0, -50, 0],
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
+        </div>
+
+        {/* Particules flottantes améliorées */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
             <motion.div
               key={`hero-particle-${i}`}
-              className="absolute w-1 h-1 bg-blue-200 rounded-full opacity-40"
+              className={`absolute rounded-full ${
+                i % 3 === 0
+                  ? "w-2 h-2 bg-blue-300/60"
+                  : i % 3 === 1
+                    ? "w-1 h-1 bg-indigo-300/80"
+                    : "w-1.5 h-1.5 bg-purple-300/50"
+              }`}
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -30, 0],
-                opacity: [0.4, 0.1, 0.4],
-                scale: [1, 1.2, 1],
+                y: [0, -40, 0],
+                x: [0, Math.random() * 20 - 10, 0],
+                opacity: [0.6, 0.1, 0.6],
+                scale: [1, 1.5, 1],
               }}
               transition={{
-                duration: 4 + Math.random() * 2,
+                duration: 5 + Math.random() * 3,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: Math.random() * 3,
+                ease: "easeInOut",
               }}
             />
           ))}
@@ -111,12 +154,25 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6"
             >
               Révolutionnez vos{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <motion.span
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  backgroundSize: "200% 200%",
+                }}
+              >
                 réservations
-              </span>
+              </motion.span>
             </motion.h1>
 
             {/* Sous-titre persuasif */}
@@ -166,27 +222,53 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-16"
             >
               <Link href="/bookings/new">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Zap className="h-5 w-5 mr-2" />
-                  Commencer gratuitement
-                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                  <Button
+                    size="lg"
+                    className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+                  >
+                    {/* Effet de brillance */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatDelay: 3,
+                        ease: "easeInOut",
+                      }}
+                    />
+                    <Zap className="h-5 w-5 mr-2 relative z-10" />
+                    <span className="relative z-10">
+                      Commencer gratuitement
+                    </span>
+                    <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform relative z-10" />
+                  </Button>
+                </motion.div>
               </Link>
               <Link href="/rooms">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Globe className="h-5 w-5 mr-2" />
-                  Voir la démo
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 backdrop-blur-sm hover:shadow-lg"
+                  >
+                    <Globe className="h-5 w-5 mr-2" />
+                    Voir la démo
+                  </Button>
+                </motion.div>
               </Link>
             </motion.div>
 
@@ -261,13 +343,14 @@ export default function Home() {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Gain de temps */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="group relative"
+              whileHover={{ y: -5 }}
             >
               {/* Fond décoratif animé */}
               <motion.div
@@ -281,29 +364,29 @@ export default function Home() {
               />
 
               {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+              <div className="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between hover:shadow-3xl transition-all duration-300">
                 <div className="flex-shrink-0">
                   <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-4 sm:mb-6 shadow-xl"
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Zap className="h-8 w-8 text-white" />
+                    <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
                     Gain de temps spectaculaire
                   </h3>
                 </div>
                 <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
+                  <p className="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
                     Réduisez de 80% le temps passé à gérer vos réservations.
                     Notre interface intuitive vous fait gagner des heures chaque
                     semaine.
                   </p>
                 </div>
                 <div className="flex-shrink-0">
-                  <div className="flex items-center text-blue-600 font-semibold">
-                    <TrendingUp className="h-4 w-4 mr-2" />
+                  <div className="flex items-center text-blue-600 font-semibold text-sm sm:text-base">
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                     +300% d'efficacité
                   </div>
                 </div>
@@ -316,6 +399,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="group relative"
+              whileHover={{ y: -5 }}
             >
               {/* Fond décoratif animé */}
               <motion.div
@@ -609,26 +693,50 @@ export default function Home() {
             </div>
 
             {/* Boutons d'action puissants */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-12">
               <Link href="/bookings/new">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group transform hover:scale-105"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Zap className="h-6 w-6 mr-3" />
-                  Commencer maintenant
-                  <ArrowRight className="h-6 w-6 ml-3 group-hover:translate-x-2 transition-transform" />
-                </Button>
+                  <Button
+                    size="lg"
+                    className="relative bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-8 sm:px-12 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group overflow-hidden"
+                  >
+                    {/* Effet de brillance */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatDelay: 4,
+                        ease: "easeInOut",
+                      }}
+                    />
+                    <Zap className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 relative z-10" />
+                    <span className="relative z-10">Commencer maintenant</span>
+                    <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 ml-2 sm:ml-3 group-hover:translate-x-2 transition-transform relative z-10" />
+                  </Button>
+                </motion.div>
               </Link>
               <Link href="/rooms">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-5 rounded-2xl font-bold text-lg transition-all duration-300 backdrop-blur-sm"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Globe className="h-5 w-5 mr-2" />
-                  Voir la démo
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-6 sm:px-8 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 backdrop-blur-sm"
+                  >
+                    <Globe className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Voir la démo
+                  </Button>
+                </motion.div>
               </Link>
             </div>
 
@@ -722,4 +830,24 @@ export default function Home() {
       </div>
     </div>
   );
+}
+
+export default function Home() {
+  const { isOnboardingActive, completeOnboarding, isReady } = useOnboarding();
+
+  // Afficher l'onboarding si c'est la première visite
+  if (isOnboardingActive) {
+    return <Onboarding onComplete={completeOnboarding} />;
+  }
+
+  // Afficher un loader pendant l'initialisation
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return <HomeContent />;
 }
