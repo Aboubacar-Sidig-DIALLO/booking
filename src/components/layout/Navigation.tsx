@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 const navigation = [
   { name: "Accueil", href: "/", icon: Home },
@@ -34,6 +35,7 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
+  const { resetOnboarding } = useOnboarding();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -185,6 +187,17 @@ export function Navigation() {
                   admin@example.com
                 </p>
               </div>
+
+              {/* Bouton pour réinitialiser l'onboarding (dev only) */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetOnboarding}
+                className="text-xs text-slate-400 hover:text-slate-600"
+                title="Réinitialiser l'onboarding"
+              >
+                <Settings className="h-3 w-3" />
+              </Button>
             </motion.div>
           </div>
         </div>

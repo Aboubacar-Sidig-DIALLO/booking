@@ -9,196 +9,714 @@ import {
   Users,
   Clock,
   CheckCircle,
+  Zap,
+  Shield,
+  BarChart3,
+  Star,
+  TrendingUp,
+  Smartphone,
+  Globe,
+  Award,
+  Target,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import Onboarding from "@/components/onboarding/Onboarding";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { Settings } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section - Design épuré */}
-      <div className="relative">
-        {/* Background subtil */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
+  const {
+    isOnboardingActive,
+    completeOnboarding,
+    hasSeenOnboarding,
+    resetOnboarding,
+    isReady,
+  } = useOnboarding();
 
-        <div className="relative max-w-7xl mx-auto px-6 py-24 sm:py-32 lg:px-8">
-          <div className="text-center">
-            {/* Logo et branding minimaliste */}
+  // Eviter les early returns avant initialisation du hook
+  if (!isReady) {
+    return null;
+  }
+
+  // Afficher l'onboarding si c'est la première visite
+  if (isOnboardingActive) {
+    return <Onboarding onComplete={completeOnboarding} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-white overflow-hidden">
+      {/* Bouton de réinitialisation de l'onboarding (dev only) */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={resetOnboarding}
+          className="bg-white border-slate-200 text-slate-600 hover:text-slate-900"
+          title="Réinitialiser l'onboarding"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Voir l'onboarding
+        </Button>
+      </div>
+
+      {/* Hero Section - Design moderne et convaincant */}
+      <div className="relative min-h-screen">
+        {/* Background avec effets visuels */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
+
+        {/* Particules flottantes */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(15)].map((_, i) => (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              key={`hero-particle-${i}`}
+              className="absolute w-1 h-1 bg-blue-200 rounded-full opacity-40"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.4, 0.1, 0.4],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 4 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Contenu principal */}
+        <div className="relative max-w-7xl mx-auto px-6 py-20 sm:py-32 lg:px-8">
+          <div className="text-center">
+            {/* Badge de confiance */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="flex items-center justify-center mb-8"
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-4 py-2 mb-8"
             >
-              <div className="h-12 w-12 rounded-xl bg-slate-900 flex items-center justify-center mr-3">
-                <Calendar className="h-6 w-6 text-white" />
+              <Star className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-800">
+                Plus de 10,000 utilisateurs satisfaits
+              </span>
+              <Sparkles className="h-4 w-4 text-blue-600" />
+            </motion.div>
+
+            {/* Titre principal impactant */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6"
+            >
+              Révolutionnez vos{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                réservations
+              </span>
+            </motion.h1>
+
+            {/* Sous-titre persuasif */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+              className="text-xl sm:text-2xl text-slate-600 max-w-4xl mx-auto mb-8 leading-relaxed"
+            >
+              L'avenir de la gestion d'espaces commence ici.
+              <span className="font-semibold text-slate-800">
+                {" "}
+                Économisez 80% de votre temps
+              </span>{" "}
+              avec notre plateforme intelligente de réservation.
+            </motion.p>
+
+            {/* Statistiques convaincantes */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+              className="flex flex-wrap justify-center gap-8 mb-12"
+            >
+              <div className="text-center">
+                <div className="text-3xl font-bold text-slate-900">98%</div>
+                <div className="text-sm text-slate-600">
+                  Satisfaction client
+                </div>
               </div>
-              <div className="text-left">
-                <h1 className="text-2xl font-bold text-slate-900">ReservApp</h1>
-                <p className="text-sm text-slate-600">
-                  Système de réservation intelligent
-                </p>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-slate-900">-80%</div>
+                <div className="text-sm text-slate-600">Temps de gestion</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-slate-900">24/7</div>
+                <div className="text-sm text-slate-600">Disponibilité</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-slate-900">99.9%</div>
+                <div className="text-sm text-slate-600">Fiabilité</div>
               </div>
             </motion.div>
 
-            {/* Titre principal */}
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05, ease: "easeOut" }}
-              className="text-4xl font-bold tracking-tight text-slate-900 sm:text-6xl"
-            >
-              Gérez vos réservations avec{" "}
-              <span className="text-slate-600">élégance</span>
-            </motion.h2>
-
-            {/* Description */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-              className="mt-6 text-lg leading-8 text-slate-600 max-w-2xl mx-auto"
-            >
-              Une plateforme moderne pour réserver et gérer vos espaces de
-              travail. Interface intuitive, notifications en temps réel et
-              analytics avancés.
-            </motion.p>
-
-            {/* Boutons d'action */}
+            {/* Boutons d'action améliorés */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
-              className="mt-10 flex items-center justify-center gap-x-6"
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
             >
               <Link href="/bookings/new">
                 <Button
                   size="lg"
-                  className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-lg font-medium"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Nouvelle réservation
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <Zap className="h-5 w-5 mr-2" />
+                  Commencer gratuitement
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link href="/rooms">
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-lg font-medium"
+                  className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300"
                 >
-                  <Users className="h-5 w-5 mr-2" />
-                  Explorer les salles
+                  <Globe className="h-5 w-5 mr-2" />
+                  Voir la démo
                 </Button>
               </Link>
+            </motion.div>
+
+            {/* Témoignage client */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 max-w-2xl mx-auto"
+            >
+              <div className="flex items-center justify-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className="h-5 w-5 text-yellow-400 fill-current"
+                  />
+                ))}
+              </div>
+              <blockquote className="text-lg text-slate-700 italic mb-4">
+                "ReservApp a transformé notre façon de gérer les espaces. Ce qui
+                prenait des heures se fait maintenant en minutes."
+              </blockquote>
+              <div className="flex items-center justify-center space-x-3">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-semibold">M</span>
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-slate-900">
+                    Marie Dubois
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    Directrice des Opérations
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Section des fonctionnalités */}
-      <div className="py-24 bg-white">
+      {/* Section des avantages - Design moderne */}
+      <div className="py-24 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h3 className="text-2xl font-bold text-slate-900 mb-4">
-              Fonctionnalités principales
-            </h3>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              Découvrez les outils qui simplifient la gestion de vos
-              réservations
-            </p>
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 rounded-full px-4 py-2 mb-6"
+            >
+              <Award className="h-4 w-4" />
+              <span className="text-sm font-semibold">
+                Pourquoi choisir ReservApp ?
+              </span>
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6"
+            >
+              Des avantages qui font la différence
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-xl text-slate-600 max-w-3xl mx-auto"
+            >
+              Découvrez comment ReservApp transforme votre gestion d'espaces en
+              une expérience fluide et efficace
+            </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Réservation rapide */}
-            <Link href="/bookings/new">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Gain de temps */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.05, ease: "easeOut" }}
-                className="text-center p-8 rounded-2xl border border-slate-200 hover:border-slate-300 hover-lift cursor-pointer gpu-accelerated"
-              >
-                <div className="h-12 w-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-6 w-6 text-slate-700" />
-                </div>
-                <h4 className="text-lg font-semibold text-slate-900 mb-2">
-                  Réservation rapide
-                </h4>
-                <p className="text-slate-600">
-                  Réservez une salle en quelques clics avec notre interface
-                  intuitive
-                </p>
-              </motion.div>
-            </Link>
+                className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
 
-            {/* Gestion en temps réel */}
-            <Link href="/my-bookings">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
-                className="text-center p-8 rounded-2xl border border-slate-200 hover:border-slate-300 hover-lift cursor-pointer gpu-accelerated"
-              >
-                <div className="h-12 w-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Clock className="h-6 w-6 text-slate-700" />
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Zap className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Gain de temps spectaculaire
+                  </h3>
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 mb-2">
-                  Temps réel
-                </h4>
-                <p className="text-slate-600">
-                  Suivez vos réservations en temps réel avec des notifications
-                  instantanées
-                </p>
-              </motion.div>
-            </Link>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Réduisez de 80% le temps passé à gérer vos réservations.
+                    Notre interface intuitive vous fait gagner des heures chaque
+                    semaine.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-blue-600 font-semibold">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    +300% d'efficacité
+                  </div>
+                </div>
+              </div>
+            </motion.div>
 
-            {/* Analytics */}
-            <Link href="/reports">
+            {/* Sécurité avancée */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.15, ease: "easeOut" }}
-                className="text-center p-8 rounded-2xl border border-slate-200 hover:border-slate-300 hover-lift cursor-pointer gpu-accelerated"
-              >
-                <div className="h-12 w-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="h-6 w-6 text-slate-700" />
+                className="absolute inset-0 bg-gradient-to-br from-green-100 to-emerald-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Shield className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Sécurité de niveau entreprise
+                  </h3>
                 </div>
-                <h4 className="text-lg font-semibold text-slate-900 mb-2">
-                  Analytics avancés
-                </h4>
-                <p className="text-slate-600">
-                  Analysez l'utilisation de vos espaces avec des rapports
-                  détaillés
-                </p>
-              </motion.div>
-            </Link>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Vos données sont protégées par un chiffrement de niveau
+                    militaire. Conformité RGPD garantie et sauvegardes
+                    automatiques.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-green-600 font-semibold">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    99.9% de disponibilité
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Analytics intelligents */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-purple-100 to-violet-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <BarChart3 className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Analytics prédictifs
+                  </h3>
+                </div>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Optimisez l'utilisation de vos espaces avec des insights en
+                    temps réel. Prédictions et recommandations personnalisées.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-purple-600 font-semibold">
+                    <Target className="h-4 w-4 mr-2" />
+                    Prédictions IA
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Interface moderne */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Smartphone className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Interface intuitive
+                  </h3>
+                </div>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Design moderne et responsive. Accessible sur tous vos
+                    appareils avec une expérience utilisateur exceptionnelle.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-orange-600 font-semibold">
+                    <Users className="h-4 w-4 mr-2" />
+                    Multi-plateforme
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Temps réel */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Clock className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Synchronisation temps réel
+                  </h3>
+                </div>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Mises à jour instantanées sur tous les appareils.
+                    Notifications push et alertes intelligentes.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-red-600 font-semibold">
+                    <Globe className="h-4 w-4 mr-2" />
+                    Temps réel
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Support expert */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="group relative"
+            >
+              {/* Fond décoratif animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-3xl"
+                animate={{ rotate: [0, 1, -1, 0] }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+
+              {/* Contenu de la carte */}
+              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
+                <div className="flex-shrink-0">
+                  <motion.div
+                    className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Award className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-4">
+                    Support expert 24/7
+                  </h3>
+                </div>
+                <div className="flex-grow flex flex-col justify-center">
+                  <p className="text-slate-600 mb-6">
+                    Équipe d'experts dédiée à votre succès. Formation
+                    personnalisée et accompagnement continu.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="flex items-center text-indigo-600 font-semibold">
+                    <Star className="h-4 w-4 mr-2" />
+                    Support premium
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Section CTA finale */}
-      <div className="bg-slate-50 py-16">
-        <div className="max-w-4xl mx-auto text-center px-6">
+      {/* Section CTA finale - Convaincante */}
+      <div className="relative py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+        {/* Background avec effets */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20" />
+        <div className="absolute inset-0 opacity-30">
+          <div className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-6 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.8 }}
           >
-            <h3 className="text-2xl font-bold text-slate-900 mb-4">
-              Prêt à commencer ?
-            </h3>
-            <p className="text-slate-600 mb-8">
-              Rejoignez des milliers d'utilisateurs qui simplifient déjà leur
-              gestion de réservations
+            {/* Badge d'urgence */}
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full px-6 py-3 mb-8 shadow-lg">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-sm font-bold">OFFRE LIMITÉE</span>
+              <Sparkles className="h-4 w-4" />
+            </div>
+
+            {/* Titre principal */}
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+              Prêt à transformer votre{" "}
+              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                gestion d'espaces ?
+              </span>
+            </h2>
+
+            {/* Sous-titre persuasif */}
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-12 leading-relaxed">
+              Rejoignez plus de{" "}
+              <span className="font-bold text-white">10,000 entreprises</span>{" "}
+              qui ont déjà révolutionné leur gestion de réservations.
+              <span className="block mt-2 text-lg">
+                Commencez gratuitement dès aujourd'hui !
+              </span>
             </p>
-            <Link href="/bookings/new">
-              <Button
-                size="lg"
-                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-lg font-medium"
+
+            {/* Statistiques de conversion */}
+            <div className="flex flex-wrap justify-center gap-8 mb-12">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">2 min</div>
+                <div className="text-sm text-blue-200">Configuration</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">Gratuit</div>
+                <div className="text-sm text-blue-200">30 premiers jours</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">24/7</div>
+                <div className="text-sm text-blue-200">Support inclus</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">ROI</div>
+                <div className="text-sm text-blue-200">En 2 semaines</div>
+              </div>
+            </div>
+
+            {/* Boutons d'action puissants */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
+              <Link href="/bookings/new">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group transform hover:scale-105"
+                >
+                  <Zap className="h-6 w-6 mr-3" />
+                  Commencer maintenant
+                  <ArrowRight className="h-6 w-6 ml-3 group-hover:translate-x-2 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/rooms">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-5 rounded-2xl font-bold text-lg transition-all duration-300 backdrop-blur-sm"
+                >
+                  <Globe className="h-5 w-5 mr-2" />
+                  Voir la démo
+                </Button>
+              </Link>
+            </div>
+
+            {/* Garantie de satisfaction */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-white/20">
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <Shield className="h-8 w-8 text-green-400" />
+                <h3 className="text-2xl font-bold text-white">
+                  Garantie satisfait ou remboursé
+                </h3>
+              </div>
+              <p className="text-blue-100 text-lg">
+                Si vous n'êtes pas entièrement satisfait dans les 30 premiers
+                jours, nous vous remboursons intégralement. Aucune question
+                posée.
+              </p>
+            </div>
+
+            {/* Témoignages clients */}
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
               >
-                Commencer maintenant
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
+                <div className="flex items-center mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 text-yellow-400 fill-current"
+                    />
+                  ))}
+                </div>
+                <p className="text-blue-100 italic mb-4">
+                  "ReservApp a réduit notre temps de gestion de 80%. Incroyable
+                  !"
+                </p>
+                <div className="text-white font-semibold">
+                  - Jean Martin, CEO
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+              >
+                <div className="flex items-center mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 text-yellow-400 fill-current"
+                    />
+                  ))}
+                </div>
+                <p className="text-blue-100 italic mb-4">
+                  "Interface intuitive et support exceptionnel. Je recommande !"
+                </p>
+                <div className="text-white font-semibold">
+                  - Sophie Laurent, Manager
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+              >
+                <div className="flex items-center mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 text-yellow-400 fill-current"
+                    />
+                  ))}
+                </div>
+                <p className="text-blue-100 italic mb-4">
+                  "ROI visible dès la première semaine. Un investissement
+                  rentable."
+                </p>
+                <div className="text-white font-semibold">
+                  - Pierre Dubois, Directeur
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>

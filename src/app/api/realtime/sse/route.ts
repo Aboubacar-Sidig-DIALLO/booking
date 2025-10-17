@@ -1,11 +1,13 @@
 import { NextRequest } from "next/server";
 import { redis } from "@/lib/upstash";
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
+  let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  let isClosed = false;
+
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder();
-      let isClosed = false;
 
       const send = (event: string, payload: any) => {
         // Vérifier si le contrôleur est encore ouvert avant d'envoyer
@@ -17,23 +19,30 @@ export async function GET(_req: NextRequest) {
           } catch (error) {
             console.error("Erreur lors de l'envoi SSE:", error);
             isClosed = true;
+            // Fermer proprement si une erreur survient
+            try {
+              controller.close();
+            } catch {}
           }
         }
       };
 
       // Heartbeat avec vérification de l'état
-      const heartbeatInterval = setInterval(() => {
-        if (!isClosed) {
-          send("heartbeat", Date.now());
-        } else {
-          clearInterval(heartbeatInterval);
+      heartbeatInterval = setInterval(() => {
+        if (isClosed) {
+          if (heartbeatInterval !== null) clearInterval(heartbeatInterval);
+          return;
         }
+        send("heartbeat", Date.now());
       }, 15000);
 
       // Fonction de nettoyage
       const cleanup = () => {
         isClosed = true;
-        clearInterval(heartbeatInterval);
+        if (heartbeatInterval !== null) {
+          clearInterval(heartbeatInterval);
+          heartbeatInterval = null;
+        }
         try {
           controller.close();
         } catch (error) {
@@ -46,11 +55,15 @@ export async function GET(_req: NextRequest) {
         cleanup();
       };
 
-      // Écouter les événements de fermeture
-      if (typeof window !== "undefined") {
-        window.addEventListener("beforeunload", handleClose);
-        window.addEventListener("unload", handleClose);
-      }
+      // Abandon côté serveur (AbortSignal)
+      try {
+        // @ts-ignore - request.signal existe côté Next
+        const signal: AbortSignal | undefined = (req as any)?.signal;
+        if (signal) {
+          if (signal.aborted) cleanup();
+          else signal.addEventListener("abort", cleanup, { once: true });
+        }
+      } catch {}
 
       // Retourner la fonction de nettoyage
       return cleanup;
@@ -59,6 +72,12 @@ export async function GET(_req: NextRequest) {
     cancel() {
       // Nettoyage quand le stream est annulé
       console.log("SSE stream cancelled");
+      // Assurer l'arrêt du heartbeat et la fermeture
+      if (heartbeatInterval !== null) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+      isClosed = true;
     },
   });
 
