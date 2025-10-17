@@ -1,0 +1,199 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  users     User[]
+  sites     Site[]
+  rooms     Room[]
+  bookings  Booking[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(VIEWER)
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  favorites Favorite[]
+  messages  Message[]
+  bookings  BookingParticipant[]
+  createdBookings Booking[]
+  notifications Notification[]
+  checkins   Checkin[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  VIEWER
+}
+
+model Site {
+  id        String   @id @default(uuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  name      String
+  rooms     Room[]
+}
+
+model Feature {
+  id    String @id @default(uuid())
+  name  String
+  icon  String?
+  rooms RoomFeature[]
+}
+
+model Room {
+  id         String @id @default(uuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id])
+  siteId     String
+  site       Site   @relation(fields: [siteId], references: [id])
+  name       String
+  slug       String @unique
+  capacity   Int
+  location   String?
+  floor      Int?
+  description String?
+  isActive   Boolean @default(true)
+  features   RoomFeature[]
+  bookings   Booking[]
+  favorites  Favorite[]
+}
+
+model RoomFeature {
+  roomId   String
+  featureId String
+  room     Room    @relation(fields: [roomId], references: [id])
+  feature  Feature @relation(fields: [featureId], references: [id])
+  @@id([roomId, featureId])
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id])
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime
+  privacy     Privacy  @default(ORG)
+  status      BookingStatus @default(PENDING)
+  recurrenceRule String?
+  participants BookingParticipant[]
+  messages    Message[]
+  checkins    Checkin[]
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([roomId, start, end])
+}
+
+model BookingParticipant {
+  bookingId String
+  userId    String
+  role      ParticipantRole @default(REQUIRED)
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  @@id([bookingId, userId])
+}
+
+enum ParticipantRole {
+  HOST
+  REQUIRED
+  OPTIONAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  EXPIRED
+}
+
+enum Privacy {
+  PUBLIC
+  ORG
+  INVITEES
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  userId String
+  roomId String
+  user   User @relation(fields: [userId], references: [id])
+  room   Room @relation(fields: [roomId], references: [id])
+  @@id([userId, roomId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Checkin {
+  id         String   @id @default(uuid())
+  bookingId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  checkedInAt DateTime?
+  checkedOutAt DateTime?
+
+  @@unique([bookingId, userId], name: "bookingId_userId")
+}
+
+model ReportCache {
+  id        String   @id @default(uuid())
+  orgId     String
+  type      String
+  period    String
+  data      Json
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  orgId     String
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+

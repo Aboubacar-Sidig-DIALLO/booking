@@ -1,0 +1,10 @@
+{
+  "app.title": "Réservation de salles",
+  "nav.rooms": "Salles",
+  "nav.bookings": "Réservations",
+  "nav.favorites": "Favoris",
+  "nav.reports": "Rapports",
+  "nav.wallboard": "Affichage",
+  "actions.search": "Rechercher",
+  "actions.newBooking": "Nouvelle réservation"
+}
