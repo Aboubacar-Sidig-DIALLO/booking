@@ -43,24 +43,52 @@ export function connectRealtime() {
 function startSSE() {
   try {
     eventSource = new EventSource("/api/realtime/sse");
+
     eventSource.onmessage = (ev) => {
       try {
         const data = JSON.parse(ev.data);
         if (data?.event) emit(data.event, data.payload);
-      } catch {}
+      } catch (error) {
+        console.error("Erreur parsing SSE data:", error);
+      }
     };
-    eventSource.onerror = () => {
+
+    eventSource.onerror = (error) => {
+      console.log("SSE connection error, closing...");
       eventSource?.close();
       eventSource = null;
+      // Tentative de reconnexion après 5 secondes
+      setTimeout(() => {
+        if (!socket && !eventSource) {
+          startSSE();
+        }
+      }, 5000);
     };
-  } catch {
-    // ignore
+
+    eventSource.onopen = () => {
+      console.log("SSE connection opened");
+    };
+  } catch (error) {
+    console.error("Erreur lors de la création de l'EventSource:", error);
   }
 }
 
 export function disconnectRealtime() {
-  socket?.close();
-  socket = null;
-  eventSource?.close();
-  eventSource = null;
+  console.log("Disconnecting realtime...");
+
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+}
+
+// Nettoyage automatique lors de la fermeture de la page
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", disconnectRealtime);
+  window.addEventListener("unload", disconnectRealtime);
 }
