@@ -49,7 +49,12 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
+  pages: {
+    signIn: "/login",
+    error: "/auth/error",
+  },
+  debug: process.env.NODE_ENV === "development",
 };
 
 // For App Router with next-auth v4, route handlers will create the handler:

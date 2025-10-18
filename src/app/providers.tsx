@@ -46,7 +46,10 @@ export default function AppProviders({ children }: AppProvidersProps) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <SessionProvider>
+    <SessionProvider
+      baseUrl={process.env.NEXTAUTH_URL || "http://localhost:3000"}
+      basePath="/api/auth"
+    >
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster richColors position="top-right" />
