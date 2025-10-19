@@ -3,15 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import DateTimeRangePicker, {
   DateTimeRange,
 } from "@/components/ui/datetime-range-picker";
@@ -20,12 +12,11 @@ import ParticipantsPicker, { Participant } from "./ParticipantsPicker";
 import PrivacySelector, { Privacy } from "./PrivacySelector";
 import RecurrenceEditor from "./RecurrenceEditor";
 import { api } from "@/lib/api";
-import { useState as useReactState } from "react";
+import { useEffect, useState as useReactState } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
-  Calendar,
   Users,
   Shield,
   Repeat,
@@ -35,9 +26,18 @@ import {
   Clock,
   Building2,
   Sparkles,
+  Wifi,
+  Monitor,
+  Coffee,
+  Star,
 } from "lucide-react";
+import AttendeeCountSelector from "./AttendeeCountSelector";
+import RoomSuggestions from "./RoomSuggestions";
+import ManualRoomSelector from "./ManualRoomSelector";
 
 const step1Schema = z.object({
+  attendeeCount: z.number().min(1, "Au moins 1 participant requis"),
+  title: z.string().min(1, "Le titre est requis"),
   roomId: z.string().min(1, "Choisissez une salle"),
   from: z.string().min(1),
   to: z.string().min(1),
@@ -74,15 +74,21 @@ export default function BookingWizard() {
 
   const form = useForm<Step1Values>({
     resolver: zodResolver(step1Schema),
-    defaultValues: { roomId: "", from: range.from, to: range.to },
+    defaultValues: {
+      attendeeCount: 2,
+      title: "",
+      roomId: "",
+      from: range.from,
+      to: range.to,
+    },
     mode: "onChange",
   });
 
   // keep RHF in sync with local range picker
   const onRangeChange = (v: DateTimeRange) => {
     setRange(v);
-    form.setValue("from", v.from, { shouldValidate: true });
-    form.setValue("to", v.to, { shouldValidate: true });
+    form.setValue("from", v.from, { shouldValidate: false });
+    form.setValue("to", v.to, { shouldValidate: false });
   };
 
   const [step, setStep] = useReactState<1 | 2 | 3>(1);
@@ -90,6 +96,13 @@ export default function BookingWizard() {
   const [privacy, setPrivacy] = useReactState<Privacy>("public");
   const [recurrence, setRecurrence] = useReactState<string | null>(null);
   const [submitting, setSubmitting] = useReactState(false);
+  const [attendeeCount, setAttendeeCount] = useState(2);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showManualSelector, setShowManualSelector] = useState(false);
+  const [showUnavailableByDefault, setShowUnavailableByDefault] =
+    useState(true);
 
   const onSubmit = (values: Step1Values) => {
     if (step === 1) {
@@ -107,6 +120,92 @@ export default function BookingWizard() {
   const prevStep = () => {
     if (step > 1) {
       setStep((step - 1) as 1 | 2 | 3);
+    }
+  };
+
+  // Déclencher les suggestions quand les critères changent
+  useEffect(() => {
+    if (attendeeCount > 0 && range.from && range.to) {
+      setShowSuggestions(true);
+    }
+  }, [attendeeCount, range.from, range.to]);
+
+  // Scroll automatique vers le haut lors du changement d'étape
+  useEffect(() => {
+    // Petit délai pour laisser l'animation de transition se terminer
+    const timer = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 150); // Délai de 150ms pour synchroniser avec l'animation de transition
+
+    return () => clearTimeout(timer);
+  }, [step]);
+
+  const getFeatureIcon = (featureName: string) => {
+    switch (featureName.toLowerCase()) {
+      case "wifi":
+        return <Wifi className="h-4 w-4" />;
+      case "écran":
+      case "monitor":
+        return <Monitor className="h-4 w-4" />;
+      case "café":
+      case "coffee":
+        return <Coffee className="h-4 w-4" />;
+      default:
+        return <Star className="h-4 w-4" />;
+    }
+  };
+
+  const handleRoomSelect = async (
+    roomId: string,
+    fromManualSelector = false
+  ) => {
+    setSelectedRoomId(roomId);
+    form.setValue("roomId", roomId, { shouldValidate: true });
+
+    // Fermer le sélecteur manuel seulement si la sélection vient des suggestions
+    if (!fromManualSelector) {
+      setShowManualSelector(false);
+    }
+
+    // Reset selectedRoom avant de récupérer les nouvelles données
+    setSelectedRoom(null);
+
+    // Récupérer les détails de la salle sélectionnée
+    try {
+      const response = await fetch(`/api/rooms/${roomId}`);
+      if (response.ok) {
+        const roomData = await response.json();
+        setSelectedRoom(roomData);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des détails de la salle:",
+        error
+      );
+    }
+  };
+
+  // Fonction pour ouvrir le sélecteur avec toutes les salles (disponibles + occupées)
+  const openManualSelectorWithAll = () => {
+    setShowUnavailableByDefault(true);
+    setShowManualSelector(true);
+  };
+
+  // Fonction pour ouvrir le sélecteur avec seulement les salles disponibles
+  const openManualSelectorAvailableOnly = () => {
+    setShowUnavailableByDefault(false);
+    setShowManualSelector(true);
+  };
+
+  // Fonction pour gérer le clic sur les étapes de la timeline
+  const handleStepClick = (stepId: number) => {
+    // Permettre la navigation seulement vers les étapes précédentes ou l'étape actuelle
+    if (stepId <= step) {
+      setStep(stepId);
+      // Le scroll sera géré par le useEffect qui surveille [step]
     }
   };
 
@@ -130,21 +229,31 @@ export default function BookingWizard() {
             const isActive = step === stepItem.id;
             const isCompleted = step > stepItem.id;
 
+            const isClickable = stepItem.id <= step;
+
             return (
               <div
                 key={stepItem.id}
                 className="flex flex-col items-center space-y-2 sm:space-y-3 flex-1 min-w-0"
               >
-                <motion.div
+                <motion.button
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: index * 0.1 }}
+                  onClick={() => handleStepClick(stepItem.id)}
+                  disabled={!isClickable}
                   className={`relative h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 bg-white ${
                     isActive
                       ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
                       : isCompleted
-                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25"
+                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105"
                         : "bg-slate-100 text-slate-400"
+                  } ${
+                    isClickable && !isActive
+                      ? "cursor-pointer hover:bg-gradient-to-br hover:from-slate-200 hover:to-slate-300 hover:shadow-md"
+                      : isClickable
+                        ? "cursor-pointer"
+                        : "cursor-not-allowed opacity-60"
                   }`}
                 >
                   <Icon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
@@ -157,10 +266,16 @@ export default function BookingWizard() {
                       <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
                     </motion.div>
                   )}
-                </motion.div>
+                </motion.button>
                 <div className="text-center px-1">
                   <h3
-                    className={`text-xs sm:text-sm font-semibold leading-tight ${isActive ? "text-slate-900" : "text-slate-500"}`}
+                    className={`text-xs sm:text-sm font-semibold leading-tight transition-colors duration-200 ${
+                      isActive
+                        ? "text-slate-900"
+                        : isClickable
+                          ? "text-slate-600 hover:text-slate-800"
+                          : "text-slate-500"
+                    }`}
                   >
                     <span className="hidden sm:inline">{stepItem.title}</span>
                     <span className="sm:hidden">
@@ -169,6 +284,11 @@ export default function BookingWizard() {
                   </h3>
                   <p className="text-xs text-slate-500 leading-tight hidden sm:block">
                     {stepItem.description}
+                    {isClickable && !isActive && (
+                      <span className="block text-xs text-blue-500 mt-1 opacity-75">
+                        Cliquer pour revenir
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -188,74 +308,66 @@ export default function BookingWizard() {
               transition={{ duration: 0.3 }}
               className="space-y-8"
             >
-              {/* Section Salle */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-blue-100">
-                <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-                  <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              {/* Section Participants */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <Users className="h-5 w-5 text-white" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-semibold text-slate-900">
-                      Sélection de l'espace
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Participants
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Choisissez la salle qui correspond à vos besoins
+                    <p className="text-sm text-slate-600">
+                      Combien de personnes participeront à la réunion ?
                     </p>
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+                <div className="space-y-6">
+                  {/* Titre de la réunion */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
-                      Salle *
+                      Titre de la réunion *
                     </Label>
-                    <Select
-                      value={form.watch("roomId")}
-                      onValueChange={(v) =>
-                        form.setValue("roomId", v, { shouldValidate: true })
+                    <input
+                      type="text"
+                      placeholder="Ex: Réunion équipe marketing"
+                      value={form.watch("title")}
+                      onChange={(e) =>
+                        form.setValue("title", e.target.value, {
+                          shouldValidate: true,
+                        })
                       }
-                    >
-                      <SelectTrigger className="h-10 sm:h-12 bg-white border-slate-200 rounded-lg sm:rounded-xl">
-                        <SelectValue placeholder="Choisir une salle" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-lg sm:rounded-xl">
-                        <SelectItem value="room-a">
-                          🏢 Salle de conférence A
-                        </SelectItem>
-                        <SelectItem value="room-b">
-                          💻 Salle de réunion B
-                        </SelectItem>
-                        <SelectItem value="room-c">
-                          🎯 Espace créatif C
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.roomId && (
+                      className="w-full h-12 px-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                    {form.formState.errors.title && (
                       <motion.p
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-xs text-red-600 flex items-center space-x-1"
                       >
                         <span>⚠️</span>
-                        <span>{form.formState.errors.roomId.message}</span>
+                        <span>{form.formState.errors.title.message}</span>
                       </motion.p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-700">
-                      Titre de la réunion
-                    </Label>
-                    <Input
-                      placeholder="Ex: Réunion équipe marketing"
-                      className="h-10 sm:h-12 bg-white border-slate-200 rounded-lg sm:rounded-xl"
-                    />
-                  </div>
+                  {/* Nombre de participants */}
+                  <AttendeeCountSelector
+                    value={attendeeCount}
+                    onChange={(count) => {
+                      setAttendeeCount(count);
+                      form.setValue("attendeeCount", count, {
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
                 </div>
               </div>
 
               {/* Section Créneau */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-green-100">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
                   <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
                     <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -265,7 +377,7 @@ export default function BookingWizard() {
                       Planification
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Définissez la durée et l'horaire de votre réunion
+                      Définissez la durée et l&apos;horaire de votre réunion
                     </p>
                   </div>
                 </div>
@@ -292,6 +404,200 @@ export default function BookingWizard() {
                   )}
                 </div>
               </div>
+
+              {/* Suggestions de salles */}
+              {showSuggestions && !showManualSelector && (
+                <RoomSuggestions
+                  attendeeCount={attendeeCount}
+                  timeRange={range}
+                  onRoomSelect={handleRoomSelect}
+                  selectedRoomId={selectedRoomId}
+                  onManualSelection={openManualSelectorAvailableOnly}
+                />
+              )}
+
+              {/* Sélecteur manuel de salle */}
+              {showManualSelector && (
+                <ManualRoomSelector
+                  onRoomSelect={(roomId) => handleRoomSelect(roomId, true)}
+                  onClose={() => setShowManualSelector(false)}
+                  selectedRoomId={selectedRoomId}
+                  attendeeCount={attendeeCount}
+                  timeRange={range}
+                  showUnavailableByDefault={showUnavailableByDefault}
+                />
+              )}
+
+              {/* Salle sélectionnée avec détails */}
+              {selectedRoomId &&
+                (selectedRoom ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                          <CheckCircle className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">
+                            {selectedRoom.name}
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            📍 {selectedRoom.site?.name}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={openManualSelectorWithAll}
+                          className="bg-white hover:bg-slate-50"
+                        >
+                          Changer
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedRoomId("");
+                            setSelectedRoom(null);
+                            form.setValue("roomId", "", {
+                              shouldValidate: true,
+                            });
+                          }}
+                          className="bg-white hover:bg-red-50 text-red-600 border-red-200"
+                        >
+                          Supprimer
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Capacité */}
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Users className="h-5 w-5 text-green-600" />
+                          <span className="font-semibold text-slate-900">
+                            Capacité
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-green-600">
+                          {selectedRoom.capacity}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          places disponibles
+                        </p>
+                      </div>
+
+                      {/* Équipements */}
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Sparkles className="h-5 w-5 text-green-600" />
+                          <span className="font-semibold text-slate-900">
+                            Équipements
+                          </span>
+                        </div>
+                        {selectedRoom.features &&
+                        selectedRoom.features.length > 0 ? (
+                          <div className="space-y-2">
+                            {selectedRoom.features
+                              .slice(0, 3)
+                              .map((rf: any, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center space-x-2"
+                                >
+                                  {getFeatureIcon(rf.feature.name)}
+                                  <span className="text-sm text-slate-700">
+                                    {rf.feature.name}
+                                  </span>
+                                </div>
+                              ))}
+                            {selectedRoom.features.length > 3 && (
+                              <p className="text-xs text-slate-500">
+                                +{selectedRoom.features.length - 3} autres
+                                équipements
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-500">
+                            Équipements de base
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Building2 className="h-5 w-5 text-green-600" />
+                          <span className="font-semibold text-slate-900">
+                            Description
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-700">
+                          {selectedRoom.description ||
+                            "Salle de réunion moderne et fonctionnelle"}
+                        </p>
+                        {selectedRoom.location && (
+                          <p className="text-xs text-slate-500 mt-2">
+                            📍 {selectedRoom.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  // État de chargement
+                  <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-12 w-12 bg-slate-200 rounded-xl animate-pulse"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-slate-200 rounded w-32 animate-pulse"></div>
+                        <div className="h-3 bg-slate-200 rounded w-24 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="bg-white rounded-lg p-4 border border-slate-100"
+                        >
+                          <div className="h-4 bg-slate-200 rounded w-20 mb-2 animate-pulse"></div>
+                          <div className="h-6 bg-slate-200 rounded w-16 mb-1 animate-pulse"></div>
+                          <div className="h-3 bg-slate-200 rounded w-24 animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+              {/* Bouton pour accéder au sélecteur manuel */}
+              {!selectedRoomId && !showManualSelector && (
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={
+                      showSuggestions
+                        ? openManualSelectorWithAll
+                        : openManualSelectorWithAll
+                    }
+                    className="bg-white hover:bg-slate-50"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    {showSuggestions
+                      ? "Voir toutes les salles"
+                      : "Choisir une salle"}
+                  </Button>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -362,12 +668,21 @@ export default function BookingWizard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2 sm:space-y-3">
                       <div className="flex items-center space-x-2 sm:space-x-3">
+                        <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
+                        <span className="text-xs sm:text-sm font-medium text-slate-700">
+                          Titre:
+                        </span>
+                        <span className="text-xs sm:text-sm text-slate-900 truncate">
+                          {form.watch("title") || "—"}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-slate-500 flex-shrink-0" />
                         <span className="text-xs sm:text-sm font-medium text-slate-700">
                           Salle:
                         </span>
                         <span className="text-xs sm:text-sm text-slate-900 truncate">
-                          {form.watch("roomId") || "—"}
+                          {selectedRoomId || "—"}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 sm:space-x-3">
@@ -459,7 +774,8 @@ export default function BookingWizard() {
                   setSubmitting(true);
                   try {
                     await api.post("/bookings", {
-                      roomId: form.getValues("roomId"),
+                      roomId: selectedRoomId,
+                      title: form.getValues("title"),
                       from: new Date(range.from).toISOString(),
                       to: new Date(range.to).toISOString(),
                       participants,

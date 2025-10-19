@@ -80,9 +80,9 @@ export default function RecurrenceEditor({
                 Récurrence unique
               </h4>
               <p className="text-sm text-blue-700">
-                Cette réservation n'aura lieu qu'une seule fois. Laissez le
-                champ vide ou utilisez les exemples ci-dessous pour créer une
-                série.
+                Cette réservation n&apos;aura lieu qu&apos;une seule fois.
+                Laissez le champ vide ou utilisez les exemples ci-dessous pour
+                créer une série.
               </p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function RecurrenceEditor({
               </div>
               <div className="flex flex-wrap gap-2">
                 <code className="bg-amber-100 px-1 rounded">COUNT</code>
-                <span>: Nombre d'occurrences</span>
+                <span>: Nombre d&apos;occurrences</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <code className="bg-amber-100 px-1 rounded">BYDAY</code>
