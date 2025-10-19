@@ -12,7 +12,7 @@ import ParticipantsPicker, { Participant } from "./ParticipantsPicker";
 import PrivacySelector, { Privacy } from "./PrivacySelector";
 import RecurrenceEditor from "./RecurrenceEditor";
 import { api } from "@/lib/api";
-import { useEffect, useState as useReactState } from "react";
+import { useEffect, useState as useReactState, useCallback } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,6 +30,7 @@ import {
   Monitor,
   Coffee,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import AttendeeCountSelector from "./AttendeeCountSelector";
 import RoomSuggestions from "./RoomSuggestions";
@@ -103,15 +104,117 @@ export default function BookingWizard() {
   const [showManualSelector, setShowManualSelector] = useState(false);
   const [showUnavailableByDefault, setShowUnavailableByDefault] =
     useState(true);
+  const [showParticipantAlert, setShowParticipantAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertDetails, setAlertDetails] = useState("");
+  const [showNavigationAlert, setShowNavigationAlert] = useState(false);
 
-  const onSubmit = (values: Step1Values) => {
+  const onSubmit = async (values: Step1Values) => {
     if (step === 1) {
       setStep(2);
       return;
     }
+
+    if (step === 3) {
+      setSubmitting(true);
+      try {
+        // Préparer les données pour l'API
+        const bookingData = {
+          roomId: values.roomId,
+          title: values.title,
+          description: "", // Pas de description pour l'instant
+          start: values.from,
+          end: values.to,
+          privacy: privacy as "PUBLIC" | "ORG" | "INVITEES",
+          participants: participants.map((p) => ({
+            userId: p.id,
+            role: p.role.toUpperCase() as "HOST" | "REQUIRED" | "OPTIONAL",
+          })),
+          recurrenceRule: recurrenceRule || null,
+        };
+
+        const response = await fetch("/api/bookings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la création de la réservation");
+        }
+
+        const newBooking = await response.json();
+
+        // Rediriger vers la page des réservations avec le nouvel élément sélectionné
+        window.location.href = `/bookings?highlight=${newBooking.id}`;
+      } catch (error) {
+        console.error("Erreur lors de la création:", error);
+        // Ici on pourrait afficher une alerte d'erreur
+        alert(
+          "Erreur lors de la création de la réservation. Veuillez réessayer."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    }
   };
 
+  const validateStep2 = useCallback(() => {
+    if (participants.length === 0) {
+      return {
+        isValid: false,
+        message: "Aucun participant ajouté",
+        details:
+          "Les personnes non mentionnées ne recevront pas de notification automatique via la plateforme. Vous devrez les informer par un autre moyen.",
+      };
+    }
+
+    if (participants.length < attendeeCount) {
+      const missingCount = attendeeCount - participants.length;
+      return {
+        isValid: false,
+        message: `${missingCount} participant${missingCount > 1 ? "s" : ""} manquant${missingCount > 1 ? "s" : ""}`,
+        details:
+          "Certaines personnes ne recevront pas de notification automatique via la plateforme. Vous devrez les informer par un autre moyen.",
+      };
+    }
+
+    return { isValid: true };
+  }, [participants.length, attendeeCount]);
+
   const nextStep = () => {
+    if (step === 2) {
+      const validation = validateStep2();
+      if (!validation.isValid) {
+        // Si l'alerte n'est pas déjà affichée, l'afficher
+        if (!showParticipantAlert) {
+          setShowParticipantAlert(true);
+          setAlertMessage(validation.message);
+          setAlertDetails(validation.details);
+        }
+
+        // Faire défiler vers l'alerte à chaque clic sur "Suivant"
+        setTimeout(() => {
+          const alertElement = document.querySelector(
+            "[data-participant-alert]"
+          );
+          if (alertElement) {
+            alertElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }, 100);
+
+        return;
+      } else {
+        // Validation réussie, masquer l'alerte et passer à l'étape suivante
+        setShowParticipantAlert(false);
+      }
+    }
+
     if (step < 3) {
       setStep((step + 1) as 1 | 2 | 3);
     }
@@ -142,6 +245,37 @@ export default function BookingWizard() {
 
     return () => clearTimeout(timer);
   }, [step]);
+
+  // Scroll automatique vers l'alerte quand elle s'affiche
+  useEffect(() => {
+    if (showParticipantAlert) {
+      const timer = setTimeout(() => {
+        const alertElement = document.querySelector("[data-participant-alert]");
+        if (alertElement) {
+          alertElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 300); // Délai pour laisser l'animation d'apparition se terminer
+
+      return () => clearTimeout(timer);
+    }
+  }, [showParticipantAlert]);
+
+  // Mettre à jour le message d'alerte dynamiquement
+  useEffect(() => {
+    if (showParticipantAlert) {
+      const validation = validateStep2();
+      if (!validation.isValid) {
+        setAlertMessage(validation.message);
+        setAlertDetails(validation.details);
+      } else {
+        // Si la validation passe, masquer l'alerte automatiquement
+        setShowParticipantAlert(false);
+      }
+    }
+  }, [participants.length, attendeeCount, showParticipantAlert, validateStep2]);
 
   const getFeatureIcon = (featureName: string) => {
     switch (featureName.toLowerCase()) {
@@ -204,9 +338,24 @@ export default function BookingWizard() {
   const handleStepClick = (stepId: number) => {
     // Permettre la navigation seulement vers les étapes précédentes ou l'étape actuelle
     if (stepId <= step) {
+      // Si on navigue vers l'étape 1 depuis l'étape 3, afficher une confirmation
+      if (step === 3 && stepId === 1) {
+        setShowNavigationAlert(true);
+        return;
+      }
+
       setStep(stepId);
       // Le scroll sera géré par le useEffect qui surveille [step]
     }
+  };
+
+  const confirmNavigation = () => {
+    setStep(1);
+    setShowNavigationAlert(false);
+  };
+
+  const cancelNavigation = () => {
+    setShowNavigationAlert(false);
   };
 
   return (
@@ -246,11 +395,11 @@ export default function BookingWizard() {
                     isActive
                       ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
                       : isCompleted
-                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 hover:scale-105"
+                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:from-emerald-500 hover:to-green-600 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 hover:ring-2 hover:ring-emerald-200"
                         : "bg-slate-100 text-slate-400"
                   } ${
-                    isClickable && !isActive
-                      ? "cursor-pointer hover:bg-gradient-to-br hover:from-slate-200 hover:to-slate-300 hover:shadow-md"
+                    isClickable && !isActive && !isCompleted
+                      ? "cursor-pointer hover:bg-gradient-to-br hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105"
                       : isClickable
                         ? "cursor-pointer"
                         : "cursor-not-allowed opacity-60"
@@ -629,7 +778,79 @@ export default function BookingWizard() {
                   <ParticipantsPicker
                     value={participants}
                     onChange={setParticipants}
+                    maxParticipants={attendeeCount}
                   />
+
+                  {/* Alerte pour participants manquants */}
+                  <AnimatePresence>
+                    {showParticipantAlert && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 shadow-lg"
+                        data-participant-alert
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <div className="h-8 w-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                              <AlertTriangle className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-amber-900 mb-1">
+                              {alertMessage}
+                            </h4>
+                            <p className="text-xs text-amber-700 leading-relaxed mb-3">
+                              {alertDetails}
+                            </p>
+
+                            {/* Barre de progression */}
+                            {participants.length > 0 && (
+                              <div className="mb-3">
+                                <div className="flex justify-between text-xs text-amber-700 mb-1">
+                                  <span>
+                                    Participants ajoutés: {participants.length}
+                                  </span>
+                                  <span>Total requis: {attendeeCount}</span>
+                                </div>
+                                <div className="w-full bg-amber-200 rounded-full h-2">
+                                  <div
+                                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${Math.min((participants.length / attendeeCount) * 100, 100)}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowParticipantAlert(false)}
+                                className="text-xs bg-white hover:bg-amber-50 border-amber-300 text-amber-700"
+                              >
+                                Compris
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setShowParticipantAlert(false);
+                                  setStep(3);
+                                }}
+                                className="text-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                              >
+                                Continuer quand même
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <PrivacySelector value={privacy} onChange={setPrivacy} />
                   <RecurrenceEditor
                     value={recurrence}
@@ -762,7 +983,7 @@ export default function BookingWizard() {
                 type={step === 1 ? "submit" : "button"}
                 onClick={step === 2 ? nextStep : undefined}
                 disabled={step === 1 && !form.formState.isValid}
-                className="h-10 sm:h-12 px-6 sm:px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-sm sm:text-base"
+                className="h-10 sm:h-12 px-6 sm:px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-sm sm:text-base cursor-pointer"
               >
                 {step === 1 ? "Continuer" : "Suivant"}
                 <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-2" />
@@ -815,6 +1036,60 @@ export default function BookingWizard() {
           </div>
         </div>
       </form>
+
+      {/* Alerte de navigation */}
+      <AnimatePresence>
+        {showNavigationAlert && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-blue-200"
+            >
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ArrowLeft className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    Revenir à l&apos;étape 1 ?
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    Vous êtes sur le point de revenir à l&apos;étape de
+                    configuration initiale.
+                    <strong className="text-blue-600">
+                      Vos participants et paramètres actuels seront conservés
+                    </strong>{" "}
+                    et ne seront pas perdus.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={cancelNavigation}
+                      className="text-slate-600 border-slate-300 hover:bg-slate-50"
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={confirmNavigation}
+                      className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white"
+                    >
+                      Revenir à l&apos;étape 1
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
