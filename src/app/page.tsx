@@ -3,8 +3,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
-  Calendar,
-  Plus,
   ArrowRight,
   Users,
   Clock,
@@ -21,29 +19,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import Onboarding from "@/components/onboarding/Onboarding";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { Settings } from "lucide-react";
 
-function HomeContent() {
-  const { hasSeenOnboarding, resetOnboarding } = useOnboarding();
-
+function HeroContent() {
   return (
     <div className="min-h-screen bg-white overflow-hidden">
-      {/* Bouton de réinitialisation de l'onboarding (dev only) */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={resetOnboarding}
-          className="bg-white border-slate-200 text-slate-600 hover:text-slate-900"
-          title="Réinitialiser l'onboarding"
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Voir l'onboarding
-        </Button>
-      </div>
-
       {/* Hero Section - Design moderne et convaincant */}
       <div className="relative min-h-screen overflow-hidden">
         {/* Background avec effets visuels sophistiqués */}
@@ -102,38 +81,47 @@ function HomeContent() {
 
         {/* Particules flottantes améliorées */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={`hero-particle-${i}`}
-              className={`absolute rounded-full ${
-                i % 3 === 0
-                  ? "w-2 h-2 bg-blue-300/60"
-                  : i % 3 === 1
-                    ? "w-1 h-1 bg-indigo-300/80"
-                    : "w-1.5 h-1.5 bg-purple-300/50"
-              }`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -40, 0],
-                x: [0, Math.random() * 20 - 10, 0],
-                opacity: [0.6, 0.1, 0.6],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: 5 + Math.random() * 3,
-                repeat: Infinity,
-                delay: Math.random() * 3,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
+          {[...Array(20)].map((_, i) => {
+            // Utiliser des valeurs fixes basées sur l'index pour éviter les problèmes d'hydratation
+            const basePosition = i * 5; // Position de base basée sur l'index
+            const leftPosition = (basePosition + i * 7) % 100; // Position calculée de manière déterministe
+            const topPosition = (basePosition + i * 11) % 100;
+            const animationDelay = i * 0.2; // Délai basé sur l'index
+            const duration = 5 + (i % 3); // Durée basée sur l'index
+
+            return (
+              <motion.div
+                key={`hero-particle-${i}`}
+                className={`absolute rounded-full ${
+                  i % 3 === 0
+                    ? "w-2 h-2 bg-blue-300/60"
+                    : i % 3 === 1
+                      ? "w-1 h-1 bg-indigo-300/80"
+                      : "w-1.5 h-1.5 bg-purple-300/50"
+                }`}
+                style={{
+                  left: `${leftPosition}%`,
+                  top: `${topPosition}%`,
+                }}
+                animate={{
+                  y: [0, -40, 0],
+                  x: [0, i % 2 === 0 ? 10 : -10, 0], // Mouvement alterné basé sur l'index
+                  opacity: [0.6, 0.1, 0.6],
+                  scale: [1, 1.5, 1],
+                }}
+                transition={{
+                  duration: duration,
+                  repeat: Infinity,
+                  delay: animationDelay,
+                  ease: "easeInOut",
+                }}
+              />
+            );
+          })}
         </div>
 
         {/* Contenu principal */}
-        <div className="relative max-w-7xl mx-auto px-6 py-20 sm:py-32 lg:px-8">
+        <div className="relative max-w-7xl mx-auto px-6 py-4 lg:px-8">
           <div className="text-center">
             {/* Badge de confiance */}
             <motion.div
@@ -232,7 +220,7 @@ function HomeContent() {
                 >
                   <Button
                     size="lg"
-                    className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden"
+                    className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden cursor-pointer"
                   >
                     {/* Effet de brillance */}
                     <motion.div
@@ -263,7 +251,7 @@ function HomeContent() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 backdrop-blur-sm hover:shadow-lg"
+                    className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 backdrop-blur-sm hover:shadow-lg cursor-pointer"
                   >
                     <Globe className="h-5 w-5 mr-2" />
                     Voir la démo
@@ -833,21 +821,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  const { isOnboardingActive, completeOnboarding, isReady } = useOnboarding();
-
-  // Afficher l'onboarding si c'est la première visite
-  if (isOnboardingActive) {
-    return <Onboarding onComplete={completeOnboarding} />;
-  }
-
-  // Afficher un loader pendant l'initialisation
-  if (!isReady) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return <HomeContent />;
+  return <HeroContent />;
 }

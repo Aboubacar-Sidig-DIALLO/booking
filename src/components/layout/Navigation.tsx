@@ -29,6 +29,7 @@ const navigation = [
   { name: "Favoris", href: "/favorites", icon: Heart },
   { name: "Rapports", href: "/reports", icon: BarChart3 },
   { name: "Wallboard", href: "/wallboard", icon: Monitor },
+  { name: "Administration", href: "/admin", icon: Settings, adminOnly: true },
 ];
 
 export function Navigation() {
@@ -36,6 +37,14 @@ export function Navigation() {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const { resetOnboarding } = useOnboarding();
+
+  // Simuler le statut administrateur (à remplacer par la vraie logique d'authentification)
+  const isAdmin = true; // TODO: Remplacer par la vraie logique d'authentification
+
+  // Filtrer la navigation selon les permissions
+  const filteredNavigation = navigation.filter(
+    (item) => !item.adminOnly || (item.adminOnly && isAdmin)
+  );
 
   useEffect(() => {
     const checkMobile = () => {
@@ -58,7 +67,7 @@ export function Navigation() {
           variant="outline"
           size="icon"
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-white border-slate-200"
+          className="bg-white border-slate-200 cursor-pointer"
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -137,7 +146,7 @@ export function Navigation() {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 p-6 overflow-y-auto">
-            {navigation.map((item, index) => {
+            {filteredNavigation.map((item, index) => {
               const isActive = pathname === item.href;
               return (
                 <motion.div
@@ -153,7 +162,7 @@ export function Navigation() {
                   <Link
                     href={item.href}
                     className={cn(
-                      "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
                       isActive
                         ? "bg-slate-100 text-slate-900"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -193,7 +202,7 @@ export function Navigation() {
                 variant="ghost"
                 size="sm"
                 onClick={resetOnboarding}
-                className="text-xs text-slate-400 hover:text-slate-600"
+                className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
                 title="Réinitialiser l'onboarding"
               >
                 <Settings className="h-3 w-3" />

@@ -9,17 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Calendar,
-  Users,
-  Clock,
-  Wifi,
-  Monitor,
-  Coffee,
-  Plus,
-  Search,
-  Filter,
-} from "lucide-react";
+import { Users, Clock, Plus, Search, Filter } from "lucide-react";
 import Link from "next/link";
 
 const rooms = [
@@ -92,7 +82,10 @@ export default function RoomsPage() {
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
               />
             </div>
-            <Button variant="outline" className="border-slate-200">
+            <Button
+              variant="outline"
+              className="border-slate-200 cursor-pointer"
+            >
               <Filter className="h-4 w-4 mr-2" />
               Filtres
             </Button>
@@ -165,14 +158,14 @@ export default function RoomsPage() {
                       <Link href={`/rooms/${room.id}`} className="flex-1">
                         <Button
                           variant="outline"
-                          className="w-full border-slate-200 text-slate-700"
+                          className="w-full border-slate-200 text-slate-700 cursor-pointer"
                         >
                           Voir détails
                         </Button>
                       </Link>
                       <Link href={`/bookings/new?room=${room.id}`}>
                         <Button
-                          className="bg-slate-900 hover:bg-slate-800 text-white"
+                          className="bg-slate-900 hover:bg-slate-800 text-white cursor-pointer"
                           disabled={room.status === "occupée"}
                         >
                           Réserver
