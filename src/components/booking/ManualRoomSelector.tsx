@@ -72,16 +72,6 @@ export default function ManualRoomSelector({
   );
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
-  useEffect(() => {
-    fetchAllRooms();
-  }, [attendeeCount, fetchAllRooms]);
-
-  useEffect(() => {
-    if (timeRange?.from && timeRange?.to) {
-      fetchRoomsAvailability();
-    }
-  }, [timeRange, fetchRoomsAvailability]);
-
   const scoreAndCategorizeRooms = useCallback(
     (roomsData: Room[]): Room[] => {
       return roomsData
@@ -161,6 +151,16 @@ export default function ManualRoomSelector({
       setAvailabilityLoading(false);
     }
   }, [timeRange, rooms, scoreAndCategorizeRooms]);
+
+  useEffect(() => {
+    fetchAllRooms();
+  }, [attendeeCount, fetchAllRooms]);
+
+  useEffect(() => {
+    if (timeRange?.from && timeRange?.to) {
+      fetchRoomsAvailability();
+    }
+  }, [timeRange, fetchRoomsAvailability]);
 
   const getFeatureIcon = (featureName: string) => {
     switch (featureName.toLowerCase()) {
@@ -744,33 +744,33 @@ export default function ManualRoomSelector({
                           </div>
 
                           {/* Zone de statut avec hauteur fixe */}
-                          <div className="h-16 mb-3 flex items-center">
+                          <div className="h-16 mb-3 flex items-center justify-center">
                             {hasConflict ? (
-                              <div className="w-full p-2 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <Calendar className="h-3 w-3 text-red-500" />
-                                  <span className="text-xs font-semibold text-red-700">
-                                    Occupée actuellement
-                                  </span>
+                              <div className="w-full p-2 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg flex items-center justify-center">
+                                <div className="flex flex-col items-center justify-center space-y-1">
+                                  <div className="flex items-center space-x-2">
+                                    <Calendar className="h-3 w-3 text-red-500" />
+                                    <span className="text-xs font-semibold text-red-700">
+                                      Occupée actuellement
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-red-600 truncate">
+                                    📅 {hasConflict.title}
+                                  </p>
                                 </div>
-                                <p className="text-xs text-red-600 truncate">
-                                  📅 {hasConflict.title}
-                                </p>
                               </div>
                             ) : (
-                              <div className="w-full flex items-center justify-center">
-                                <div
-                                  className={`flex items-center space-x-2 px-3 py-2 rounded-full ${
-                                    isAvailable
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-slate-50 text-slate-500"
-                                  }`}
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                  <span className="text-sm font-medium">
-                                    Disponible
-                                  </span>
-                                </div>
+                              <div
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-full ${
+                                  isAvailable
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-slate-50 text-slate-500"
+                                }`}
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                <span className="text-sm font-medium">
+                                  Disponible
+                                </span>
                               </div>
                             )}
                           </div>

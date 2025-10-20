@@ -745,7 +745,7 @@ export default function RoomsPage() {
                                   </Badge>
                                   <Badge
                                     variant="outline"
-                                    className={`text-xs ${typeConfig.color}`}
+                                    className={`text-xs ${typeConfig.color} text-nowrap`}
                                   >
                                     {typeConfig.icon} {room.type}
                                   </Badge>
@@ -974,39 +974,43 @@ export default function RoomsPage() {
                       className="group"
                     >
                       <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
                               <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg flex-shrink-0">
                                 <Building2 className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="text-lg font-bold text-slate-900 truncate">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                  <h3 className="text-base sm:text-lg font-bold text-slate-900 truncate">
                                     {room.name}
                                   </h3>
-                                  <Badge
-                                    variant={statusConfig.variant}
-                                    className="text-xs"
-                                  >
-                                    <StatusIcon className="h-3 w-3 mr-1" />
-                                    {statusConfig.label}
-                                  </Badge>
-                                  <Badge
-                                    variant="outline"
-                                    className={`text-xs ${typeConfig.color}`}
-                                  >
-                                    {typeConfig.icon} {room.type}
-                                  </Badge>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Badge
+                                      variant={statusConfig.variant}
+                                      className="text-xs"
+                                    >
+                                      <StatusIcon className="h-3 w-3 mr-1" />
+                                      {statusConfig.label}
+                                    </Badge>
+                                    <Badge
+                                      variant="outline"
+                                      className={`text-xs ${typeConfig.color}`}
+                                    >
+                                      {typeConfig.icon} {room.type}
+                                    </Badge>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-600 mb-3">
                                   <div className="flex items-center gap-1">
                                     <Users className="h-4 w-4 text-blue-500" />
                                     <span>{room.capacity} places</span>
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <MapPin className="h-4 w-4 text-green-500" />
-                                    <span>{room.location}</span>
+                                    <span className="truncate">
+                                      {room.location}
+                                    </span>
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <Star className="h-4 w-4 text-yellow-500" />
@@ -1014,12 +1018,14 @@ export default function RoomsPage() {
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <Clock className="h-4 w-4 text-orange-500" />
-                                    <span>{room.nextBooking}</span>
+                                    <span className="truncate">
+                                      {room.nextBooking}
+                                    </span>
                                   </div>
                                 </div>
 
                                 {/* Équipements pour la vue liste */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                   <div className="flex items-center gap-1.5">
                                     <div className="p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md">
                                       <Monitor className="h-2.5 w-2.5 text-white" />
@@ -1031,7 +1037,7 @@ export default function RoomsPage() {
                                       {room.equipment.length}
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-1.5">
+                                  <div className="flex flex-wrap items-center gap-1.5">
                                     {room.equipment
                                       .slice(0, 4)
                                       .map((item, idx) => {
@@ -1156,7 +1162,7 @@ export default function RoomsPage() {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 ml-4">
+                            <div className="flex items-center justify-end sm:justify-start lg:justify-end gap-2 flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1174,7 +1180,7 @@ export default function RoomsPage() {
                                   className="h-8"
                                 >
                                   <Eye className="h-3 w-3 mr-1" />
-                                  Voir
+                                  <span className="hidden sm:inline">Voir</span>
                                 </Button>
                               </Link>
                               <Link href={`/bookings/new?room=${room.id}`}>
@@ -1183,7 +1189,10 @@ export default function RoomsPage() {
                                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8"
                                   disabled={room.status === "occupée"}
                                 >
-                                  Réserver
+                                  <span className="hidden sm:inline">
+                                    Réserver
+                                  </span>
+                                  <span className="sm:hidden">Réserver</span>
                                 </Button>
                               </Link>
                             </div>

@@ -15,6 +15,7 @@ import { api } from "@/lib/api";
 import { useEffect, useState as useReactState, useCallback } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   MapPin,
   Users,
@@ -68,6 +69,8 @@ const steps = [
 ];
 
 export default function BookingWizard() {
+  const { data: session, status } = useSession();
+
   const [range, setRange] = useState<DateTimeRange>(() => ({
     from: new Date().toISOString().slice(0, 16),
     to: new Date(Date.now() + 60 * 60e3).toISOString().slice(0, 16),
@@ -116,21 +119,37 @@ export default function BookingWizard() {
     }
 
     if (step === 3) {
+      // Vérifier l'authentification avant de soumettre
+      if (status === "loading") {
+        alert("Vérification de l'authentification en cours...");
+        return;
+      }
+
+      if (status === "unauthenticated" || !session) {
+        alert(
+          "Vous devez être connecté pour créer une réservation. Redirection vers la page de connexion..."
+        );
+        window.location.href = "/login";
+        return;
+      }
+
       setSubmitting(true);
       try {
         // Préparer les données pour l'API
+        const startISO = new Date(values.from).toISOString();
+        const endISO = new Date(values.to).toISOString();
         const bookingData = {
           roomId: values.roomId,
           title: values.title,
           description: "", // Pas de description pour l'instant
-          start: values.from,
-          end: values.to,
+          start: startISO,
+          end: endISO,
           privacy: privacy as "PUBLIC" | "ORG" | "INVITEES",
           participants: participants.map((p) => ({
             userId: p.id,
             role: p.role.toUpperCase() as "HOST" | "REQUIRED" | "OPTIONAL",
           })),
-          recurrenceRule: recurrenceRule || null,
+          recurrenceRule: recurrence || null,
         };
 
         const response = await fetch("/api/bookings", {
@@ -142,7 +161,12 @@ export default function BookingWizard() {
         });
 
         if (!response.ok) {
-          throw new Error("Erreur lors de la création de la réservation");
+          const errorData = await response.text();
+          console.error("Erreur API:", response.status, errorData);
+          console.error("Données envoyées:", bookingData);
+          throw new Error(
+            `Erreur lors de la création de la réservation (${response.status}): ${errorData}`
+          );
         }
 
         const newBooking = await response.json();
@@ -161,7 +185,11 @@ export default function BookingWizard() {
     }
   };
 
-  const validateStep2 = useCallback(() => {
+  type ValidationResult =
+    | { isValid: true }
+    | { isValid: false; message: string; details: string };
+
+  const validateStep2 = useCallback((): ValidationResult => {
     if (participants.length === 0) {
       return {
         isValid: false,
@@ -338,25 +366,46 @@ export default function BookingWizard() {
   const handleStepClick = (stepId: number) => {
     // Permettre la navigation seulement vers les étapes précédentes ou l'étape actuelle
     if (stepId <= step) {
-      // Si on navigue vers l'étape 1 depuis l'étape 3, afficher une confirmation
-      if (step === 3 && stepId === 1) {
-        setShowNavigationAlert(true);
-        return;
-      }
-
-      setStep(stepId);
+      setStep(stepId as 1 | 2 | 3);
       // Le scroll sera géré par le useEffect qui surveille [step]
     }
   };
 
-  const confirmNavigation = () => {
-    setStep(1);
-    setShowNavigationAlert(false);
-  };
+  // Afficher un état de chargement si l'authentification est en cours
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">
+            Vérification de l'authentification...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const cancelNavigation = () => {
-    setShowNavigationAlert(false);
-  };
+  // Rediriger si non authentifié
+  if (status === "unauthenticated") {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+          <h3 className="text-lg font-semibold text-red-900 mb-2">
+            Authentification requise
+          </h3>
+          <p className="text-red-700 mb-4">
+            Vous devez être connecté pour créer une réservation.
+          </p>
+          <Button
+            onClick={() => (window.location.href = "/login")}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            Se connecter
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -433,11 +482,9 @@ export default function BookingWizard() {
                   </h3>
                   <p className="text-xs text-slate-500 leading-tight hidden sm:block">
                     {stepItem.description}
-                    {isClickable && !isActive && (
-                      <span className="block text-xs text-blue-500 mt-1 opacity-75">
-                        Cliquer pour revenir
-                      </span>
-                    )}
+                    <span className="block text-xs text-blue-500 mt-1 opacity-75 h-2 w-full">
+                      {isClickable && !isActive && "Cliquer pour revenir"}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -1036,60 +1083,6 @@ export default function BookingWizard() {
           </div>
         </div>
       </form>
-
-      {/* Alerte de navigation */}
-      <AnimatePresence>
-        {showNavigationAlert && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-blue-200"
-            >
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <ArrowLeft className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    Revenir à l&apos;étape 1 ?
-                  </h3>
-                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                    Vous êtes sur le point de revenir à l&apos;étape de
-                    configuration initiale.
-                    <strong className="text-blue-600">
-                      Vos participants et paramètres actuels seront conservés
-                    </strong>{" "}
-                    et ne seront pas perdus.
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={cancelNavigation}
-                      className="text-slate-600 border-slate-300 hover:bg-slate-50"
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={confirmNavigation}
-                      className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white"
-                    >
-                      Revenir à l&apos;étape 1
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
