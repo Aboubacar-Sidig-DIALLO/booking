@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 import dynamic from "next/dynamic";
 import { useRealtime } from "@/hooks/useRealtime";
 import { toast } from "sonner";
+import { TenantProvider } from "@/contexts/tenant-context";
 
 function RealtimeBridge() {
   const qc = useQueryClient();
@@ -51,10 +52,12 @@ export default function AppProviders({ children }: AppProvidersProps) {
       basePath="/api/auth"
     >
       <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster richColors position="top-right" />
-        <GlobalSearchModal />
-        <RealtimeBridge />
+        <TenantProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+          <GlobalSearchModal />
+          <RealtimeBridge />
+        </TenantProvider>
       </QueryClientProvider>
     </SessionProvider>
   );

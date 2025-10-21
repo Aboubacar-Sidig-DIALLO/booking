@@ -10,10 +10,15 @@ generator client {
 model Organization {
   id        String   @id @default(uuid())
   name      String
+  slug      String   @unique  // Pour l'URL: tenant1.votreapp.com
+  domain    String?  @unique  // Pour les domaines personnalisés
+  plan      PlanType @default(STARTER)
+  settings  Json?    // Configuration personnalisée
   users     User[]
   sites     Site[]
   rooms     Room[]
   bookings  Booking[]
+  features  OrganizationFeature[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -52,9 +57,30 @@ model Site {
 
 model Feature {
   id    String @id @default(uuid())
-  name  String
+  name  String @unique
   icon  String?
+  description String?
   rooms RoomFeature[]
+  organizations OrganizationFeature[]
+}
+
+model OrganizationFeature {
+  organizationId String
+  featureId      String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  feature        Feature      @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  isEnabled      Boolean      @default(true)
+  settings       Json?        // Configuration spécifique du tenant
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  @@id([organizationId, featureId])
+}
+
+enum PlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
 }
 
 model Room {

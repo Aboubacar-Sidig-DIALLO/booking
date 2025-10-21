@@ -1,825 +1,1150 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  ArrowRight,
+  Building2,
   Users,
-  Clock,
-  CheckCircle,
-  Zap,
+  Calendar,
   Shield,
-  BarChart3,
+  Zap,
+  CheckCircle,
+  ArrowRight,
   Star,
-  TrendingUp,
-  Smartphone,
   Globe,
-  Award,
-  Target,
+  BarChart3,
+  Settings,
   Sparkles,
+  Clock,
+  Smartphone,
+  TrendingUp,
+  Heart,
+  Rocket,
+  Target,
+  Lock,
+  Gift,
+  Headphones,
 } from "lucide-react";
 import Link from "next/link";
+import { useTenant } from "@/contexts/tenant-context";
 
-function HeroContent() {
+const features = [
+  {
+    icon: Calendar,
+    title: "Réservation Intelligente",
+    description:
+      "Système de réservation avancé avec gestion des conflits et notifications automatiques",
+    color: "blue",
+    gradient: "from-blue-500 to-blue-600",
+    bgGradient: "from-blue-50 to-blue-100",
+  },
+  {
+    icon: Users,
+    title: "Gestion d'Équipe",
+    description:
+      "Invitez votre équipe, gérez les permissions et collaborez efficacement",
+    color: "green",
+    gradient: "from-green-500 to-green-600",
+    bgGradient: "from-green-50 to-green-100",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics Avancés",
+    description:
+      "Tableaux de bord détaillés et rapports d'utilisation pour optimiser vos espaces",
+    color: "purple",
+    gradient: "from-purple-500 to-purple-600",
+    bgGradient: "from-purple-50 to-purple-100",
+  },
+  {
+    icon: Shield,
+    title: "Sécurité Enterprise",
+    description:
+      "Isolation complète des données, audit trail et conformité RGPD",
+    color: "red",
+    gradient: "from-red-500 to-red-600",
+    bgGradient: "from-red-50 to-red-100",
+  },
+  {
+    icon: Zap,
+    title: "Intégrations",
+    description:
+      "Connectez-vous à vos outils existants : calendrier, Slack, Teams, etc.",
+    color: "yellow",
+    gradient: "from-yellow-500 to-yellow-600",
+    bgGradient: "from-yellow-50 to-yellow-100",
+  },
+  {
+    icon: Settings,
+    title: "Personnalisation",
+    description:
+      "Adaptez l'interface à votre marque avec couleurs, logo et domaines personnalisés",
+    color: "indigo",
+    gradient: "from-indigo-500 to-indigo-600",
+    bgGradient: "from-indigo-50 to-indigo-100",
+  },
+];
+
+const stats = [
+  {
+    icon: Gift,
+    value: "100%",
+    label: "Gratuit",
+    color: "blue",
+    description: "Sans frais cachés",
+  },
+  {
+    icon: Headphones,
+    value: "24/7",
+    label: "Support",
+    color: "green",
+    description: "Assistance continue",
+  },
+  {
+    icon: Settings,
+    value: "5min",
+    label: "Configuration",
+    color: "purple",
+    description: "Mise en place rapide",
+  },
+  // {
+  //   icon: Lock,
+  //   value: "RGPD",
+  //   label: "Conforme",
+  //   color: "orange",
+  //   description: "Sécurité garantie",
+  // },
+];
+
+const benefits = [
+  {
+    icon: Clock,
+    title: "Gain de temps",
+    description: "Réduisez de 80% le temps passé à gérer les réservations",
+    color: "blue",
+  },
+  {
+    icon: TrendingUp,
+    title: "Optimisation",
+    description: "Augmentez l'utilisation de vos espaces de 40%",
+    color: "green",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile-first",
+    description: "Interface responsive optimisée pour tous les appareils",
+    color: "purple",
+  },
+  {
+    icon: Lock,
+    title: "Sécurité",
+    description: "Données chiffrées et conformité RGPD garantie",
+    color: "red",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Marie Dubois",
+    company: "TechCorp",
+    role: "Directrice des Opérations",
+    content:
+      "ReservApp a révolutionné la gestion de nos salles de réunion. L'interface est intuitive et les analytics nous aident à optimiser l'utilisation de nos espaces.",
+    rating: 5,
+  },
+  {
+    name: "Jean Martin",
+    company: "InnovateLab",
+    role: "CEO",
+    content:
+      "La fonctionnalité multi-tenant nous permet de gérer plusieurs sites facilement. L'intégration avec nos outils existants est parfaite.",
+    rating: 5,
+  },
+  {
+    name: "Sophie Laurent",
+    company: "GlobalConsulting",
+    role: "Responsable RH",
+    content:
+      "L'onboarding de nos équipes est devenu un jeu d'enfant. Les invitations automatiques et la configuration guidée nous font gagner un temps précieux.",
+    rating: 5,
+  },
+];
+
+export default function HomePage() {
+  const { tenant, isLoading: tenantLoading } = useTenant();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient || tenantLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si un tenant est détecté, rediriger vers le dashboard
+  if (tenant) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="p-8">
+            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">
+              Bienvenue sur {tenant.name}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Vous êtes connecté à votre organisation
+            </p>
+            <div className="space-y-3">
+              <Link href="/dashboard" className="block">
+                <Button className="w-full">
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Aller au Dashboard
+                </Button>
+              </Link>
+              <Link href="/setup" className="block">
+                <Button variant="outline" className="w-full">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configuration
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
-      {/* Hero Section - Design moderne et convaincant */}
-      <div className="relative min-h-screen overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-100/90 relative overflow-hidden">
+      {/* Background avec effets visuels modernes */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-indigo-600/8 to-purple-600/5"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-blue-50/30 to-transparent"></div>
+      <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-transparent via-indigo-50/30 to-transparent"></div>
+
+      {/* Cercles flous animés */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div
+        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"
+        style={{ animationDelay: "1s" }}
+      ></div>
+      <div
+        className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-indigo-400/15 to-blue-500/15 rounded-full blur-2xl animate-pulse"
+        style={{ animationDelay: "2s" }}
+      ></div>
+
+      {/* Particules flottantes */}
+      <div
+        className="absolute top-20 left-20 w-2 h-2 bg-blue-400/40 rounded-full animate-bounce"
+        style={{ animationDelay: "0.5s" }}
+      ></div>
+      <div
+        className="absolute top-40 right-32 w-1.5 h-1.5 bg-indigo-400/50 rounded-full animate-bounce"
+        style={{ animationDelay: "1.5s" }}
+      ></div>
+      <div
+        className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-purple-400/40 rounded-full animate-bounce"
+        style={{ animationDelay: "2.5s" }}
+      ></div>
+      <div
+        className="absolute bottom-20 right-20 w-1 h-1 bg-pink-400/60 rounded-full animate-bounce"
+        style={{ animationDelay: "3s" }}
+      ></div>
+      {/* Hero Section - Design ultra-moderne */}
+      <section className="relative overflow-hidden">
         {/* Background avec effets visuels sophistiqués */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/8 via-indigo-600/10 to-purple-600/8"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-50/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-indigo-50/30 to-transparent"></div>
 
-        {/* Grille de fond animée */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(59,130,246,0.1)_50%,transparent_100%)] bg-[length:200px_200px] animate-pulse" />
-        </div>
+        {/* Cercles flous avec animations */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-400/15 to-indigo-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-purple-400/15 to-pink-500/15 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/3 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-blue-500/10 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
 
-        {/* Formes géométriques flottantes */}
-        <div className="absolute inset-0 overflow-hidden">
-          {/* Cercles décoratifs */}
-          <motion.div
-            className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full blur-xl"
-            animate={{
-              x: [0, 50, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-lg"
-            animate={{
-              x: [0, -40, 0],
-              y: [0, 40, 0],
-              scale: [1, 0.8, 1],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1,
-            }}
-          />
-          <motion.div
-            className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full blur-2xl"
-            animate={{
-              x: [0, 60, 0],
-              y: [0, -50, 0],
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2,
-            }}
-          />
-        </div>
+        {/* Effets de lumière */}
+        <div
+          className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
 
-        {/* Particules flottantes améliorées */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => {
-            // Utiliser des valeurs fixes basées sur l'index pour éviter les problèmes d'hydratation
-            const basePosition = i * 5; // Position de base basée sur l'index
-            const leftPosition = (basePosition + i * 7) % 100; // Position calculée de manière déterministe
-            const topPosition = (basePosition + i * 11) % 100;
-            const animationDelay = i * 0.2; // Délai basé sur l'index
-            const duration = 5 + (i % 3); // Durée basée sur l'index
-
-            return (
-              <motion.div
-                key={`hero-particle-${i}`}
-                className={`absolute rounded-full ${
-                  i % 3 === 0
-                    ? "w-2 h-2 bg-blue-300/60"
-                    : i % 3 === 1
-                      ? "w-1 h-1 bg-indigo-300/80"
-                      : "w-1.5 h-1.5 bg-purple-300/50"
-                }`}
-                style={{
-                  left: `${leftPosition}%`,
-                  top: `${topPosition}%`,
-                }}
-                animate={{
-                  y: [0, -40, 0],
-                  x: [0, i % 2 === 0 ? 10 : -10, 0], // Mouvement alterné basé sur l'index
-                  opacity: [0.6, 0.1, 0.6],
-                  scale: [1, 1.5, 1],
-                }}
-                transition={{
-                  duration: duration,
-                  repeat: Infinity,
-                  delay: animationDelay,
-                  ease: "easeInOut",
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {/* Contenu principal */}
-        <div className="relative max-w-7xl mx-auto px-6 py-4 lg:px-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            {/* Badge de confiance */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full px-4 py-2 mb-8"
-            >
-              <Star className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">
-                Plus de 10,000 utilisateurs satisfaits
-              </span>
-              <Sparkles className="h-4 w-4 text-blue-600" />
-            </motion.div>
-
-            {/* Titre principal impactant */}
-            <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6"
+              transition={{ duration: 0.8 }}
             >
-              Révolutionnez vos{" "}
-              <motion.span
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{
-                  backgroundSize: "200% 200%",
-                }}
+              {/* Badge moderne avec animation */}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-full text-sm font-black text-blue-800 mb-8 shadow-sm drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                réservations
-              </motion.span>
-            </motion.h1>
+                <Sparkles className="h-5 w-5 text-blue-700" />
+                <span>Solution Enterprise Moderne</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+              </motion.div>
 
-            {/* Sous-titre persuasif */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-              className="text-xl sm:text-2xl text-slate-600 max-w-4xl mx-auto mb-8 leading-relaxed"
-            >
-              L'avenir de la gestion d'espaces commence ici.
-              <span className="font-semibold text-slate-800">
-                {" "}
-                Économisez 80% de votre temps
-              </span>{" "}
-              avec notre plateforme intelligente de réservation.
-            </motion.p>
+              {/* Titre principal avec dégradé moderne */}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-800 mb-8 leading-tight tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Gérez vos{" "}
+                <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent font-black drop-shadow-sm">
+                  salles de réunion
+                </span>{" "}
+                avec intelligence
+              </motion.h1>
 
-            {/* Statistiques convaincantes */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-              className="flex flex-wrap justify-center gap-8 mb-12"
-            >
-              <div className="text-center">
-                <div className="text-3xl font-bold text-slate-900">98%</div>
-                <div className="text-sm text-slate-600">
-                  Satisfaction client
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-slate-900">-80%</div>
-                <div className="text-sm text-slate-600">Temps de gestion</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-slate-900">24/7</div>
-                <div className="text-sm text-slate-600">Disponibilité</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-slate-900">99.9%</div>
-                <div className="text-sm text-slate-600">Fiabilité</div>
-              </div>
-            </motion.div>
+              {/* Sous-titre moderne */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-xl sm:text-2xl text-slate-700 mb-12 max-w-4xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                ReservApp révolutionne la gestion des espaces de travail avec
+                une solution
+                <span className="font-semibold text-blue-700">
+                  {" "}
+                  intelligente
+                </span>
+                ,
+                <span className="font-semibold text-indigo-700">
+                  {" "}
+                  sécurisée
+                </span>{" "}
+                et
+                <span className="font-semibold text-purple-700">
+                  {" "}
+                  intuitive
+                </span>
+              </motion.p>
 
-            {/* Boutons d'action améliorés */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-16"
-            >
-              <Link href="/bookings/new">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
+              {/* Boutons d'action modernes */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex flex-col sm:flex-row gap-6 justify-center mb-16"
+              >
+                <Link href="/onboarding">
                   <Button
                     size="lg"
-                    className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden cursor-pointer"
+                    className="group bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 px-8 py-4 text-lg font-black rounded-2xl tracking-wide drop-shadow-sm"
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                   >
-                    {/* Effet de brillance */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                      initial={{ x: "-100%" }}
-                      animate={{ x: "100%" }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatDelay: 3,
-                        ease: "easeInOut",
-                      }}
-                    />
-                    <Zap className="h-5 w-5 mr-2 relative z-10" />
-                    <span className="relative z-10">
-                      Commencer gratuitement
-                    </span>
-                    <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform relative z-10" />
+                    <Rocket className="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                    Créer mon organisation
+                    <ArrowRight className="h-6 w-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
                   </Button>
-                </motion.div>
-              </Link>
-              <Link href="/rooms">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
+                </Link>
+                <Link href="/multitenant-demo">
                   <Button
-                    variant="outline"
                     size="lg"
-                    className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 backdrop-blur-sm hover:shadow-lg cursor-pointer"
+                    variant="outline"
+                    className="group border-2 border-slate-400 hover:border-blue-600 hover:bg-blue-50 text-slate-800 hover:text-blue-800 px-8 py-4 text-lg font-black rounded-2xl transition-all duration-300 tracking-wide drop-shadow-sm"
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                   >
-                    <Globe className="h-5 w-5 mr-2" />
+                    <Globe className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform duration-300" />
                     Voir la démo
                   </Button>
-                </motion.div>
-              </Link>
-            </motion.div>
+                </Link>
+              </motion.div>
 
-            {/* Témoignage client */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
-              className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 max-w-2xl mx-auto"
-            >
-              <div className="flex items-center justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-5 w-5 text-yellow-400 fill-current"
-                  />
+              {/* Statistiques impressionnantes */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-3xl mx-auto"
+              >
+                {stats.map((stat, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, delay: 0.7 + index * 0.1 }}
+                    className="text-center group bg-gradient-to-br from-white via-slate-50 to-white border border-slate-200/50 rounded-3xl p-4 shadow-xl hover:shadow-2xl transition-all duration-700 group-hover:-translate-y-2 group-hover:scale-[1.02] overflow-hidden backdrop-blur-sm relative"
+                  >
+                    {/* Effet de brillance au hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                    {/* Bordure animée */}
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm"></div>
+
+                    <div className="relative z-10">
+                      <div className="inline-flex items-center justify-center w-15 h-15 bg-gradient-to-br from-white to-slate-50 rounded-3xl shadow-xl group-hover:shadow-2xl transition-all duration-300 mb-6 group-hover:scale-110 group-hover:rotate-3">
+                        <stat.icon
+                          className={`h-8 w-8 text-${stat.color}-600 group-hover:text-${stat.color}-700 transition-colors duration-300`}
+                        />
+                      </div>
+                      <div
+                        className="text-4xl font-black text-slate-800 mb-3 drop-shadow-sm group-hover:text-blue-700 transition-colors duration-300"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        {stat.value}
+                      </div>
+                      <div
+                        className="text-lg font-black text-slate-800 mb-2 tracking-wide drop-shadow-sm group-hover:text-blue-600 transition-colors duration-300"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        {stat.label}
+                      </div>
+                      <div
+                        className="text-sm font-medium text-slate-600 tracking-wide drop-shadow-sm group-hover:text-slate-700 transition-colors duration-300"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        {stat.description}
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
-              </div>
-              <blockquote className="text-lg text-slate-700 italic mb-4">
-                "ReservApp a transformé notre façon de gérer les espaces. Ce qui
-                prenait des heures se fait maintenant en minutes."
-              </blockquote>
-              <div className="flex items-center justify-center space-x-3">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">M</span>
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-slate-900">
-                    Marie Dubois
-                  </div>
-                  <div className="text-sm text-slate-600">
-                    Directrice des Opérations
-                  </div>
-                </div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Section des avantages - Design moderne */}
-      <div className="py-24 bg-gradient-to-b from-white to-slate-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      {/* Features Section - Cartes ultra-modernes */}
+      <section className="py-24 bg-gradient-to-br from-white/90 via-slate-50/95 to-blue-50/90 relative overflow-hidden backdrop-blur-sm">
+        {/* Background avec effets sophistiqués */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 via-indigo-50/40 to-purple-50/60"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-blue-50/30 to-transparent"></div>
+
+        {/* Cercles flous décoratifs */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-blue-300/20 to-indigo-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-purple-300/20 to-pink-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-indigo-300/15 to-blue-400/15 rounded-full blur-2xl"></div>
+
+        {/* Particules subtiles */}
+        <div className="absolute top-32 left-32 w-1 h-1 bg-blue-400/60 rounded-full animate-pulse"></div>
+        <div
+          className="absolute top-64 right-48 w-1.5 h-1.5 bg-indigo-400/50 rounded-full animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-48 left-64 w-1 h-1 bg-purple-400/60 rounded-full animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 rounded-full px-4 py-2 mb-6"
             >
-              <Award className="h-4 w-4" />
-              <span className="text-sm font-semibold">
+              <Badge
+                className="mb-6 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-300 text-sm font-black tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <Target className="h-5 w-5 mr-2" />
+                Fonctionnalités Enterprise
+              </Badge>
+              <h2
+                className="text-4xl sm:text-5xl font-black text-slate-800 mb-6 leading-tight tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Une solution{" "}
+                <span className="bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent font-black drop-shadow-sm">
+                  complète
+                </span>{" "}
+                pour votre entreprise
+              </h2>
+              <p
+                className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Découvrez les fonctionnalités avancées qui transforment la
+                gestion de vos espaces de travail
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group"
+              >
+                <div className="relative h-full bg-gradient-to-br from-white via-slate-50 to-white border border-slate-200/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 group-hover:-translate-y-3 group-hover:scale-[1.02] overflow-hidden backdrop-blur-sm">
+                  {/* Effet de brillance au hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                  {/* Bordure animée */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm"></div>
+
+                  {/* Icône avec dégradé moderne */}
+                  <div className="relative mb-6 z-10">
+                    <div
+                      className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br ${feature.bgGradient} rounded-3xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3`}
+                    >
+                      <feature.icon
+                        className={`h-10 w-10 text-${feature.color}-600 group-hover:text-${feature.color}-700 transition-colors duration-300`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <h3
+                      className="text-2xl font-black text-slate-800 mb-4 group-hover:text-blue-700 transition-colors duration-300 leading-tight tracking-tight drop-shadow-sm"
+                      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      {feature.title}
+                    </h3>
+                    <p
+                      className="text-slate-700 leading-relaxed group-hover:text-slate-800 transition-colors duration-300 text-lg font-medium tracking-wide drop-shadow-sm"
+                      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      {feature.description}
+                    </p>
+
+                    {/* Indicateur de progression moderne */}
+                    <div className="mt-8 flex items-center justify-between">
+                      <div
+                        className="flex items-center gap-3 text-sm text-slate-600 group-hover:text-blue-700 transition-colors duration-300 font-medium tracking-wide drop-shadow-sm"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full animate-pulse shadow-sm"></div>
+                        <span>Disponible maintenant</span>
+                      </div>
+                      <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section - Design moderne */}
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        {/* Background avec effets sophistiqués */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/15 via-indigo-600/20 to-purple-600/15"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/10 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-indigo-500/10 to-transparent"></div>
+
+        {/* Motif de points subtil */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-20">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5"></div>
+        </div>
+
+        {/* Cercles flous avec animations */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-purple-500/20 to-pink-600/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-gradient-to-br from-indigo-500/15 to-blue-600/15 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
+
+        {/* Effets de lumière */}
+        <div
+          className="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-white/8 to-transparent rounded-full blur-xl animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Badge
+                className="mb-6 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-100 border-blue-400/30 text-sm font-black tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <Heart className="h-5 w-5 mr-2" />
                 Pourquoi choisir ReservApp ?
-              </span>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6"
-            >
-              Des avantages qui font la différence
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-slate-600 max-w-3xl mx-auto"
-            >
-              Découvrez comment ReservApp transforme votre gestion d'espaces en
-              une expérience fluide et efficace
-            </motion.p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {/* Gain de temps */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="group relative"
-              whileHover={{ y: -5 }}
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between hover:shadow-3xl transition-all duration-300">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center mb-4 sm:mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
-                    Gain de temps spectaculaire
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
-                    Réduisez de 80% le temps passé à gérer vos réservations.
-                    Notre interface intuitive vous fait gagner des heures chaque
-                    semaine.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-blue-600 font-semibold text-sm sm:text-base">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                    +300% d'efficacité
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Sécurité avancée */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="group relative"
-              whileHover={{ y: -5 }}
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-green-100 to-emerald-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Shield className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    Sécurité de niveau entreprise
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
-                    Vos données sont protégées par un chiffrement de niveau
-                    militaire. Conformité RGPD garantie et sauvegardes
-                    automatiques.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-green-600 font-semibold">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    99.9% de disponibilité
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Analytics intelligents */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="group relative"
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-purple-100 to-violet-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <BarChart3 className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    Analytics prédictifs
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
-                    Optimisez l'utilisation de vos espaces avec des insights en
-                    temps réel. Prédictions et recommandations personnalisées.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-purple-600 font-semibold">
-                    <Target className="h-4 w-4 mr-2" />
-                    Prédictions IA
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Interface moderne */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="group relative"
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-orange-100 to-amber-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Smartphone className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    Interface intuitive
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
-                    Design moderne et responsive. Accessible sur tous vos
-                    appareils avec une expérience utilisateur exceptionnelle.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-orange-600 font-semibold">
-                    <Users className="h-4 w-4 mr-2" />
-                    Multi-plateforme
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Temps réel */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="group relative"
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-red-100 to-rose-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Clock className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    Synchronisation temps réel
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
-                    Mises à jour instantanées sur tous les appareils.
-                    Notifications push et alertes intelligentes.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-red-600 font-semibold">
-                    <Globe className="h-4 w-4 mr-2" />
-                    Temps réel
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Support expert */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="group relative"
-            >
-              {/* Fond décoratif animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-3xl"
-                animate={{ rotate: [0, 1, -1, 0] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Contenu de la carte */}
-              <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 h-80 flex flex-col justify-between">
-                <div className="flex-shrink-0">
-                  <motion.div
-                    className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <Award className="h-8 w-8 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">
-                    Support expert 24/7
-                  </h3>
-                </div>
-                <div className="flex-grow flex flex-col justify-center">
-                  <p className="text-slate-600 mb-6">
-                    Équipe d'experts dédiée à votre succès. Formation
-                    personnalisée et accompagnement continu.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <div className="flex items-center text-indigo-600 font-semibold">
-                    <Star className="h-4 w-4 mr-2" />
-                    Support premium
-                  </div>
-                </div>
-              </div>
+              </Badge>
+              <h2
+                className="text-4xl sm:text-5xl font-black text-white mb-6 leading-tight tracking-tight drop-shadow-lg"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Des{" "}
+                <span className="bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent font-black drop-shadow-lg">
+                  résultats
+                </span>{" "}
+                mesurables
+              </h2>
+              <p
+                className="text-xl text-blue-50 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Découvrez les bénéfices concrets de notre solution pour votre
+                organisation
+              </p>
             </motion.div>
           </div>
-        </div>
-      </div>
 
-      {/* Section CTA finale - Convaincante */}
-      <div className="relative py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
-        {/* Background avec effets */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20" />
-        <div className="absolute inset-0 opacity-30">
-          <div className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {benefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group"
+              >
+                <div className="relative h-full bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-sm border border-white/30 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-700 group-hover:-translate-y-3 group-hover:scale-[1.02] overflow-hidden">
+                  {/* Effet de brillance */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                  {/* Bordure animée */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/30 via-indigo-500/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm"></div>
+
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-white/30 to-white/10 rounded-3xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 mb-8">
+                      <benefit.icon className="h-10 w-10 text-white group-hover:text-blue-200 transition-colors duration-300" />
+                    </div>
+
+                    <h3
+                      className="text-2xl font-black text-white mb-6 group-hover:text-blue-200 transition-colors duration-300 leading-tight tracking-tight drop-shadow-lg"
+                      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      {benefit.title}
+                    </h3>
+                    <p
+                      className="text-blue-50 leading-relaxed group-hover:text-white transition-colors duration-300 text-lg font-medium tracking-wide drop-shadow-sm"
+                      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      {benefit.description}
+                    </p>
+
+                    {/* Indicateur de progression moderne */}
+                    <div className="mt-8 flex items-center justify-between">
+                      <div
+                        className="flex items-center gap-3 text-sm text-blue-100 group-hover:text-white transition-colors duration-300 font-medium tracking-wide drop-shadow-sm"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full animate-pulse shadow-sm"></div>
+                        <span>Résultat prouvé</span>
+                      </div>
+                      <div className="w-8 h-1 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section - Design moderne */}
+      <section className="py-24 bg-gradient-to-br from-white/95 via-slate-50/98 to-blue-50/95 relative overflow-hidden backdrop-blur-sm">
+        {/* Background avec effets sophistiqués */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 via-emerald-50/40 to-teal-50/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-green-50/30 to-transparent"></div>
+
+        {/* Cercles flous décoratifs */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-green-300/20 to-emerald-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-teal-300/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-emerald-300/15 to-green-400/15 rounded-full blur-2xl"></div>
+
+        {/* Particules subtiles */}
+        <div className="absolute top-32 left-32 w-1 h-1 bg-green-400/60 rounded-full animate-pulse"></div>
+        <div
+          className="absolute top-64 right-48 w-1.5 h-1.5 bg-emerald-400/50 rounded-full animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-48 left-64 w-1 h-1 bg-teal-400/60 rounded-full animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Badge
+                className="mb-6 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300 text-sm font-black tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <Star className="h-5 w-5 mr-2" />
+                Témoignages clients
+              </Badge>
+              <h2
+                className="text-4xl sm:text-5xl font-black text-slate-800 mb-6 leading-tight tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Ce que disent{" "}
+                <span className="bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent font-black drop-shadow-sm">
+                  nos clients
+                </span>
+              </h2>
+              <p
+                className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Découvrez comment ReservApp transforme la gestion des espaces de
+                travail dans les entreprises
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group"
+              >
+                <div className="relative h-full bg-gradient-to-br from-white via-slate-50 to-white border border-slate-200/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-700 group-hover:-translate-y-3 group-hover:scale-[1.02] overflow-hidden backdrop-blur-sm">
+                  {/* Effet de brillance */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                  {/* Bordure animée */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm"></div>
+
+                  <div className="relative z-10">
+                    {/* Étoiles avec animation */}
+                    <div className="flex items-center gap-1 mb-8">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
+                        >
+                          <Star className="h-6 w-6 text-yellow-400 fill-current drop-shadow-sm" />
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Citation avec guillemets stylisés */}
+                    <div className="relative mb-8">
+                      <div className="absolute -top-6 -left-4 text-8xl text-green-200 font-serif leading-none opacity-60">
+                        "
+                      </div>
+                      <p
+                        className="text-slate-700 italic text-xl leading-relaxed relative z-10 font-medium tracking-wide drop-shadow-sm"
+                        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                      >
+                        {testimonial.content}
+                      </p>
+                      <div className="absolute -bottom-6 -right-4 text-8xl text-green-200 font-serif leading-none opacity-60">
+                        "
+                      </div>
+                    </div>
+
+                    {/* Informations client */}
+                    <div className="border-t border-slate-200/50 pt-8">
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
+                          {testimonial.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p
+                            className="font-black text-slate-800 text-xl mb-1 tracking-tight drop-shadow-sm"
+                            style={{
+                              fontFamily: "Inter, system-ui, sans-serif",
+                            }}
+                          >
+                            {testimonial.name}
+                          </p>
+                          <p
+                            className="text-slate-700 font-semibold text-lg mb-1 tracking-wide drop-shadow-sm"
+                            style={{
+                              fontFamily: "Inter, system-ui, sans-serif",
+                            }}
+                          >
+                            {testimonial.role}
+                          </p>
+                          <p
+                            className="text-green-700 font-bold text-lg tracking-wide drop-shadow-sm"
+                            style={{
+                              fontFamily: "Inter, system-ui, sans-serif",
+                            }}
+                          >
+                            {testimonial.company}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Design ultra-moderne */}
+      <section className="py-24 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden">
+        {/* Background avec effets visuels sophistiqués */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/95 via-indigo-600/95 to-purple-600/95"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-indigo-500/20 to-transparent"></div>
+
+        {/* Motif de points subtil */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/10"></div>
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-6 text-center">
+        {/* Cercles flous avec animations */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-white/15 to-blue-400/15 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-br from-white/15 to-purple-400/15 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-gradient-to-br from-white/10 to-indigo-400/10 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
+
+        {/* Effets de lumière */}
+        <div
+          className="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-1/3 left-1/3 w-48 h-48 bg-gradient-to-br from-white/15 to-transparent rounded-full blur-xl animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
+
+        {/* Particules flottantes */}
+        <div
+          className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full animate-bounce"
+          style={{ animationDelay: "0.5s" }}
+        ></div>
+        <div
+          className="absolute top-40 right-32 w-1.5 h-1.5 bg-white/50 rounded-full animate-bounce"
+          style={{ animationDelay: "1.5s" }}
+        ></div>
+        <div
+          className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-white/40 rounded-full animate-bounce"
+          style={{ animationDelay: "2.5s" }}
+        ></div>
+        <div
+          className="absolute bottom-20 right-20 w-1 h-1 bg-white/60 rounded-full animate-bounce"
+          style={{ animationDelay: "3s" }}
+        ></div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {/* Badge d'urgence */}
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full px-6 py-3 mb-8 shadow-lg">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-bold">OFFRE LIMITÉE</span>
-              <Sparkles className="h-4 w-4" />
-            </div>
+            <Badge
+              className="mb-8 bg-white/20 text-white border-white/30 backdrop-blur-sm text-sm font-black tracking-wide drop-shadow-sm"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              <Rocket className="h-5 w-5 mr-2" />
+              Prêt à commencer ?
+            </Badge>
 
-            {/* Titre principal */}
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-              Prêt à transformer votre{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                gestion d'espaces ?
-              </span>
+            <h2
+              className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-8 leading-tight tracking-tight drop-shadow-lg"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Transformez votre{" "}
+              <span className="bg-gradient-to-r from-yellow-200 to-orange-200 bg-clip-text text-transparent font-black drop-shadow-lg">
+                gestion d'espaces
+              </span>{" "}
+              dès aujourd'hui
             </h2>
 
-            {/* Sous-titre persuasif */}
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Rejoignez plus de{" "}
-              <span className="font-bold text-white">10,000 entreprises</span>{" "}
-              qui ont déjà révolutionné leur gestion de réservations.
-              <span className="block mt-2 text-lg">
-                Commencez gratuitement dès aujourd'hui !
-              </span>
+            <p
+              className="text-xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Rejoignez des centaines d'entreprises qui font confiance à
+              ReservApp pour optimiser leurs espaces de travail
             </p>
 
-            {/* Statistiques de conversion */}
-            <div className="flex flex-wrap justify-center gap-8 mb-12">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">2 min</div>
-                <div className="text-sm text-blue-200">Configuration</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">Gratuit</div>
-                <div className="text-sm text-blue-200">30 premiers jours</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">24/7</div>
-                <div className="text-sm text-blue-200">Support inclus</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">ROI</div>
-                <div className="text-sm text-blue-200">En 2 semaines</div>
-              </div>
-            </div>
-
-            {/* Boutons d'action puissants */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-12">
-              <Link href="/bookings/new">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Link href="/onboarding">
+                <Button
+                  size="lg"
+                  className="group bg-white text-blue-600 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transition-all duration-300 px-8 py-4 text-lg font-black rounded-2xl tracking-wide drop-shadow-sm"
                 >
-                  <Button
-                    size="lg"
-                    className="relative bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-8 sm:px-12 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 group overflow-hidden"
-                  >
-                    {/* Effet de brillance */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                      initial={{ x: "-100%" }}
-                      animate={{ x: "100%" }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatDelay: 4,
-                        ease: "easeInOut",
-                      }}
-                    />
-                    <Zap className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 relative z-10" />
-                    <span className="relative z-10">Commencer maintenant</span>
-                    <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 ml-2 sm:ml-3 group-hover:translate-x-2 transition-transform relative z-10" />
-                  </Button>
-                </motion.div>
+                  <Building2 className="h-7 w-7 mr-3 group-hover:scale-110 transition-transform duration-300" />
+                  Créer mon organisation
+                  <ArrowRight className="h-7 w-7 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
               </Link>
-              <Link href="/rooms">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              <Link href="/auth/tenant-selection">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="group border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm px-8 py-4 text-lg font-black rounded-2xl transition-all duration-300 tracking-wide drop-shadow-sm"
                 >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-6 sm:px-8 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg transition-all duration-300 backdrop-blur-sm"
-                  >
-                    <Globe className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Voir la démo
-                  </Button>
-                </motion.div>
+                  <Globe className="h-7 w-7 mr-3 group-hover:scale-110 transition-transform duration-300" />
+                  Tester la démo
+                </Button>
               </Link>
-            </div>
-
-            {/* Garantie de satisfaction */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-white/20">
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <Shield className="h-8 w-8 text-green-400" />
-                <h3 className="text-2xl font-bold text-white">
-                  Garantie satisfait ou remboursé
-                </h3>
-              </div>
-              <p className="text-blue-100 text-lg">
-                Si vous n'êtes pas entièrement satisfait dans les 30 premiers
-                jours, nous vous remboursons intégralement. Aucune question
-                posée.
-              </p>
-            </div>
-
-            {/* Témoignages clients */}
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
-              >
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 text-yellow-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-blue-100 italic mb-4">
-                  "ReservApp a réduit notre temps de gestion de 80%. Incroyable
-                  !"
-                </p>
-                <div className="text-white font-semibold">
-                  - Jean Martin, CEO
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
-              >
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 text-yellow-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-blue-100 italic mb-4">
-                  "Interface intuitive et support exceptionnel. Je recommande !"
-                </p>
-                <div className="text-white font-semibold">
-                  - Sophie Laurent, Manager
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
-              >
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 text-yellow-400 fill-current"
-                    />
-                  ))}
-                </div>
-                <p className="text-blue-100 italic mb-4">
-                  "ROI visible dès la première semaine. Un investissement
-                  rentable."
-                </p>
-                <div className="text-white font-semibold">
-                  - Pierre Dubois, Directeur
-                </div>
-              </motion.div>
             </div>
           </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer - Design moderne */}
+      <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 relative overflow-hidden">
+        {/* Background avec effets sophistiqués */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/8 via-indigo-600/10 to-purple-600/8"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/5 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-indigo-500/5 to-transparent"></div>
+
+        {/* Motif de points subtil */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-20">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5"></div>
+        </div>
+
+        {/* Cercles flous décoratifs */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-indigo-500/8 to-blue-600/8 rounded-full blur-2xl"></div>
+
+        {/* Particules subtiles */}
+        <div className="absolute top-32 left-32 w-1 h-1 bg-blue-400/40 rounded-full animate-pulse"></div>
+        <div
+          className="absolute top-64 right-48 w-1.5 h-1.5 bg-indigo-400/30 rounded-full animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-48 left-64 w-1 h-1 bg-purple-400/40 rounded-full animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            {/* Logo et description */}
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <Building2 className="h-8 w-8 text-white" />
+                </div>
+                <span
+                  className="text-2xl font-black tracking-tight drop-shadow-sm"
+                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  ReservApp
+                </span>
+              </div>
+              <p
+                className="text-slate-300 leading-relaxed mb-6 text-base font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                La solution moderne pour la gestion intelligente des espaces de
+                travail. Sécurisée, intuitive et performante.
+              </p>
+              <div
+                className="flex items-center gap-2 text-sm text-slate-300 font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Système opérationnel</span>
+              </div>
+            </div>
+
+            {/* Produit */}
+            <div>
+              <h3
+                className="font-black text-lg mb-6 text-white tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Produit
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Fonctionnalités
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    API & Intégrations
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Sécurité
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Roadmap
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3
+                className="font-black text-lg mb-6 text-white tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Support
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Centre d'aide
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Statut
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Légal */}
+            <div>
+              <h3
+                className="font-black text-lg mb-6 text-white tracking-tight drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Légal
+              </h3>
+              <ul className="space-y-3 text-slate-300">
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Conditions d'utilisation
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Politique de confidentialité
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    RGPD
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Sécurité
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Ligne de séparation et copyright */}
+          <div className="border-t border-slate-700 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p
+                className="text-slate-300 text-base font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                &copy; 2024 ReservApp. Tous droits réservés.
+              </p>
+              <div
+                className="flex items-center gap-4 text-base text-slate-300 font-medium tracking-wide drop-shadow-sm"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <span>Fait avec</span>
+                <Heart className="h-5 w-5 text-red-500 fill-current" />
+                <span>en France</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
-}
-
-export default function Home() {
-  return <HeroContent />;
 }

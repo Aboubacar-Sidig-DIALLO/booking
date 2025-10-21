@@ -26,6 +26,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTenantBookings } from "@/hooks/use-tenant-data";
+import { useTenant } from "@/contexts/tenant-context";
+import { FeatureGate } from "@/components/feature-gate";
+import { TENANT_FEATURES } from "@/types/tenant";
 
 interface Booking {
   id: string;
@@ -50,14 +54,20 @@ interface Booking {
 }
 
 export default function BookingsPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const { tenant, isLoading: tenantLoading } = useTenant();
+
+  // Utiliser le hook multi-tenant pour récupérer les réservations
+  const {
+    data: bookings = [],
+    isLoading: bookingsLoading,
+    error,
+  } = useTenantBookings({
+    mine: true, // Récupérer seulement les réservations de l'utilisateur connecté
+  });
 
   useEffect(() => {
-    fetchBookings();
-
     // Vérifier s'il y a un ID à mettre en surbrillance
     const highlightId = searchParams.get("highlight");
     if (highlightId) {
@@ -71,20 +81,6 @@ export default function BookingsPage() {
       }, 3000);
     }
   }, [searchParams]);
-
-  const fetchBookings = async () => {
-    try {
-      const response = await fetch("/api/bookings?mine=1");
-      if (response.ok) {
-        const data = await response.json();
-        setBookings(data);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des réservations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -128,7 +124,7 @@ export default function BookingsPage() {
     }
   };
 
-  if (loading) {
+  if (tenantLoading || bookingsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
@@ -148,6 +144,25 @@ export default function BookingsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <AlertCircle className="h-16 w-16 text-red-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-red-600 mb-2">
+              Erreur lors du chargement
+            </h3>
+            <p className="text-red-500 mb-6">
+              Impossible de charger vos réservations. Veuillez réessayer.
+            </p>
+            <Button onClick={() => window.location.reload()}>Réessayer</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -160,14 +175,30 @@ export default function BookingsPage() {
               </h1>
               <p className="text-slate-600">
                 Gérez et consultez toutes vos réservations de salles
+                {tenant && (
+                  <span className="ml-2 text-sm text-blue-600 font-medium">
+                    • {tenant.name}
+                  </span>
+                )}
               </p>
             </div>
-            <Link href="/bookings/new">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle réservation
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <FeatureGate
+                feature={TENANT_FEATURES.ADVANCED_REPORTS}
+                fallback={null}
+              >
+                <Button variant="outline" className="h-10">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </FeatureGate>
+              <Link href="/bookings/new">
+                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle réservation
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
