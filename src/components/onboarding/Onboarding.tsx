@@ -111,6 +111,24 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const isLastStep = currentStep === onboardingSteps.length - 1;
   const isFirstStep = currentStep === 0;
 
+  // Génère une configuration stable pour les particules
+  const particles = useMemo(() => {
+    return Array.from({ length: 25 }).map((_, i) => ({
+      id: `particle-${i}`,
+      left: `${(i * 37) % 100}%`, // position déterministe
+      top: `${(i * 53) % 100}%`, // position déterministe
+      duration: 3 + ((i * 17) % 200) / 100, // 3 à 5s
+      delay: ((i * 29) % 200) / 100, // 0 à 2s
+      size: 1 + ((i * 7) % 3), // 1 à 3px
+      color:
+        i % 3 === 0
+          ? "bg-blue-200"
+          : i % 3 === 1
+            ? "bg-purple-200"
+            : "bg-indigo-200",
+    }));
+  }, []);
+
   const nextStep = () => {
     if (isLastStep) {
       handleComplete();
@@ -204,36 +222,75 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-50 bg-white overflow-hidden"
         >
-          {/* Background animé */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+          {/* Background animé avec gradients */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
 
-          {/* Particules flottantes */}
+          {/* Formes géométriques décoratives */}
           <div className="absolute inset-0 overflow-hidden">
-            {useMemo(() => {
-              // Génère une configuration stable pour les particules afin d'éviter
-              // des clés identiques ou des déplacements imprévisibles entre renders
-              const particles = Array.from({ length: 20 }).map((_, i) => ({
-                id: `particle-${i}`,
-                left: `${(i * 37) % 100}%`, // position déterministe
-                top: `${(i * 53) % 100}%`, // position déterministe
-                duration: 3 + ((i * 17) % 200) / 100, // 3 à 5s
-                delay: ((i * 29) % 200) / 100, // 0 à 2s
-              }));
+            <motion.div
+              className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 rounded-full blur-2xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.4, 0.2],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-2xl"
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.3, 0.1, 0.3],
+                rotate: [360, 180, 0],
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1,
+              }}
+            />
+            <motion.div
+              className="absolute bottom-20 left-1/3 w-40 h-40 bg-gradient-to-br from-green-200/20 to-blue-200/20 rounded-full blur-2xl"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.1, 0.3, 0.1],
+                rotate: [0, -180, -360],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 2,
+              }}
+            />
+          </div>
 
-              return particles.map((p) => (
-                <motion.div
-                  key={p.id}
-                  className="absolute w-2 h-2 bg-slate-200 rounded-full opacity-30"
-                  style={{ left: p.left, top: p.top }}
-                  animate={{ y: [0, -30, 0], opacity: [0.3, 0.1, 0.3] }}
-                  transition={{
-                    duration: p.duration,
-                    repeat: Infinity,
-                    delay: p.delay,
-                  }}
-                />
-              ));
-            }, [])}
+          {/* Particules flottantes améliorées */}
+          <div className="absolute inset-0 overflow-hidden">
+            {particles.map((p) => (
+              <motion.div
+                key={p.id}
+                className={`absolute ${p.color} rounded-full opacity-40`}
+                style={{
+                  left: p.left,
+                  top: p.top,
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                }}
+                animate={{
+                  y: [0, -40, 0],
+                  opacity: [0.4, 0.1, 0.4],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: p.duration,
+                  repeat: Infinity,
+                  delay: p.delay,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
           </div>
 
           {/* Header avec progression */}

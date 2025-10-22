@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
@@ -63,6 +63,15 @@ interface OnboardingData {
   timezone: string;
   language: string;
   currency: string;
+}
+
+// Interface pour les erreurs de l'API
+interface ApiError {
+  error?: string;
+  message?: string;
+  details?: {
+    suggestedSlug?: string;
+  };
 }
 
 const INDUSTRIES = [
@@ -318,8 +327,9 @@ export default function OnboardingPage() {
         }
 
         if (response.status === 409) {
-          if (errorData.error === "SLUG_ALREADY_EXISTS") {
-            const suggestedSlug = errorData.details?.suggestedSlug;
+          if ((errorData as ApiError).error === "SLUG_ALREADY_EXISTS") {
+            const suggestedSlug = (errorData as ApiError).details
+              ?.suggestedSlug;
             if (suggestedSlug) {
               toast.error(
                 `Ce nom d'organisation est déjà utilisé. Suggestion: ${suggestedSlug}`
@@ -330,12 +340,14 @@ export default function OnboardingPage() {
               );
             }
             return;
-          } else if (errorData.error === "EMAIL_ALREADY_EXISTS") {
+          } else if ((errorData as ApiError).error === "EMAIL_ALREADY_EXISTS") {
             toast.error(
               "Cet email est déjà utilisé. Veuillez utiliser un autre email."
             );
             return;
-          } else if (errorData.error === "DOMAIN_ALREADY_EXISTS") {
+          } else if (
+            (errorData as ApiError).error === "DOMAIN_ALREADY_EXISTS"
+          ) {
             toast.error(
               "Ce domaine est déjà utilisé par une autre organisation."
             );
@@ -344,7 +356,7 @@ export default function OnboardingPage() {
         }
 
         throw new Error(
-          errorData.message ||
+          (errorData as ApiError).message ||
             `Erreur ${response.status}: ${response.statusText}`
         );
       }
@@ -574,7 +586,7 @@ export default function OnboardingPage() {
                           </Badge>
                         )}
                         <div
-                          className={`p-3 ${plan.bgColor} rounded-full w-fit mx-auto mb-3`}
+                          className={`p-3 ${plan.color} rounded-full w-fit mx-auto mb-3`}
                         >
                           <Icon className={`h-6 w-6 ${plan.color}`} />
                         </div>
@@ -974,9 +986,9 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Navigation des étapes */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      {/* Navigation des étapes moderne */}
+      <div className="bg-white/90 backdrop-blur-sm border-b border-slate-200/50 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -984,57 +996,159 @@ export default function OnboardingPage() {
               const isCompleted = index < currentStep;
 
               return (
-                <div key={step.id} className="flex items-center">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`
-                      flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300
-                      ${
-                        isActive
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : isCompleted
-                            ? "border-green-500 bg-green-500 text-white"
-                            : "border-slate-300 bg-white text-slate-400"
-                      }
-                    `}
+                <motion.div
+                  key={step.id}
+                  className="flex items-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      className="relative"
+                      whileHover={isCompleted ? { scale: 1.05 } : {}}
+                      transition={{ type: "spring", stiffness: 300 }}
                     >
-                      {isCompleted ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : (
-                        <Icon className="h-5 w-5" />
-                      )}
-                    </div>
+                      <motion.div
+                        className={`
+                        flex items-center justify-center w-12 h-12 rounded-2xl border-2 transition-all duration-300 shadow-lg
+                        ${
+                          isActive
+                            ? "border-blue-500 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-200"
+                            : isCompleted
+                              ? "border-green-400 bg-gradient-to-br from-green-500 to-emerald-600 text-white cursor-pointer hover:border-green-500 hover:bg-gradient-to-br hover:from-green-600 hover:to-emerald-700 hover:shadow-green-200"
+                              : "border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100 text-slate-400"
+                        }
+                      `}
+                        onClick={
+                          isCompleted ? () => setCurrentStep(index) : undefined
+                        }
+                        animate={
+                          isActive
+                            ? {
+                                boxShadow: "0 0 0 4px rgba(59, 130, 246, 0.1)",
+                                scale: 1.05,
+                              }
+                            : {}
+                        }
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle2 className="h-6 w-6" />
+                        ) : (
+                          <Icon className="h-6 w-6" />
+                        )}
+                      </motion.div>
+                    </motion.div>
                     <div className="hidden sm:block">
                       <div
-                        className={`text-sm font-medium ${isActive ? "text-blue-600" : isCompleted ? "text-green-600" : "text-slate-500"}`}
+                        className={`text-sm font-semibold transition-colors ${
+                          isActive
+                            ? "text-blue-600"
+                            : isCompleted
+                              ? "text-green-600"
+                              : "text-slate-500"
+                        }`}
                       >
                         {step.title}
+                      </div>
+                      <div
+                        className={`text-xs transition-colors ${
+                          isActive
+                            ? "text-blue-500"
+                            : isCompleted
+                              ? "text-green-500"
+                              : "text-slate-400"
+                        }`}
+                      >
+                        {isCompleted
+                          ? "Terminé"
+                          : isActive
+                            ? "En cours"
+                            : "À venir"}
                       </div>
                     </div>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="hidden sm:block w-8 h-0.5 bg-slate-300 mx-4" />
+                    <motion.div
+                      className="hidden sm:block w-12 h-1 bg-gradient-to-r from-slate-200 to-slate-300 mx-6 rounded-full"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                    />
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </div>
 
-      {/* Contenu principal */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Contenu principal moderne */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
-              <CardContent className="p-8">{renderStep()}</CardContent>
-            </Card>
+            <motion.div
+              className="relative"
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              {/* Effet de brillance */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-3xl blur-xl" />
+
+              <Card className="relative shadow-2xl border-0 bg-white/90 backdrop-blur-md overflow-hidden">
+                {/* Header de l'étape */}
+                <motion.div
+                  className="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-b border-slate-200/50"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg"
+                      whileHover={{ scale: 1.05, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {React.createElement(steps[currentStep].icon, {
+                        className: "h-6 w-6 text-white",
+                      })}
+                    </motion.div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900">
+                        {steps[currentStep].title}
+                      </h2>
+                      <p className="text-slate-600 mt-1">
+                        {currentStep === 0 &&
+                          "Configurez les informations de base de votre organisation"}
+                        {currentStep === 1 &&
+                          "Définissez les informations de l'administrateur principal"}
+                        {currentStep === 2 &&
+                          "Personnalisez les paramètres selon vos préférences"}
+                        {currentStep === 3 &&
+                          "Vérifiez et confirmez votre configuration"}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <CardContent className="p-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {renderStep()}
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         </AnimatePresence>
 
