@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTenant } from "@/contexts/tenant-context";
+import { BrandName } from "@/components/ui/BrandName";
 
 const features = [
   {
@@ -152,7 +153,7 @@ const testimonials = [
     company: "TechCorp",
     role: "Directrice des Opérations",
     content:
-      "ReservApp a révolutionné la gestion de nos salles de réunion. L'interface est intuitive et les analytics nous aident à optimiser l'utilisation de nos espaces.",
+      "BookSpace a révolutionné la gestion de nos salles de réunion. L'interface est intuitive et les analytics nous aident à optimiser l'utilisation de nos espaces.",
     rating: 5,
   },
   {
@@ -327,8 +328,8 @@ export default function HomePage() {
                 className="text-xl sm:text-2xl text-slate-700 mb-12 max-w-4xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                ReservApp révolutionne la gestion des espaces de travail avec
-                une solution
+                <BrandName size="2xl" glow /> révolutionne la gestion des
+                espaces de travail avec une solution
                 <span className="font-semibold text-blue-700">
                   {" "}
                   intelligente
@@ -591,7 +592,11 @@ export default function HomePage() {
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 <Heart className="h-5 w-5 mr-2" />
-                Pourquoi choisir ReservApp ?
+                Pourquoi choisir{" "}
+                <span className="bg-gradient-to-r from-blue-200 via-indigo-200 to-purple-200 bg-clip-text text-transparent font-black tracking-tight drop-shadow-sm hover:drop-shadow-md transition-all duration-300 cursor-default">
+                  BookSpace
+                </span>{" "}
+                ?
               </Badge>
               <h2
                 className="text-4xl sm:text-5xl font-black text-white mb-6 leading-tight tracking-tight drop-shadow-lg"
@@ -715,8 +720,12 @@ export default function HomePage() {
                 className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                Découvrez comment ReservApp transforme la gestion des espaces de
-                travail dans les entreprises
+                Découvrez comment{" "}
+                <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent font-black tracking-tight drop-shadow-sm hover:drop-shadow-md transition-all duration-300 cursor-default">
+                  BookSpace
+                </span>{" "}
+                transforme la gestion des espaces de travail dans les
+                entreprises
               </p>
             </motion.div>
           </div>
@@ -890,8 +899,11 @@ export default function HomePage() {
               className="text-xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed font-medium tracking-wide drop-shadow-sm"
               style={{ fontFamily: "Inter, system-ui, sans-serif" }}
             >
-              Rejoignez des centaines d'entreprises qui font confiance à
-              ReservApp pour optimiser leurs espaces de travail
+              Rejoignez des centaines d'entreprises qui font confiance à{" "}
+              <span className="bg-gradient-to-r from-yellow-200 via-orange-200 to-red-200 bg-clip-text text-transparent font-black tracking-tight drop-shadow-sm hover:drop-shadow-md transition-all duration-300 cursor-default">
+                BookSpace
+              </span>{" "}
+              pour optimiser leurs espaces de travail
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -956,12 +968,7 @@ export default function HomePage() {
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
                   <Building2 className="h-8 w-8 text-white" />
                 </div>
-                <span
-                  className="text-2xl font-black tracking-tight drop-shadow-sm"
-                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-                >
-                  ReservApp
-                </span>
+                <BrandName size="2xl" variant="light" glow />
               </div>
               <p
                 className="text-slate-300 leading-relaxed mb-6 text-base font-medium tracking-wide drop-shadow-sm"
@@ -1131,7 +1138,11 @@ export default function HomePage() {
                 className="text-slate-300 text-base font-medium tracking-wide drop-shadow-sm"
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                &copy; 2024 ReservApp. Tous droits réservés.
+                &copy; 2024{" "}
+                <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent font-black tracking-tight drop-shadow-sm hover:drop-shadow-md transition-all duration-300 cursor-default">
+                  BookSpace
+                </span>
+                . Tous droits réservés.
               </p>
               <div
                 className="flex items-center gap-4 text-base text-slate-300 font-medium tracking-wide drop-shadow-sm"

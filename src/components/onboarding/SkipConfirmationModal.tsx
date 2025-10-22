@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, SkipForward, ArrowRight } from "lucide-react";
+import { SkipForward } from "lucide-react";
 
 interface SkipConfirmationModalProps {
   isOpen: boolean;
@@ -49,7 +49,10 @@ export default function SkipConfirmationModal({
                 Passer l'onboarding ?
               </h3>
               <p className="text-slate-600">
-                Vous pouvez toujours découvrir les fonctionnalités de ReservApp
+                Vous pouvez toujours découvrir les fonctionnalités de{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+                  BookSpace
+                </span>{" "}
                 en explorant l'application.
               </p>
             </div>

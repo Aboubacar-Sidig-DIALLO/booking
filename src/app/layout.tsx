@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReservApp",
+  title: "BookSpace",
   description: "Système de réservation intelligent",
 };
 

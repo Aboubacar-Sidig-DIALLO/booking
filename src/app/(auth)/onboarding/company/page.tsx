@@ -15,10 +15,7 @@ import {
 } from "@/components/ui/card";
 import {
   Building2,
-  MapPin,
   Phone,
-  Mail,
-  Users,
   Briefcase,
   ArrowRight,
   ArrowLeft,
@@ -182,8 +179,8 @@ export default function CompanyOnboardingPage() {
                 <Building2 className="h-6 w-6 text-white" />
               </motion.div>
               <div>
-                <span className="text-xl font-bold text-slate-900">
-                  ReservApp
+                <span className="text-xl font-bold text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  BookSpace
                 </span>
                 <p className="text-xs text-slate-500">
                   Configuration entreprise

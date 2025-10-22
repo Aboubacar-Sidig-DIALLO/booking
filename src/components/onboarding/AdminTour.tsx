@@ -220,7 +220,11 @@ export default function AdminTour() {
           <div class="space-y-4 text-center">
             <div class="text-6xl">🚀</div>
             <p class="text-slate-700 leading-relaxed text-lg">
-              Vous êtes maintenant prêt à utiliser ReservApp ! 
+              Vous êtes maintenant prêt à utiliser{" "}
+              <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+                BookSpace
+              </span>{" "}
+              ! 
             </p>
             <p class="text-slate-600">
               N'hésitez pas à explorer les différentes fonctionnalités et à personnaliser votre espace selon vos besoins.
@@ -234,7 +238,7 @@ export default function AdminTour() {
         `,
         buttons: [
           {
-            text: "Commencer à utiliser ReservApp",
+            text: "Commencer à utiliser BookSpace",
             action: () => {
               tour.complete();
               completeTour();

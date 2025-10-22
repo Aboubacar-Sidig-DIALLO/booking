@@ -18,9 +18,7 @@ import {
   User,
   Settings,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { BrandName } from "@/components/ui/BrandName";
 
 const navigation = [
   { name: "Accueil", href: "/", icon: Home },
@@ -138,9 +136,7 @@ export function Navigation() {
               <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900">
-                ReservApp
-              </span>
+              <BrandName size="xl" glow />
             </motion.div>
           </div>
 

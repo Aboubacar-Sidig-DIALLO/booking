@@ -137,8 +137,8 @@ function HomeContent() {
                 <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
                   <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
-                  ReservApp
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-lg">
+                  BookSpace
                 </h1>
               </div>
               <p className="text-blue-100 text-lg sm:text-xl max-w-2xl">
@@ -607,8 +607,10 @@ function HomeContent() {
               Prêt à commencer ?
             </h2>
             <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Créez votre première réservation et découvrez la puissance de
-              ReservApp
+              Créez votre première réservation et découvrez la puissance de{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-bold">
+                BookSpace
+              </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/bookings/new">

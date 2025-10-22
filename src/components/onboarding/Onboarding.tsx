@@ -5,14 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
-  Users,
   Clock,
   CheckCircle,
   ArrowRight,
   ArrowLeft,
-  X,
   Building,
-  Zap,
   Shield,
   BarChart3,
   SkipForward,
@@ -26,7 +23,7 @@ interface OnboardingProps {
 const onboardingSteps = [
   {
     id: 1,
-    title: "Bienvenue sur ReservApp",
+    title: "Bienvenue sur BookSpace",
     subtitle: "Votre solution de réservation intelligente",
     description:
       "Simplifiez la gestion de vos espaces de travail avec une plateforme moderne et intuitive.",
@@ -311,8 +308,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center shadow-lg">
                     <Calendar className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-lg font-bold text-slate-900">
-                    ReservApp
+                  <span className="text-lg font-bold text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    BookSpace
                   </span>
                 </motion.div>
 
@@ -353,8 +350,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
           {/* Contenu principal */}
           <div className="pt-24 h-full flex items-center justify-center px-6">
-            <div className="max-w-6xl mx-auto w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="max-w-7xl mx-auto w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 {/* Contenu textuel */}
                 <motion.div
                   key={`content-${currentStep}`}
@@ -362,7 +359,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 1, x: 50 }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="space-y-8 justify-self-start lg:col-span-8"
+                  className="space-y-8 justify-self-start lg:col-span-7"
                 >
                   <div className="space-y-4 max-w-xl">
                     <motion.div
@@ -501,7 +498,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   animate={{ opacity: 1, scale: 1, rotateY: 0 }}
                   exit={{ opacity: 0, scale: 0.8, rotateY: 15 }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="flex items-center justify-center perspective-1000 lg:justify-self-start lg:col-span-4"
+                  className="flex items-center justify-center perspective-1000 lg:justify-self-start lg:col-span-5"
                 >
                   <div className="relative">
                     {/* Fond décoratif animé */}
@@ -541,8 +538,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             </motion.div>
                           </div>
                           <div className="text-center space-y-2">
-                            <h3 className="text-2xl font-bold text-slate-900">
-                              ReservApp
+                            <h3 className="text-2xl font-bold text-slate-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                              BookSpace
                             </h3>
                             <p className="text-slate-600">
                               Système de réservation intelligent
