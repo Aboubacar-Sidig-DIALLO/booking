@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { signIn, getSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Mail,
   Lock,
@@ -23,21 +26,60 @@ import {
   CheckCircle,
   ArrowRight,
   Sparkles,
+  AlertCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
-export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
+export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/home";
+  const errorParam = searchParams.get("error");
+
+  // Afficher un message d'erreur si une page n'existe pas
+  const pageNotFoundError = errorParam === "page_not_found";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulation d'une connexion
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        rememberMe: rememberMe.toString(),
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Email ou mot de passe incorrect");
+        toast.error("Email ou mot de passe incorrect");
+        return;
+      }
+
+      if (result?.ok) {
+        // Vérifier si l'utilisateur doit changer son mot de passe
+        const session = await getSession();
+        if ((session?.user as any)?.mustChangePassword) {
+          router.push("/change-password");
+        } else {
+          // Rediriger vers la page demandée ou vers l'accueil par défaut
+          router.push(callbackUrl);
+        }
+      }
+    } catch (error) {
+      setError("Une erreur est survenue lors de la connexion");
+      toast.error("Une erreur est survenue lors de la connexion");
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -209,6 +251,28 @@ export default function LoginPage() {
 
               <CardContent className="space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {pageNotFoundError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <p className="font-semibold">Page non trouvée</p>
+                          <p className="text-sm">
+                            La page que vous cherchez n'existe pas.
+                            Connectez-vous pour accéder à votre tableau de bord.
+                          </p>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {error && !pageNotFoundError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -227,6 +291,7 @@ export default function LoginPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10 h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         required
+                        disabled={isLoading}
                       />
                     </div>
                   </motion.div>
@@ -249,11 +314,13 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10 h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         required
+                        disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        disabled={isLoading}
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -270,16 +337,21 @@ export default function LoginPage() {
                     transition={{ duration: 0.6, delay: 0.8 }}
                     className="flex items-center justify-between text-sm"
                   >
-                    <label className="flex items-center gap-2 text-slate-600">
+                    <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
                       <input
                         type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
                         className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        disabled={isLoading}
                       />
                       Se souvenir de moi
                     </label>
                     <button
                       type="button"
-                      className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      onClick={() => router.push("/forgot-password")}
+                      className="text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
+                      disabled={isLoading}
                     >
                       Mot de passe oublié ?
                     </button>
@@ -293,8 +365,7 @@ export default function LoginPage() {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-                      magnetic
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-2">
@@ -335,19 +406,41 @@ export default function LoginPage() {
                 >
                   <Button
                     variant="outline"
-                    className="h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200"
+                    className="h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-gradient-to-br from-red-500 to-yellow-500 rounded"></div>
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
+                      </svg>
                       Google
                     </div>
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200"
+                    className="h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-blue-600 rounded"></div>
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path
+                          fill="#00BCF2"
+                          d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"
+                        />
+                      </svg>
                       Microsoft
                     </div>
                   </Button>
@@ -359,10 +452,33 @@ export default function LoginPage() {
                   transition={{ duration: 0.6, delay: 1.2 }}
                   className="text-center text-sm text-slate-600"
                 >
-                  Pas encore de compte ?{" "}
-                  <span className="text-blue-600 font-medium transition-colors">
-                    contactez votre administrateur.
-                  </span>
+                  Première connexion ?{" "}
+                  <a
+                    href="/onboarding"
+                    className="text-blue-600 font-medium hover:underline transition-colors cursor-pointer"
+                  >
+                    Créez votre organisation
+                  </a>
+                </motion.div>
+
+                {/* Informations sur les mots de passe temporaires */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 1.3 }}
+                  className="bg-blue-50 border border-blue-200 rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lock className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">
+                      Mot de passe temporaire
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    Si vous venez de créer votre organisation, utilisez le mot
+                    de passe temporaire qui vous a été envoyé par email. Vous
+                    serez invité à le changer lors de votre première connexion.
+                  </p>
                 </motion.div>
               </CardContent>
             </Card>

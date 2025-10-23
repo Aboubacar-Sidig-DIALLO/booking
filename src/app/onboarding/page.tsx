@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,14 +28,51 @@ import {
   Clock,
   Sparkles,
   Shield,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BrandName } from "@/components/ui/BrandName";
+import SetupProgress from "@/components/onboarding/SetupProgress";
 
 // Composant pour afficher les messages d'erreur
 const ErrorMessage = ({ message }: { message: string }) => (
   <p className="text-red-500 text-sm mt-1">{message}</p>
 );
+
+// Composant pour afficher le statut de disponibilité
+const AvailabilityStatus = ({
+  status,
+}: {
+  status: "checking" | "available" | "unavailable" | null;
+}) => {
+  if (!status) return null;
+
+  switch (status) {
+    case "checking":
+      return (
+        <div className="flex items-center gap-2 text-blue-600 text-sm mt-1">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Vérification en cours...</span>
+        </div>
+      );
+    case "available":
+      return (
+        <div className="flex items-center gap-2 text-green-600 text-sm mt-1">
+          <CheckCircle2 className="h-4 w-4" />
+          <span>Disponible</span>
+        </div>
+      );
+    case "unavailable":
+      return (
+        <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+          <XCircle className="h-4 w-4" />
+          <span>Déjà utilisé</span>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
 
 // Interface pour les erreurs de l'API
 interface ApiError {
@@ -58,6 +95,10 @@ interface OnboardingData {
   adminName: string;
   adminEmail: string;
   adminPhone?: string;
+
+  // Plan et fonctionnalités
+  selectedPlan: "STARTER" | "PROFESSIONAL" | "ENTERPRISE" | "CUSTOM";
+  selectedFeatures: string[];
 
   // Configuration initiale
   timezone: string;
@@ -85,12 +126,32 @@ const COMPANY_SIZES = [
   "1000+ employés",
 ];
 
+// Fonction debounce pour optimiser les appels API
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSetupProgress, setShowSetupProgress] = useState(false);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  const [availabilityStatus, setAvailabilityStatus] = useState<{
+    companyName: "checking" | "available" | "unavailable" | null;
+    companySlug: "checking" | "available" | "unavailable" | null;
+  }>({
+    companyName: null,
+    companySlug: null,
+  });
   const [data, setData] = useState<OnboardingData>({
     companyName: "",
     companySlug: "",
@@ -103,6 +164,8 @@ export default function OnboardingPage() {
     timezone: "Europe/Paris",
     language: "fr",
     currency: "EUR",
+    selectedPlan: "STARTER",
+    selectedFeatures: ["basic_booking", "notifications", "analytics"],
   });
 
   const steps = [
@@ -116,6 +179,14 @@ export default function OnboardingPage() {
 
   const updateData = (field: keyof OnboardingData, value: any) => {
     setData((prev) => ({ ...prev, [field]: value }));
+
+    // Déclencher les vérifications d'unicité
+    if (field === "companyName") {
+      debouncedCheckName(value);
+    } else if (field === "companySlug") {
+      debouncedCheckSlug(value);
+    }
+
     // Effacer l'erreur de validation pour ce champ quand l'utilisateur tape
     if (validationErrors[field]) {
       setValidationErrors((prev) => {
@@ -181,6 +252,71 @@ export default function OnboardingPage() {
       .replace(/-+/g, "-")
       .trim();
   };
+
+  // Fonction pour vérifier l'unicité avec debouncing
+  const checkAvailability = async (
+    field: "companyName" | "companySlug",
+    value: string
+  ) => {
+    if (!value || value.length < 2) {
+      setAvailabilityStatus((prev) => ({ ...prev, [field]: null }));
+      return;
+    }
+
+    setAvailabilityStatus((prev) => ({ ...prev, [field]: "checking" }));
+
+    try {
+      const response = await fetch(
+        `/api/onboarding/check-availability?field=${field}&value=${encodeURIComponent(value)}`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // L'API retourne { success: true, data: { available: boolean, message: string } }
+        const data = result.data || result;
+        const isAvailable = data.available;
+
+        setAvailabilityStatus((prev) => ({
+          ...prev,
+          [field]: isAvailable ? "available" : "unavailable",
+        }));
+
+        if (!isAvailable) {
+          setValidationErrors((prev) => ({
+            ...prev,
+            [field]:
+              data.message ||
+              `${field === "companyName" ? "Ce nom d'entreprise" : "Cet identifiant"} est déjà utilisé`,
+          }));
+        } else {
+          setValidationErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors[field];
+            return newErrors;
+          });
+        }
+      } else {
+        setAvailabilityStatus((prev) => ({ ...prev, [field]: null }));
+      }
+    } catch (error) {
+      console.error(`Erreur lors de la vérification de ${field}:`, error);
+      setAvailabilityStatus((prev) => ({ ...prev, [field]: null }));
+    }
+  };
+
+  // Debounced version des vérifications
+  const debouncedCheckName = useMemo(
+    () =>
+      debounce((value: string) => checkAvailability("companyName", value), 500),
+    []
+  );
+
+  const debouncedCheckSlug = useMemo(
+    () =>
+      debounce((value: string) => checkAvailability("companySlug", value), 500),
+    []
+  );
 
   const handleNext = () => {
     if (validateCurrentStep()) {
@@ -294,9 +430,8 @@ export default function OnboardingPage() {
 
       toast.success("Organisation créée avec succès !");
 
-      setTimeout(() => {
-        window.location.href = `http://localhost:3000/tenant/${data.companySlug}/home`;
-      }, 2000);
+      // Afficher la page de progression au lieu de rediriger directement
+      setShowSetupProgress(true);
     } catch (error) {
       toast.error("Erreur lors de la création de l'organisation");
       console.error(error);
@@ -341,8 +476,9 @@ export default function OnboardingPage() {
                       updateData("companySlug", generateSlug(e.target.value));
                     }
                   }}
-                  className={`h-12 ${validationErrors.companyName ? "border-red-500 focus:border-red-500" : ""}`}
+                  className={`h-12 ${validationErrors.companyName ? "border-red-500 focus:border-red-500" : availabilityStatus.companyName === "available" ? "border-green-500 focus:border-green-500" : ""}`}
                 />
+                <AvailabilityStatus status={availabilityStatus.companyName} />
                 {validationErrors.companyName && (
                   <ErrorMessage message={validationErrors.companyName} />
                 )}
@@ -358,12 +494,13 @@ export default function OnboardingPage() {
                     placeholder="acme-corp"
                     value={data.companySlug}
                     onChange={(e) => updateData("companySlug", e.target.value)}
-                    className={`h-12 pr-20 ${validationErrors.companySlug ? "border-red-500 focus:border-red-500" : ""}`}
+                    className={`h-12 pr-20 ${validationErrors.companySlug ? "border-red-500 focus:border-red-500" : availabilityStatus.companySlug === "available" ? "border-green-500 focus:border-green-500" : ""}`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
                     .localhost:3000
                   </div>
                 </div>
+                <AvailabilityStatus status={availabilityStatus.companySlug} />
                 {validationErrors.companySlug && (
                   <ErrorMessage message={validationErrors.companySlug} />
                 )}
@@ -805,6 +942,22 @@ export default function OnboardingPage() {
         return null;
     }
   };
+
+  const handleSetupComplete = () => {
+    // Rediriger vers l'espace de l'organisation après la configuration
+    window.location.href = `http://localhost:3000/tenant/${data.companySlug}/home`;
+  };
+
+  // Afficher la page de progression si l'organisation a été créée
+  if (showSetupProgress) {
+    return (
+      <SetupProgress
+        companyName={data.companyName}
+        companySlug={data.companySlug}
+        onComplete={handleSetupComplete}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">

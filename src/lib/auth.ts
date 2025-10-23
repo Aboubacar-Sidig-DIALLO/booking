@@ -1,42 +1,71 @@
 import { NextAuthOptions, Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
+import { verifyPassword } from "@/lib/password-utils";
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 jours par défaut
+  },
   providers: [
     Credentials({
-      name: "Demo",
-      credentials: { email: { label: "Email", type: "email" } },
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Mot de passe", type: "password" },
+        rememberMe: { label: "Se souvenir de moi", type: "checkbox" },
+      },
       async authorize(credentials) {
         const email = credentials?.email;
-        if (!email) return null;
-        const user = await prisma.user.upsert({
+        const password = credentials?.password;
+        const rememberMe = credentials?.rememberMe === "true";
+
+        if (!email || !password) return null;
+
+        const user = await prisma.user.findUnique({
           where: { email },
-          update: {},
-          create: {
-            email,
-            name: email.split("@")[0],
-            role: "VIEWER",
-            orgId: "org-demo",
-          },
+          include: { org: true },
         });
+
+        if (!user || !(user as any).password) return null;
+
+        // Vérifier le mot de passe
+        const isValidPassword = await verifyPassword(
+          password,
+          (user as any).password
+        );
+        if (!isValidPassword) return null;
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
           orgId: user.orgId,
+          mustChangePassword: (user as any).mustChangePassword,
+          orgSlug: user.org.slug,
         } as any;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.role = (user as any).role;
         token.orgId = (user as any).orgId;
+        token.mustChangePassword = (user as any).mustChangePassword;
+        token.orgSlug = (user as any).orgSlug;
+        token.rememberMe = (user as any).rememberMe;
       }
+
+      // Gérer la durée de session basée sur "Se souvenir de moi"
+      if (account && (account as any).rememberMe) {
+        token.maxAge = 30 * 24 * 60 * 60; // 30 jours
+      } else {
+        token.maxAge = 24 * 60 * 60; // 1 jour
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -45,6 +74,8 @@ export const authOptions: NextAuthOptions = {
         id: token.sub,
         role: (token as any).role,
         orgId: (token as any).orgId,
+        mustChangePassword: (token as any).mustChangePassword,
+        orgSlug: (token as any).orgSlug,
       };
       return session;
     },
@@ -52,7 +83,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
   pages: {
     signIn: "/login",
-    error: "/auth/error",
+    error: "/error",
   },
   debug: process.env.NODE_ENV === "development",
 };

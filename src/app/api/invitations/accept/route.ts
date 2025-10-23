@@ -146,8 +146,8 @@ export const POST = withValidation(
             name: invitation.organization.name,
             slug: invitation.organization.slug,
           },
-          loginUrl: `http://${invitation.organization.slug}.localhost:3000/auth/signin`,
-          dashboardUrl: `http://${invitation.organization.slug}.localhost:3000/dashboard`,
+          loginUrl: `http://${invitation.organization.slug}.localhost:3000/login`,
+          dashboardUrl: `http://${invitation.organization.slug}.localhost:3000/home`,
         },
         "Invitation acceptée avec succès"
       );

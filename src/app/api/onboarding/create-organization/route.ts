@@ -8,6 +8,7 @@ import { z } from "zod";
 import { logTenantAction, extractRequestInfo } from "@/lib/audit-logging";
 import { cacheTenant } from "@/lib/tenant-resolver-edge";
 import { sendWelcomeEmail } from "@/lib/email-service";
+import { generateTemporaryPassword } from "@/lib/password-utils";
 
 const OnboardingSchema = z.object({
   // Informations de l'entreprise
@@ -78,48 +79,83 @@ export const POST = async (req: NextRequest) => {
         }
       }
 
-      // Créer l'organisation
-      const organization = await prisma.organization.create({
-        data: {
-          name: validatedData.companyName,
-          slug: validatedData.companySlug,
-          domain: validatedData.companyDomain,
-          plan: validatedData.selectedPlan,
-          settings: {
-            industry: validatedData.industry,
-            companySize: validatedData.companySize,
-            timezone: validatedData.timezone,
-            language: validatedData.language,
-            currency: validatedData.currency,
-            onboarding: {
-              completed: true,
-              completedAt: new Date().toISOString(),
-              steps: ["company", "admin", "plan", "config", "final"],
-            },
-          },
-        } as any,
+      // Vérifier que l'email de l'administrateur n'existe pas déjà
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.adminEmail },
       });
 
-      // Créer l'administrateur principal
+      if (existingUser) {
+        return createErrorResponse(
+          "EMAIL_ALREADY_EXISTS",
+          409,
+          "Cet email est déjà utilisé. Veuillez utiliser un autre email."
+        );
+      }
+
+      // Préparer les données de l'organisation
+      const organizationData: any = {
+        name: validatedData.companyName,
+        slug: validatedData.companySlug,
+        plan: validatedData.selectedPlan,
+        settings: {
+          industry: validatedData.industry,
+          companySize: validatedData.companySize,
+          timezone: validatedData.timezone,
+          language: validatedData.language,
+          currency: validatedData.currency,
+          onboarding: {
+            completed: true,
+            completedAt: new Date().toISOString(),
+            steps: ["company", "admin", "plan", "config", "final"],
+          },
+        },
+      };
+
+      // Ajouter le domaine seulement s'il est fourni
+      if (validatedData.companyDomain && validatedData.companyDomain.trim()) {
+        organizationData.domain = validatedData.companyDomain;
+      }
+
+      // Créer l'organisation
+      const organization = await prisma.organization.create({
+        data: organizationData,
+      });
+
+      // Générer un mot de passe temporaire pour l'administrateur
+      const { plainPassword, hashedPassword } = await generateTemporaryPassword(
+        validatedData.companySlug,
+        validatedData.companyName
+      );
+
+      // Créer l'administrateur principal avec mot de passe temporaire
       const adminUser = await prisma.user.create({
         data: {
           email: validatedData.adminEmail,
           name: validatedData.adminName,
+          password: hashedPassword,
+          mustChangePassword: true, // Force le changement à la première connexion
           role: "ADMIN",
           orgId: organization.id,
         },
       });
 
       // Activer les fonctionnalités sélectionnées
-      for (const featureId of validatedData.selectedFeatures) {
-        await (prisma as any).organizationFeature.create({
-          data: {
-            organizationId: organization.id,
-            featureId: featureId,
-            isEnabled: true,
-            settings: {},
-          },
+      for (const featureName of validatedData.selectedFeatures) {
+        // Trouver la fonctionnalité par nom
+        const feature = await prisma.feature.findUnique({
+          where: { name: featureName },
         });
+
+        if (feature) {
+          await prisma.organizationFeature.create({
+            data: {
+              organizationId: organization.id,
+              featureId: feature.id,
+              isEnabled: true,
+              settings: {},
+            },
+          });
+        }
       }
 
       // Créer un site par défaut
@@ -130,11 +166,12 @@ export const POST = async (req: NextRequest) => {
         },
       });
 
-      // Créer quelques salles d'exemple
+      // Créer quelques salles d'exemple avec des slugs uniques
+      const orgSlug = organization.slug;
       const defaultRooms = [
         {
           name: "Salle de Réunion A",
-          slug: "salle-reunion-a",
+          slug: `${orgSlug}-salle-reunion-a`,
           capacity: 8,
           location: "Étage 1",
           floor: 1,
@@ -145,7 +182,7 @@ export const POST = async (req: NextRequest) => {
         },
         {
           name: "Salle de Réunion B",
-          slug: "salle-reunion-b",
+          slug: `${orgSlug}-salle-reunion-b`,
           capacity: 12,
           location: "Étage 1",
           floor: 1,
@@ -156,7 +193,7 @@ export const POST = async (req: NextRequest) => {
         },
         {
           name: "Open Space",
-          slug: "open-space",
+          slug: `${orgSlug}-open-space`,
           capacity: 20,
           location: "Étage 2",
           floor: 2,
@@ -196,14 +233,15 @@ export const POST = async (req: NextRequest) => {
         userAgent,
       });
 
-      // Envoyer l'email de bienvenue
+      // Envoyer l'email de bienvenue avec le mot de passe temporaire
       try {
         await sendWelcomeEmail({
           to: validatedData.adminEmail,
           adminName: validatedData.adminName,
           companyName: validatedData.companyName,
           companySlug: validatedData.companySlug,
-          loginUrl: `http://${validatedData.companySlug}.localhost:3000/auth/signin`,
+          loginUrl: `http://${validatedData.companySlug}.localhost:3000/login`,
+          temporaryPassword: plainPassword, // Inclure le mot de passe temporaire
         });
       } catch (emailError) {
         console.warn(
@@ -227,8 +265,8 @@ export const POST = async (req: NextRequest) => {
             name: adminUser.name,
             email: adminUser.email,
           },
-          loginUrl: `http://${validatedData.companySlug}.localhost:3000/auth/signin`,
-          dashboardUrl: `http://${validatedData.companySlug}.localhost:3000/dashboard`,
+          loginUrl: `http://${validatedData.companySlug}.localhost:3000/login`,
+          dashboardUrl: `http://${validatedData.companySlug}.localhost:3000/home`,
         },
         "Organisation créée avec succès"
       );

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Building2,
   Users,
@@ -29,15 +28,9 @@ import {
   Sparkles,
   Shield,
   Crown,
-  Globe,
-  Mail,
-  Phone,
   Calendar,
   Settings,
   Zap,
-  Star,
-  CheckCircle2,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";

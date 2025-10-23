@@ -24,20 +24,25 @@ model Organization {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(VIEWER)
-  orgId     String
-  org       Organization @relation(fields: [orgId], references: [id])
-  favorites Favorite[]
-  messages  Message[]
-  bookings  BookingParticipant[]
-  createdBookings Booking[]
-  notifications Notification[]
-  checkins   Checkin[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    String   @id @default(uuid())
+  email                 String   @unique
+  name                  String?
+  password              String?  // Mot de passe hashé
+  mustChangePassword    Boolean  @default(false) // Force le changement à la première connexion
+  passwordChangedAt     DateTime? // Date du dernier changement de mot de passe
+  resetToken            String?  // Token pour réinitialisation de mot de passe
+  resetTokenExpiry      DateTime? // Expiration du token de réinitialisation
+  role                  Role     @default(VIEWER)
+  orgId                 String
+  org                   Organization @relation(fields: [orgId], references: [id])
+  favorites             Favorite[]
+  messages              Message[]
+  bookings              BookingParticipant[]
+  createdBookings       Booking[]
+  notifications         Notification[]
+  checkins              Checkin[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 enum Role {
