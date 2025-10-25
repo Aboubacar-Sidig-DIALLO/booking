@@ -62,8 +62,13 @@ export default function ChangePasswordPage() {
   }
 
   const handlePasswordChangeSuccess = () => {
-    // Rediriger vers l'accueil après le changement de mot de passe
-    router.push("/home");
+    // Rediriger selon le rôle de l'utilisateur après le changement de mot de passe
+    const userRole = (session.user as any)?.role;
+    if (userRole === "ADMIN") {
+      router.push("/admin");
+    } else {
+      router.push("/home");
+    }
   };
 
   return (
@@ -255,7 +260,10 @@ export default function ChangePasswordPage() {
               </CardHeader>
 
               <CardContent>
-                <ChangePasswordForm onSuccess={handlePasswordChangeSuccess} />
+                <ChangePasswordForm
+                  onSuccess={handlePasswordChangeSuccess}
+                  userEmail={session.user?.email || ""}
+                />
               </CardContent>
             </Card>
           </motion.div>

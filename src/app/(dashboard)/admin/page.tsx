@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,6 +35,7 @@ import {
   Server,
   Lock,
   Bell,
+  LogOut,
 } from "lucide-react";
 
 // Données simulées pour les statistiques
@@ -195,6 +198,7 @@ const getAlertConfig = (type: string) => {
 export default function AdminPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedTab, setSelectedTab] = useState("overview");
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -202,6 +206,10 @@ export default function AdminPage() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/login" });
+  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("fr-FR", {
@@ -283,6 +291,13 @@ export default function AdminPage() {
               <Button className="bg-gradient-to-r from-white to-blue-50 text-blue-600 hover:from-blue-50 hover:to-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold">
                 <Download className="h-4 w-4 mr-2" />
                 Exporter les données
+              </Button>
+              <Button
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Se déconnecter
               </Button>
             </motion.div>
           </motion.div>

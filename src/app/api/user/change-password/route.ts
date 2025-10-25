@@ -14,7 +14,14 @@ const ChangePasswordSchema = z
     currentPassword: z.string().min(1, "Le mot de passe actuel est requis"),
     newPassword: z
       .string()
-      .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
+      .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères")
+      .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+      .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+      .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
+      .regex(
+        /[^A-Za-z0-9]/,
+        "Le mot de passe doit contenir au moins un caractère spécial"
+      ),
     confirmPassword: z
       .string()
       .min(1, "La confirmation du mot de passe est requise"),
@@ -64,6 +71,20 @@ export const POST = async (req: NextRequest) => {
         "INVALID_CURRENT_PASSWORD",
         400,
         "Le mot de passe actuel est incorrect"
+      );
+    }
+
+    // Vérifier que le nouveau mot de passe est différent de l'ancien
+    const isSamePassword = await verifyPassword(
+      validatedData.newPassword,
+      user.password
+    );
+
+    if (isSamePassword) {
+      return createErrorResponse(
+        "SAME_PASSWORD",
+        400,
+        "Le nouveau mot de passe doit être différent de l'ancien"
       );
     }
 

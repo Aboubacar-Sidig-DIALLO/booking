@@ -6,7 +6,7 @@ import { verifyPassword } from "@/lib/password-utils";
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 jours par défaut
+    maxAge: 24 * 60 * 60, // 1 jour par défaut (session courte)
   },
   providers: [
     Credentials({
@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         const email = credentials?.email;
         const password = credentials?.password;
-        const rememberMe = credentials?.rememberMe === "true";
+        // Note: rememberMe n'est plus utilisé pour la session, seulement pour le pré-remplissage
 
         if (!email || !password) return null;
 
@@ -50,21 +50,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = (user as any).role;
         token.orgId = (user as any).orgId;
         token.mustChangePassword = (user as any).mustChangePassword;
         token.orgSlug = (user as any).orgSlug;
-        token.rememberMe = (user as any).rememberMe;
       }
 
-      // Gérer la durée de session basée sur "Se souvenir de moi"
-      if (account && (account as any).rememberMe) {
-        token.maxAge = 30 * 24 * 60 * 60; // 30 jours
-      } else {
-        token.maxAge = 24 * 60 * 60; // 1 jour
-      }
+      // Session courte par défaut (1 jour)
+      token.maxAge = 24 * 60 * 60; // 1 jour
 
       return token;
     },

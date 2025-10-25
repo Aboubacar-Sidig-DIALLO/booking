@@ -38,7 +38,21 @@ export async function middleware(request: NextRequest) {
 
     // Si l'utilisateur n'a pas besoin de changer son mot de passe mais est sur la page de changement
     if (!token.mustChangePassword && pathname === "/change-password") {
-      return NextResponse.redirect(new URL("/home", request.url));
+      // Rediriger selon le rôle de l'utilisateur
+      const userRole = (token as any)?.role;
+      if (userRole === "ADMIN") {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      } else {
+        return NextResponse.redirect(new URL("/home", request.url));
+      }
+    }
+
+    // Vérifier l'accès à la page admin
+    if (pathname.startsWith("/admin")) {
+      const userRole = (token as any)?.role;
+      if (userRole !== "ADMIN") {
+        return NextResponse.redirect(new URL("/home", request.url));
+      }
     }
   }
 

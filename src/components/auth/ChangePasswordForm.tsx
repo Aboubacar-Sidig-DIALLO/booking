@@ -23,7 +23,14 @@ const ChangePasswordSchema = z
     currentPassword: z.string().min(1, "Le mot de passe actuel est requis"),
     newPassword: z
       .string()
-      .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
+      .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères")
+      .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+      .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+      .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
+      .regex(
+        /[^A-Za-z0-9]/,
+        "Le mot de passe doit contenir au moins un caractère spécial"
+      ),
     confirmPassword: z
       .string()
       .min(1, "La confirmation du mot de passe est requise"),
@@ -37,9 +44,13 @@ type ChangePasswordForm = z.infer<typeof ChangePasswordSchema>;
 
 interface ChangePasswordFormProps {
   onSuccess?: () => void;
+  userEmail?: string; // Ajouter l'email de l'utilisateur
 }
 
-export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
+export function ChangePasswordForm({
+  onSuccess,
+  userEmail,
+}: ChangePasswordFormProps) {
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -47,6 +58,7 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPasteWarning, setShowPasteWarning] = useState(false);
 
   const {
     register,
@@ -59,6 +71,26 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
   });
 
   const newPassword = watch("newPassword");
+  const confirmPassword = watch("confirmPassword");
+
+  // Fonction pour vérifier si tous les critères de sécurité sont respectés
+  const isPasswordValid = (password: string) => {
+    if (!password) return false;
+    return (
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password)
+    );
+  };
+
+  // Vérifier si le formulaire peut être soumis
+  const canSubmit =
+    newPassword &&
+    confirmPassword &&
+    isPasswordValid(newPassword) &&
+    newPassword === confirmPassword;
 
   const getPasswordStrength = (password: string) => {
     if (!password) return { strength: 0, label: "", color: "" };
@@ -104,12 +136,36 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "Erreur lors du changement de mot de passe"
-        );
+        // Gérer les erreurs spécifiques du backend
+        if (result.code === "SAME_PASSWORD") {
+          throw new Error(
+            "Le nouveau mot de passe doit être différent de l'ancien"
+          );
+        } else if (result.code === "INVALID_CURRENT_PASSWORD") {
+          throw new Error("Le mot de passe actuel est incorrect");
+        } else if (result.code === "VALIDATION_ERROR" && result.errors) {
+          // Afficher la première erreur de validation
+          const firstError = result.errors[0];
+          throw new Error(firstError.message || "Erreur de validation");
+        } else {
+          throw new Error(
+            result.message || "Erreur lors du changement de mot de passe"
+          );
+        }
       }
 
       toast.success("Mot de passe changé avec succès !");
+
+      // Mettre à jour le localStorage si l'utilisateur a activé "Pré-remplir mes identifiants"
+      const rememberedEmail = localStorage.getItem("rememberedEmail");
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
+
+      if (rememberMe && userEmail && rememberedEmail === userEmail) {
+        // Mettre à jour le mot de passe dans localStorage avec le nouveau mot de passe
+        localStorage.setItem("rememberedPassword", data.newPassword);
+        console.log("Mot de passe mis à jour dans localStorage");
+      }
+
       reset();
       onSuccess?.();
     } catch (error: any) {
@@ -125,6 +181,16 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  const handlePasteAttempt = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    setShowPasteWarning(true);
+
+    // Masquer l'avertissement après 3 secondes
+    setTimeout(() => {
+      setShowPasteWarning(false);
+    }, 3000);
   };
 
   return (
@@ -236,6 +302,9 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">
               Confirmer le nouveau mot de passe
+              <span className="text-xs text-gray-500 ml-1">
+                (saisie manuelle requise)
+              </span>
             </Label>
             <div className="relative">
               <Input
@@ -244,6 +313,9 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
                 {...register("confirmPassword")}
                 className="pr-10"
                 placeholder="Confirmez votre nouveau mot de passe"
+                onPaste={handlePasteAttempt}
+                // onCopy={(e) => e.preventDefault()}
+                // onCut={(e) => e.preventDefault()}
               />
               <Button
                 type="button"
@@ -264,6 +336,23 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
                 {errors.confirmPassword.message}
               </p>
             )}
+            {showPasteWarning && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 animate-pulse">
+                <div className="flex items-center space-x-2 text-orange-700">
+                  <AlertCircle className="h-4 w-4 animate-bounce" />
+                  <span className="text-sm font-medium">
+                    ⚠️ Le copier-coller est désactivé pour vous assurer de bien
+                    connaître votre mot de passe.
+                  </span>
+                </div>
+              </div>
+            )}
+            {!showPasteWarning && (
+              <p className="text-xs text-gray-500">
+                💡 Le copier-coller est désactivé pour vous assurer de bien
+                connaître votre mot de passe.
+              </p>
+            )}
           </div>
 
           {/* Critères de sécurité */}
@@ -273,41 +362,149 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
             </h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li
-                className={`flex items-center space-x-2 ${(newPassword?.length || 0) >= 8 ? "text-green-600" : ""}`}
+                className={`flex items-center space-x-2 ${
+                  (newPassword?.length || 0) >= 8
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
               >
                 <CheckCircle
-                  className={`h-4 w-4 ${(newPassword?.length || 0) >= 8 ? "text-green-600" : "text-gray-400"}`}
+                  className={`h-4 w-4 ${
+                    (newPassword?.length || 0) >= 8
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
                 />
                 <span>Au moins 8 caractères</span>
               </li>
               <li
-                className={`flex items-center space-x-2 ${/[A-Z]/.test(newPassword || "") ? "text-green-600" : ""}`}
+                className={`flex items-center space-x-2 ${
+                  /[A-Z]/.test(newPassword || "")
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
               >
                 <CheckCircle
-                  className={`h-4 w-4 ${/[A-Z]/.test(newPassword || "") ? "text-green-600" : "text-gray-400"}`}
+                  className={`h-4 w-4 ${
+                    /[A-Z]/.test(newPassword || "")
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
                 />
                 <span>Une majuscule</span>
               </li>
               <li
-                className={`flex items-center space-x-2 ${/[0-9]/.test(newPassword || "") ? "text-green-600" : ""}`}
+                className={`flex items-center space-x-2 ${
+                  /[a-z]/.test(newPassword || "")
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
               >
                 <CheckCircle
-                  className={`h-4 w-4 ${/[0-9]/.test(newPassword || "") ? "text-green-600" : "text-gray-400"}`}
+                  className={`h-4 w-4 ${
+                    /[a-z]/.test(newPassword || "")
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                />
+                <span>Une minuscule</span>
+              </li>
+              <li
+                className={`flex items-center space-x-2 ${
+                  /[0-9]/.test(newPassword || "")
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
+              >
+                <CheckCircle
+                  className={`h-4 w-4 ${
+                    /[0-9]/.test(newPassword || "")
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
                 />
                 <span>Un chiffre</span>
               </li>
               <li
-                className={`flex items-center space-x-2 ${/[^A-Za-z0-9]/.test(newPassword || "") ? "text-green-600" : ""}`}
+                className={`flex items-center space-x-2 ${
+                  /[^A-Za-z0-9]/.test(newPassword || "")
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
               >
                 <CheckCircle
-                  className={`h-4 w-4 ${/[^A-Za-z0-9]/.test(newPassword || "") ? "text-green-600" : "text-gray-400"}`}
+                  className={`h-4 w-4 ${
+                    /[^A-Za-z0-9]/.test(newPassword || "")
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
                 />
                 <span>Un caractère spécial</span>
               </li>
             </ul>
+
+            {/* Message de confirmation */}
+            {newPassword && confirmPassword && (
+              <div
+                className={`text-sm font-medium ${
+                  newPassword === confirmPassword
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
+              >
+                {newPassword === confirmPassword ? (
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Les mots de passe correspondent</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>Les mots de passe ne correspondent pas</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Message d'état global */}
+            {newPassword && (
+              <>
+                {canSubmit ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 text-green-700">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-semibold">
+                        Mot de passe valide - Prêt à être changé
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 animate-pulse">
+                    <div className="flex items-center space-x-2 text-red-700">
+                      <AlertCircle className="h-5 w-5 animate-bounce" />
+                      <span className="font-semibold">
+                        ⚠️ Critères de sécurité non respectés
+                      </span>
+                    </div>
+                    <p className="text-sm text-red-600 mt-1">
+                      Veuillez respecter tous les critères ci-dessus pour
+                      pouvoir changer votre mot de passe.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className={`w-full ${
+              !canSubmit && newPassword
+                ? "bg-gray-400 text-gray-600 cursor-not-allowed opacity-60"
+                : ""
+            }`}
+            disabled={isLoading || !canSubmit}
+          >
             {isLoading ? "Changement en cours..." : "Changer le mot de passe"}
           </Button>
         </form>

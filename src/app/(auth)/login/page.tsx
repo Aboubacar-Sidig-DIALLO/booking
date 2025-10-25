@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,21 @@ export default function SignInPage() {
   const callbackUrl = searchParams.get("callbackUrl") || "/home";
   const errorParam = searchParams.get("error");
 
+  // Charger les données sauvegardées au montage du composant
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+
+    if (savedRememberMe && savedEmail) {
+      setEmail(savedEmail);
+      if (savedPassword) {
+        setPassword(savedPassword);
+      }
+      setRememberMe(savedRememberMe);
+    }
+  }, []);
+
   // Afficher un message d'erreur si une page n'existe pas
   const pageNotFoundError = errorParam === "page_not_found";
 
@@ -65,13 +80,31 @@ export default function SignInPage() {
       }
 
       if (result?.ok) {
+        // Gérer la sauvegarde des données de connexion
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", email);
+          localStorage.setItem("rememberedPassword", password);
+          localStorage.setItem("rememberMe", "true");
+        } else {
+          // Supprimer les données sauvegardées si "Se souvenir de moi" est désactivé
+          localStorage.removeItem("rememberedEmail");
+          localStorage.removeItem("rememberedPassword");
+          localStorage.removeItem("rememberMe");
+        }
+
         // Vérifier si l'utilisateur doit changer son mot de passe
         const session = await getSession();
         if ((session?.user as any)?.mustChangePassword) {
           router.push("/change-password");
         } else {
-          // Rediriger vers la page demandée ou vers l'accueil par défaut
-          router.push(callbackUrl);
+          // Redirection basée sur le rôle de l'utilisateur
+          const userRole = (session?.user as any)?.role;
+          if (userRole === "ADMIN") {
+            router.push("/admin");
+          } else {
+            // Rediriger vers la page demandée ou vers l'accueil par défaut
+            router.push(callbackUrl);
+          }
         }
       }
     } catch (error) {
@@ -345,7 +378,7 @@ export default function SignInPage() {
                         className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                         disabled={isLoading}
                       />
-                      Se souvenir de moi
+                      Pré-remplir mes identifiants
                     </label>
                     <button
                       type="button"

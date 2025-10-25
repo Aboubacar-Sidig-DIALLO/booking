@@ -28,6 +28,10 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -106,6 +110,42 @@ export default function ForgotPasswordPage() {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setIsResending(true);
+    setResendStatus("idle");
+
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendStatus("success");
+        toast.success("Email de réinitialisation renvoyé avec succès !");
+      } else {
+        setResendStatus("error");
+        if (response.status === 404 && data.code === "EMAIL_NOT_FOUND") {
+          toast.error("Email non trouvé - Vérifiez votre adresse email");
+        } else {
+          toast.error(data.error || "Erreur lors du renvoi de l'email");
+        }
+      }
+    } catch (error) {
+      setResendStatus("error");
+      toast.error(
+        "Erreur technique - Veuillez réessayer dans quelques instants"
+      );
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -207,12 +247,54 @@ export default function ForgotPasswordPage() {
                     Retour à la connexion
                   </Button>
 
+                  {/* Feedback visuel pour le renvoi */}
+                  {resendStatus === "success" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-green-50 border border-green-200 rounded-xl p-3 text-center"
+                    >
+                      <div className="flex items-center justify-center gap-2 text-green-700">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          Email renvoyé avec succès !
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {resendStatus === "error" && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-red-50 border border-red-200 rounded-xl p-3 text-center"
+                    >
+                      <div className="flex items-center justify-center gap-2 text-red-700">
+                        <AlertCircle className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          Erreur lors du renvoi
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <Button
                     variant="outline"
-                    onClick={() => setIsSubmitted(false)}
-                    className="w-full h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
+                    onClick={handleResendEmail}
+                    disabled={isResending}
+                    className="w-full h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Envoyer un autre email
+                    {isResending ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                        Renvoi en cours...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Envoyer un autre email
+                      </div>
+                    )}
                   </Button>
                 </motion.div>
               </CardContent>
