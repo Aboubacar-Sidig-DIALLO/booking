@@ -321,13 +321,13 @@ export function RoomFormModal({
                   )}
                 </div>
 
-                <div className="flex gap-3 mt-6">
+                <div className="flex gap-3 mt-6 justify-center">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleClose}
                     disabled={isLoading}
-                    className="px-6"
+                    className="px-8 py-3 text-base min-w-[140px]"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Annuler
@@ -335,7 +335,7 @@ export function RoomFormModal({
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
+                    className="px-8 py-3 text-base bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white min-w-[140px]"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">

@@ -84,6 +84,36 @@ const statusConfig = {
   },
 };
 
+// Fonction pour formater les dates de manière sécurisée
+const formatDate = (dateString?: string | null): string => {
+  if (!dateString) return "Non disponible";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Non disponible";
+    return date.toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch (error) {
+    return "Non disponible";
+  }
+};
+
+// Fonction pour formater les dates courtes
+const formatDateShort = (dateString?: string | null): string => {
+  if (!dateString) return "Jamais";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Jamais";
+    return date.toLocaleDateString("fr-FR");
+  } catch (error) {
+    return "Jamais";
+  }
+};
+
 export function UserDetailsModal({
   isOpen,
   onClose,
@@ -106,50 +136,61 @@ export function UserDetailsModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-          <User className="h-5 w-5 text-blue-600" />
-          Détails de l'utilisateur
-        </DialogTitle>
-        <DialogDescription className="text-gray-600">
-          Informations complètes de {user.name}
-        </DialogDescription>
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200">
+          <div className="flex-shrink-0">
+            <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <User className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-2xl font-bold text-slate-900 mb-1">
+              Détails de l'utilisateur
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-600">
+              Informations complètes de{" "}
+              <span className="font-medium text-slate-700">{user.name}</span>
+            </DialogDescription>
+          </div>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="space-y-4"
+          className="space-y-5"
         >
           {/* Header avec avatar et actions */}
-          <div className="flex items-start justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <User className="h-8 w-8 text-white" />
+          <div className="flex items-start gap-6 p-5 bg-gradient-to-br from-purple-50 via-violet-50 to-blue-50 rounded-xl border-2 border-purple-100">
+            <div className="flex items-center gap-5 flex-1 min-w-0">
+              <div className="h-20 w-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <User className="h-10 w-10 text-white" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">{user.name}</h3>
-                <p className="text-gray-600">{user.email}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge className={roleInfo.color}>
-                    <RoleIcon className="h-3 w-3 mr-1" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-2xl font-bold text-slate-900 truncate">
+                  {user.name}
+                </h3>
+                <p className="text-slate-600 truncate mt-1">{user.email}</p>
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <Badge className={`${roleInfo.color} border-2 shadow-sm`}>
+                    <RoleIcon className="h-3.5 w-3.5 mr-1.5" />
                     {roleInfo.label}
                   </Badge>
-                  <Badge className={statusInfo.color}>
-                    <StatusIcon className="h-3 w-3 mr-1" />
+                  <Badge className={`${statusInfo.color} border-2 shadow-sm`}>
+                    <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
                     {statusInfo.label}
                   </Badge>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               {onEdit && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onEdit}
-                  className="hover:bg-blue-50 hover:border-blue-300"
+                  className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
                 >
-                  <Edit className="h-4 w-4 mr-1" />
+                  <Edit className="h-4 w-4 mr-1.5" />
                   Modifier
                 </Button>
               )}
@@ -158,9 +199,9 @@ export function UserDetailsModal({
                   variant="outline"
                   size="sm"
                   onClick={onDelete}
-                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2 className="h-4 w-4 mr-1.5" />
                   Supprimer
                 </Button>
               )}
@@ -197,7 +238,7 @@ export function UserDetailsModal({
                       Dernière connexion
                     </p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {new Date(user.lastLogin).toLocaleDateString("fr-FR")}
+                      {formatDateShort(user.lastLogin)}
                     </p>
                   </div>
                 </div>
@@ -263,11 +304,7 @@ export function UserDetailsModal({
                       Membre depuis
                     </p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {new Date(user.createdAt).toLocaleDateString("fr-FR", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {formatDate(user.createdAt)}
                     </p>
                   </div>
                 </div>

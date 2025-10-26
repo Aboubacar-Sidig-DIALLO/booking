@@ -67,30 +67,46 @@ export function ConfirmationModal({
               transition={{ duration: 0.2 }}
             >
               <div className="text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                <div
+                  className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg ${
+                    type === "delete"
+                      ? "bg-red-100"
+                      : type === "edit"
+                        ? "bg-blue-100"
+                        : "bg-green-100"
+                  }`}
+                >
                   {getIcon()}
                 </div>
-                <DialogTitle className="text-lg font-semibold mb-2">
+                <DialogTitle
+                  className={`text-2xl font-bold mb-3 ${
+                    type === "delete"
+                      ? "text-red-900"
+                      : type === "edit"
+                        ? "text-blue-900"
+                        : "text-green-900"
+                  }`}
+                >
                   {title}
                 </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 mb-6">
+                <DialogDescription className="text-sm text-gray-600 mb-8 px-4">
                   {description}
                 </DialogDescription>
               </div>
 
-              <div className="flex gap-3 sm:justify-center mt-6">
+              <div className="flex gap-3 justify-center mt-8 pb-2">
                 <Button
                   variant="outline"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="px-6"
+                  className="px-8 py-2 min-w-[120px] text-base cursor-pointer hover:cursor-pointer"
                 >
                   Annuler
                 </Button>
                 <Button
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`px-6 ${getButtonStyle()}`}
+                  className={`px-8 py-2 min-w-[120px] text-base cursor-pointer hover:cursor-pointer ${getButtonStyle()}`}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

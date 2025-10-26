@@ -1,6 +1,6 @@
 import { NextAuthOptions, Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password-utils";
 
 export const authOptions: NextAuthOptions = {
@@ -36,6 +36,13 @@ export const authOptions: NextAuthOptions = {
           (user as any).password
         );
         if (!isValidPassword) return null;
+
+        // Vérifier que l'utilisateur est actif (seuls les comptes actifs peuvent se connecter)
+        if (user.status !== "active") {
+          // Retourner null pour bloquer la connexion
+          // Le message spécifique sera géré côté client
+          return null;
+        }
 
         return {
           id: user.id,

@@ -190,15 +190,30 @@ export function UserFormModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-          <User className="h-4 w-4 text-blue-600" />
-          {isEditing ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
-        </DialogTitle>
-        <DialogDescription className="text-sm text-gray-600">
-          {isEditing
-            ? "Modifiez les informations de l'utilisateur"
-            : "Renseignez les informations du nouvel utilisateur"}
-        </DialogDescription>
+        <div className="flex items-start gap-4 mb-6 pb-6 border-b border-slate-200">
+          <div className="flex-shrink-0">
+            <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+              <User className="h-7 w-7 text-white" />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <DialogTitle className="text-xl font-bold text-slate-900 mb-1">
+              {isEditing ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-600">
+              {isEditing
+                ? "Modifiez les informations de l'utilisateur"
+                : "Renseignez les informations du nouvel utilisateur"}
+            </DialogDescription>
+            {isEditing && user && (
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
+                  {user.email}
+                </Badge>
+              </div>
+            )}
+          </div>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

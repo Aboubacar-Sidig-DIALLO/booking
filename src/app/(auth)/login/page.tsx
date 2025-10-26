@@ -66,6 +66,38 @@ export default function SignInPage() {
     setError(null);
 
     try {
+      // Vérifier le statut du compte avant la connexion
+      const statusCheck = await fetch("/api/auth/check-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (statusCheck.ok) {
+        const statusData = await statusCheck.json();
+        if (statusData.status && statusData.status !== "active") {
+          let errorMessage =
+            "Votre compte est inactif. Veuillez contacter un administrateur.";
+
+          // Message personnalisé selon le statut
+          if (statusData.status === "pending") {
+            errorMessage =
+              "Votre compte est en attente d'activation. Veuillez contacter votre administrateur pour activer votre compte.";
+          } else if (statusData.status === "inactive") {
+            errorMessage =
+              "Votre compte est inactif. Veuillez contacter votre administrateur pour réactiver votre compte.";
+          } else if (statusData.status === "suspended") {
+            errorMessage =
+              "Votre compte a été suspendu. Veuillez contacter votre administrateur pour plus d'informations.";
+          }
+
+          setError(errorMessage);
+          toast.error(errorMessage);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const result = await signIn("credentials", {
         email,
         password,
@@ -300,9 +332,21 @@ export default function SignInPage() {
                   )}
 
                   {error && !pageNotFoundError && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
+                    <Alert
+                      variant="destructive"
+                      className="border-2 border-red-300 bg-red-50"
+                    >
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                      <AlertDescription className="text-sm font-medium text-red-900">
+                        <p className="font-semibold mb-2">{error}</p>
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-red-200">
+                          <Users className="h-4 w-4 text-red-600" />
+                          <span className="text-xs text-red-700">
+                            Besoin d'aide ? Contactez votre administrateur
+                            système.
+                          </span>
+                        </div>
+                      </AlertDescription>
                     </Alert>
                   )}
 

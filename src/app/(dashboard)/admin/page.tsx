@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -12,6 +12,7 @@ import { UserFormModal } from "@/components/admin/UserFormModal";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { Button } from "@/components/ui/button";
+import { LoadingDots } from "@/components/ui/LoadingDots";
 import {
   Card,
   CardContent,
@@ -33,12 +34,9 @@ import {
   Users,
   BarChart3,
   Calendar,
-  Shield,
   Activity,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Plus,
   Edit,
   Trash2,
@@ -46,22 +44,22 @@ import {
   Globe,
   Database,
   Wrench,
-  Download,
-  Server,
   Bell,
   LogOut,
   Lock,
+  Clock,
 } from "lucide-react";
 
-// Données simulées pour les statistiques
-const stats = {
-  totalRooms: 24,
-  activeBookings: 156,
-  totalUsers: 89,
-  systemUptime: "99.9%",
-  monthlyRevenue: 12500,
-  averageRating: 4.7,
-};
+// Interface pour les statistiques
+interface Stats {
+  totalRooms: number;
+  activeRooms: number;
+  maintenanceRooms: number;
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  activeBookings: number;
+}
 
 // Données simulées pour les salles
 const rooms = [
@@ -217,9 +215,60 @@ const getStatusConfig = (status: string) => {
     default:
       return {
         color: "bg-gray-100 text-gray-800",
-        icon: Clock,
+        icon: Bell,
       };
   }
+};
+
+const getRoomStatusStyle = (room: any) => {
+  // Vérifier d'abord si en maintenance
+  if (room.isMaintenance || !room.isActive) {
+    return {
+      bgColor: "bg-red-50",
+      borderColor: "border-red-300",
+      iconColor: "text-red-600",
+      textColor: "text-red-900",
+      label: "En maintenance",
+      icon: Wrench,
+    };
+  }
+
+  // Vérifier si occupée
+  if (room.isOccupied || room.currentBooking) {
+    return {
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-300",
+      iconColor: "text-orange-600",
+      textColor: "text-orange-900",
+      label: "Occupée",
+      icon: Clock,
+    };
+  }
+
+  // Sinon disponible
+  return {
+    bgColor: "bg-green-50",
+    borderColor: "border-green-300",
+    iconColor: "text-green-600",
+    textColor: "text-green-900",
+    label: "Disponible",
+    icon: CheckCircle,
+  };
+};
+
+const calculateTimeRemaining = (booking: any) => {
+  if (!booking?.end) return null;
+
+  const now = new Date();
+  const endTime = new Date(booking.end);
+  const diff = endTime.getTime() - now.getTime();
+
+  if (diff <= 0) return null;
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return { hours, minutes };
 };
 
 const getAlertConfig = (type: string) => {
@@ -252,75 +301,33 @@ const getAlertConfig = (type: string) => {
 };
 
 export default function AdminPage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedTab, setSelectedTab] = useState("overview");
   const router = useRouter();
 
+  // État pour les statistiques dynamiques
+  const [stats, setStats] = useState<Stats>({
+    totalRooms: 0,
+    activeRooms: 0,
+    maintenanceRooms: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    activeBookings: 0,
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
   // États pour la gestion des salles
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      name: "Salle de conférence A",
-      capacity: 12,
-      status: "active",
-      location: "Bâtiment A, 2ème étage",
-      description:
-        "Salle spacieuse idéale pour les conférences et présentations importantes",
-      equipment: [
-        "Projecteur",
-        "Écran",
-        "Système audio",
-        "Microphone",
-        "WiFi",
-        "Climatisation",
-      ],
-      bookings: 24,
-      lastMaintenance: "2024-01-10",
-      nextMaintenance: "2024-02-10",
-    },
-    {
-      id: 2,
-      name: "Salle de réunion B",
-      capacity: 8,
-      status: "maintenance",
-      location: "Bâtiment B, 1er étage",
-      description:
-        "Salle de réunion moderne avec équipements de vidéoconférence",
-      equipment: [
-        "Tableau blanc",
-        "Caméra",
-        "Vidéoconférence",
-        "WiFi",
-        "Climatisation",
-      ],
-      bookings: 18,
-      lastMaintenance: "2024-01-15",
-      nextMaintenance: "2024-01-25",
-      maintenanceReason:
-        "Réparation du système de climatisation et mise à jour des équipements de vidéoconférence",
-      maintenanceEndDate: "2024-01-25",
-      maintenanceEndTime: "14:00",
-      maintenanceEquipment: ["Climatisation", "Vidéoconférence"],
-    },
-    {
-      id: 3,
-      name: "Espace créatif",
-      capacity: 6,
-      status: "active",
-      location: "Bâtiment C, Rez-de-chaussée",
-      description: "Espace flexible pour brainstorming et sessions créatives",
-      equipment: [
-        "Tableau interactif",
-        "Tables mobiles",
-        "Chaises confortables",
-        "WiFi",
-        "Éclairage dimmable",
-      ],
-      bookings: 31,
-      lastMaintenance: "2024-01-08",
-      nextMaintenance: "2024-02-08",
-    },
-  ]);
+  const [rooms, setRooms] = useState<any[]>([]);
+
+  // État pour le filtre des utilisateurs
+  const [userFilter, setUserFilter] = useState<"all" | "active" | "inactive">(
+    "all"
+  );
+
+  // État pour le filtre des salles
+  const [roomFilter, setRoomFilter] = useState<
+    "all" | "available" | "occupied" | "maintenance"
+  >("all");
 
   // États pour les modales
   const [showRoomForm, setShowRoomForm] = useState(false);
@@ -332,24 +339,65 @@ export default function AdminPage() {
 
   // États pour les modales utilisateur
   const [users, setUsers] = useState(recentUsers);
+
+  // Optimisation : Utilisateurs filtrés avec useMemo
+  const filteredUsers = useMemo(() => {
+    if (userFilter === "all") return users;
+    if (userFilter === "active") {
+      return users.filter((user: any) => user.status === "active");
+    }
+    if (userFilter === "inactive") {
+      return users.filter((user: any) => user.status !== "active");
+    }
+    return users;
+  }, [users, userFilter]);
+
+  // Optimisation : Salles filtrées avec useMemo
+  const filteredRooms = useMemo(() => {
+    if (roomFilter === "all") return rooms;
+    if (roomFilter === "available") {
+      return rooms.filter(
+        (r: any) => r.isActive && !r.isOccupied && !r.isMaintenance
+      );
+    }
+    if (roomFilter === "occupied") {
+      return rooms.filter((r: any) => r.isOccupied && !r.isMaintenance);
+    }
+    if (roomFilter === "maintenance") {
+      return rooms.filter((r: any) => r.isMaintenance || !r.isActive);
+    }
+    return rooms;
+  }, [rooms, roomFilter]);
+
   const [showUserForm, setShowUserForm] = useState(false);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [showUserDeleteConfirm, setShowUserDeleteConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  // Fonction pour charger les statistiques
+  const loadStats = async () => {
+    try {
+      const response = await fetch("/api/admin/stats");
+      if (response.ok) {
+        const statsData = await response.json();
+        setStats(statsData);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des statistiques:", error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
 
   // Charger les données depuis l'API au montage
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Charger les salles
-        const roomsResponse = await fetch("/api/admin/rooms");
+        // Charger les statistiques
+        await loadStats();
+
+        // Charger les salles avec leur statut
+        const roomsResponse = await fetch("/api/admin/rooms/status");
         if (roomsResponse.ok) {
           const roomsData = await roomsResponse.json();
           setRooms(roomsData);
@@ -421,6 +469,9 @@ export default function AdminPage() {
       )
     );
 
+    // Recharger les statistiques
+    await loadStats();
+
     setIsLoading(false);
     setShowMaintenanceModal(false);
     setSelectedRoom(null);
@@ -451,6 +502,8 @@ export default function AdminPage() {
             room.id === selectedRoom.id ? updatedRoom : room
           )
         );
+        // Recharger les statistiques
+        await loadStats();
       } else {
         // Création
         const response = await fetch("/api/admin/rooms", {
@@ -468,6 +521,8 @@ export default function AdminPage() {
 
         const newRoom = await response.json();
         setRooms([...rooms, newRoom]);
+        // Recharger les statistiques
+        await loadStats();
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -501,6 +556,8 @@ export default function AdminPage() {
       }
 
       setRooms(rooms.filter((room) => room.id !== selectedRoom.id));
+      // Recharger les statistiques
+      await loadStats();
     } catch (error) {
       console.error("Erreur:", error);
       alert(
@@ -562,6 +619,8 @@ export default function AdminPage() {
             user.id === selectedUser.id ? updatedUser : user
           )
         );
+        // Recharger les statistiques
+        await loadStats();
       } else {
         // Création
         console.log("Création utilisateur avec données:", data);
@@ -588,6 +647,8 @@ export default function AdminPage() {
 
         const newUser = await response.json();
         setUsers((prevUsers) => [...prevUsers, newUser]);
+        // Recharger les statistiques
+        await loadStats();
       }
     } catch (error) {
       console.error("Erreur:", error);
@@ -623,6 +684,8 @@ export default function AdminPage() {
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.id !== selectedUser.id)
       );
+      // Recharger les statistiques
+      await loadStats();
     } catch (error) {
       console.error("Erreur:", error);
       alert(
@@ -637,13 +700,6 @@ export default function AdminPage() {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const tabs = [
     { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
     { id: "rooms", label: "Gestion des salles", icon: Building2 },
@@ -654,76 +710,90 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-blue-50/50">
       {/* Header moderne avec gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/90 via-blue-600/90 to-purple-600/90"></div>
-
-        {/* Éléments décoratifs */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-          <div className="absolute top-20 right-20 w-24 h-24 bg-white/5 rounded-full blur-lg"></div>
-          <div className="absolute bottom-10 left-1/4 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+      <div className="relative overflow-hidden">
+        {/* Gradient animé en arrière-plan */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-700">
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+              backgroundSize: "40px 40px",
+            }}
+          ></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        {/* Effets de lumière animés */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="absolute top-0 left-0 w-72 h-72 bg-purple-500/20 rounded-full blur-[120px]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, delay: 0.2 }}
+            className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[140px]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, delay: 0.4 }}
+            className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-[100px]"
+          />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+            className="flex items-center justify-between gap-6"
           >
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            <div className="flex items-center gap-4 sm:gap-5">
+              {/* Icône avec effet brillant */}
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+                className="relative group"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="relative p-3 sm:p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl group-hover:bg-white/15 transition-all duration-300">
+                  <Settings className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+              </motion.div>
+
+              <div className="space-y-1">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-blue-50 to-purple-50 bg-clip-text text-transparent drop-shadow-lg">
                   Administration
                 </h1>
-              </div>
-              <p className="text-blue-100 text-lg sm:text-xl max-w-2xl">
-                Tableau de bord administrateur - Gestion complète du système
-              </p>
-
-              {/* Informations système */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <Clock className="h-4 w-4 text-blue-300" />
-                  <span className="text-white text-sm font-medium">
-                    {formatTime(currentTime)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <Server className="h-4 w-4 text-green-300" />
-                  <span className="text-white text-sm font-medium">
-                    Système opérationnel
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <Shield className="h-4 w-4 text-purple-300" />
-                  <span className="text-white text-sm font-medium">
-                    Sécurité active
-                  </span>
-                </div>
+                <p className="text-blue-50 text-xs sm:text-sm font-medium hidden sm:block">
+                  Tableau de bord • Gestion complète
+                </p>
               </div>
             </div>
 
+            {/* Bouton de déconnexion amélioré */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-3"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Button className="bg-gradient-to-r from-white to-blue-50 text-blue-600 hover:from-blue-50 hover:to-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold">
-                <Download className="h-4 w-4 mr-2" />
-                Exporter les données
-              </Button>
               <Button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold"
+                className="relative overflow-hidden bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 text-white shadow-xl hover:shadow-2xl transition-all duration-300 h-10 sm:h-11 px-5 sm:px-6 rounded-xl font-semibold cursor-pointer group"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Se déconnecter
+                {/* Effet brillant au hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:rotate-90 transition-transform duration-300 relative z-10" />
+                <span className="hidden sm:inline relative z-10 ml-1">
+                  Se déconnecter
+                </span>
               </Button>
             </motion.div>
           </motion.div>
@@ -771,10 +841,10 @@ export default function AdminPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-6"
+                className="space-y-8"
               >
                 {/* Statistiques principales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -783,7 +853,7 @@ export default function AdminPage() {
                     className="group"
                   >
                     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100/50">
-                      <CardContent className="p-6">
+                      <CardContent className="p-5 sm:p-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
@@ -809,13 +879,19 @@ export default function AdminPage() {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <p className="text-3xl font-bold text-slate-900 mt-1">
-                              {stats.totalRooms}
-                            </p>
+                            <div className="flex items-center mt-1">
+                              {isLoadingStats ? (
+                                <LoadingDots size={8} color="#0f172a" />
+                              ) : (
+                                <p className="text-3xl font-bold text-slate-900">
+                                  {stats.totalRooms}
+                                </p>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1 mt-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               <span className="text-xs text-green-600 font-medium">
-                                Toutes opérationnelles
+                                {stats.activeRooms} opérationnelles
                               </span>
                             </div>
                           </div>
@@ -835,7 +911,7 @@ export default function AdminPage() {
                     className="group"
                   >
                     <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg hover:shadow-green-100/50">
-                      <CardContent className="p-6">
+                      <CardContent className="p-5 sm:p-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
@@ -861,9 +937,15 @@ export default function AdminPage() {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <p className="text-3xl font-bold text-slate-900 mt-1">
-                              {stats.activeBookings}
-                            </p>
+                            <div className="flex items-center mt-1">
+                              {isLoadingStats ? (
+                                <LoadingDots size={12} color="#0f172a" />
+                              ) : (
+                                <p className="text-3xl font-bold text-slate-900">
+                                  {stats.activeBookings}
+                                </p>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1 mt-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                               <span className="text-xs text-blue-600 font-medium">
@@ -887,7 +969,7 @@ export default function AdminPage() {
                     className="group"
                   >
                     <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg hover:shadow-purple-100/50">
-                      <CardContent className="p-6">
+                      <CardContent className="p-5 sm:p-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
@@ -913,14 +995,28 @@ export default function AdminPage() {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <p className="text-3xl font-bold text-slate-900 mt-1">
-                              {stats.totalUsers}
-                            </p>
-                            <div className="flex items-center gap-1 mt-2">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-purple-600 font-medium">
-                                Actifs
-                              </span>
+                            <div className="flex items-center mt-1">
+                              {isLoadingStats ? (
+                                <LoadingDots size={12} color="#0f172a" />
+                              ) : (
+                                <p className="text-3xl font-bold text-slate-900">
+                                  {stats.totalUsers}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                              <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs text-green-600 font-medium">
+                                  {stats.activeUsers} actifs
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs text-gray-600 font-medium">
+                                  {stats.inactiveUsers} inactifs
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -938,15 +1034,15 @@ export default function AdminPage() {
                     whileHover={{ scale: 1.02 }}
                     className="group"
                   >
-                    <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 hover:border-orange-300 transition-all duration-300 hover:shadow-lg hover:shadow-orange-100/50">
-                      <CardContent className="p-6">
+                    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300 transition-all duration-300 hover:shadow-lg hover:shadow-amber-100/50">
+                      <CardContent className="p-5 sm:p-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
                               <Tooltip delayDuration={200}>
                                 <TooltipTrigger asChild>
-                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-orange-600 transition-colors">
-                                    Revenus mensuels
+                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-amber-600 transition-colors">
+                                    Salles en maintenance
                                   </p>
                                 </TooltipTrigger>
                                 <TooltipContent
@@ -955,28 +1051,35 @@ export default function AdminPage() {
                                 >
                                   <div className="text-center">
                                     <p className="font-semibold text-gray-900 mb-1">
-                                      Chiffre d'affaires
+                                      Maintenance en cours
                                     </p>
                                     <p className="text-xs text-gray-600">
-                                      Revenus du mois en cours
+                                      Nombre de salles actuellement en
+                                      maintenance
                                     </p>
                                   </div>
                                   <TooltipArrow />
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <p className="text-3xl font-bold text-slate-900 mt-1">
-                              €{stats.monthlyRevenue.toLocaleString()}
-                            </p>
+                            <div className="flex items-center mt-1">
+                              {isLoadingStats ? (
+                                <LoadingDots size={12} color="#0f172a" />
+                              ) : (
+                                <p className="text-3xl font-bold text-slate-900">
+                                  {stats.maintenanceRooms}
+                                </p>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1 mt-2">
-                              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                              <span className="text-xs text-orange-600 font-medium">
-                                +12% ce mois
+                              <Wrench className="h-3.5 w-3.5 text-amber-600" />
+                              <span className="text-xs text-amber-600 font-medium">
+                                Nécessitent attention
                               </span>
                             </div>
                           </div>
-                          <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <TrendingUp className="h-6 w-6 text-white" />
+                          <div className="h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            <Wrench className="h-6 w-6 text-white" />
                           </div>
                         </div>
                       </CardContent>
@@ -1061,284 +1164,453 @@ export default function AdminPage() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Building2 className="h-5 w-5 text-blue-600" />
-                          Gestion des salles
-                        </CardTitle>
-                        <CardDescription>
-                          Gérez toutes les salles du système
-                        </CardDescription>
+                {/* Interface unifiée */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                  {/* Stats sur le côté */}
+                  <div className="lg:col-span-3 space-y-4">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 sticky top-4"
+                    >
+                      <div className="space-y-5">
+                        <div className="flex items-center gap-2 mb-5">
+                          <BarChart3 className="h-5 w-5 text-blue-600" />
+                          <h3 className="font-semibold text-slate-900">
+                            Statistiques
+                          </h3>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div
+                            onClick={() => setRoomFilter("all")}
+                            className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              roomFilter === "all"
+                                ? "border-blue-500 shadow-md bg-blue-50"
+                                : "border-blue-100 hover:border-blue-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-sm font-medium ${
+                                  roomFilter === "all"
+                                    ? "text-blue-700"
+                                    : "text-slate-600"
+                                }`}
+                              >
+                                Total
+                              </span>
+                              <span className="text-xl font-bold text-blue-900">
+                                {rooms.length}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            onClick={() => setRoomFilter("available")}
+                            className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              roomFilter === "available"
+                                ? "border-green-500 shadow-md bg-green-100"
+                                : "border-green-200 hover:border-green-400"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    roomFilter === "available"
+                                      ? "text-green-900"
+                                      : "text-green-700"
+                                  }`}
+                                >
+                                  Disponibles
+                                </span>
+                              </div>
+                              <span className="text-xl font-bold text-green-900">
+                                {
+                                  rooms.filter(
+                                    (r) =>
+                                      r.isActive &&
+                                      !r.isOccupied &&
+                                      !r.isMaintenance
+                                  ).length
+                                }
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            onClick={() => setRoomFilter("occupied")}
+                            className={`bg-orange-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              roomFilter === "occupied"
+                                ? "border-orange-500 shadow-md bg-orange-100"
+                                : "border-orange-100 hover:border-orange-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-orange-600" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    roomFilter === "occupied"
+                                      ? "text-orange-900"
+                                      : "text-orange-700"
+                                  }`}
+                                >
+                                  Occupées
+                                </span>
+                              </div>
+                              <span className="text-xl font-bold text-orange-900">
+                                {
+                                  rooms.filter(
+                                    (r) => r.isOccupied && !r.isMaintenance
+                                  ).length
+                                }
+                              </span>
+                            </div>
+                          </div>
+
+                          <div
+                            onClick={() => setRoomFilter("maintenance")}
+                            className={`bg-red-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              roomFilter === "maintenance"
+                                ? "border-red-500 shadow-md bg-red-100"
+                                : "border-red-100 hover:border-red-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Wrench className="h-4 w-4 text-red-600" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    roomFilter === "maintenance"
+                                      ? "text-red-900"
+                                      : "text-red-700"
+                                  }`}
+                                >
+                                  Maintenance
+                                </span>
+                              </div>
+                              <span className="text-xl font-bold text-red-900">
+                                {
+                                  rooms.filter(
+                                    (r) => r.isMaintenance || !r.isActive
+                                  ).length
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <Button
-                        onClick={handleAddRoom}
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Ajouter une salle
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {rooms.length === 0 ? (
-                      <EmptyState
-                        icon={Building2}
-                        title="Aucune salle disponible"
-                        description="Il n'y a aucune salle à afficher pour le moment. Commencez par créer votre première salle !"
-                        action={
+                    </motion.div>
+                  </div>
+
+                  {/* Salles au centre */}
+                  <div className="lg:col-span-9">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="flex items-center gap-2">
+                              <Building2 className="h-5 w-5 text-blue-600" />
+                              Toutes les salles
+                            </CardTitle>
+                            <CardDescription>
+                              Vue d'ensemble complète des salles
+                            </CardDescription>
+                          </div>
                           <Button
-                            onClick={() => {
-                              setShowRoomForm(true);
-                              setSelectedRoom(null);
-                            }}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                            onClick={handleAddRoom}
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
                           >
                             <Plus className="h-4 w-4 mr-2" />
-                            Créer ma première salle
+                            Ajouter une salle
                           </Button>
-                        }
-                        iconColor="text-blue-400"
-                        gradientFrom="from-blue-100"
-                        gradientTo="to-indigo-50"
-                      />
-                    ) : (
-                      <div className="space-y-4">
-                        {rooms.map((room, index) => {
-                          const statusConfig = getStatusConfig(room.status);
-                          const StatusIcon = statusConfig.icon;
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {(() => {
+                          // Gérer les états vides selon le filtre
+                          if (rooms.length === 0) {
+                            return (
+                              <EmptyState
+                                icon={Building2}
+                                title="Aucune salle disponible"
+                                description="Il n'y a aucune salle à afficher pour le moment. Commencez par créer votre première salle !"
+                                action={
+                                  <Button
+                                    onClick={() => {
+                                      setShowRoomForm(true);
+                                      setSelectedRoom(null);
+                                    }}
+                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Créer ma première salle
+                                  </Button>
+                                }
+                                iconColor="text-blue-400"
+                                gradientFrom="from-blue-100"
+                                gradientTo="to-indigo-50"
+                              />
+                            );
+                          }
+
+                          if (filteredRooms.length === 0) {
+                            // Messages différents selon le filtre
+                            let title = "Aucune salle";
+                            let description =
+                              "Aucune salle ne correspond au filtre sélectionné.";
+                            let icon = Building2;
+                            let iconColor = "text-blue-400";
+                            let gradientFrom = "from-blue-100";
+                            let gradientTo = "to-indigo-50";
+
+                            if (roomFilter === "available") {
+                              title = "Aucune salle disponible";
+                              description =
+                                "Toutes les salles sont soit occupées, soit en maintenance pour le moment. Réessayez plus tard.";
+                              icon = CheckCircle;
+                              iconColor = "text-green-400";
+                              gradientFrom = "from-green-100";
+                              gradientTo = "to-emerald-50";
+                            } else if (roomFilter === "occupied") {
+                              title = "Aucune salle occupée";
+                              description =
+                                "Aucune salle n'est actuellement occupée. Toutes les salles sont disponibles ou en maintenance.";
+                              icon = Clock;
+                              iconColor = "text-orange-400";
+                              gradientFrom = "from-orange-100";
+                              gradientTo = "to-amber-50";
+                            } else if (roomFilter === "maintenance") {
+                              title = "Aucune salle en maintenance";
+                              description =
+                                "Excellente nouvelle ! Toutes les salles sont opérationnelles.";
+                              icon = Wrench;
+                              iconColor = "text-red-400";
+                              gradientFrom = "from-red-100";
+                              gradientTo = "to-rose-50";
+                            }
+
+                            return (
+                              <EmptyState
+                                icon={icon}
+                                title={title}
+                                description={description}
+                                iconColor={iconColor}
+                                gradientFrom={gradientFrom}
+                                gradientTo={gradientTo}
+                              />
+                            );
+                          }
+
                           return (
-                            <motion.div
-                              key={room.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              whileHover={{ scale: 1.01 }}
-                              className="group flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all duration-300 hover:shadow-md border border-slate-200 hover:border-slate-300"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                                  <Building2 className="h-6 w-6 text-white" />
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                    {room.name}
-                                  </h4>
-                                  <div className="flex items-center gap-4 text-sm text-slate-600">
-                                    <TooltipProvider>
-                                      <Tooltip delayDuration={200}>
-                                        <TooltipTrigger asChild>
-                                          <span className="cursor-help hover:text-blue-600 transition-colors font-medium">
-                                            {room.capacity} places
-                                          </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="top"
-                                          className="font-medium"
+                            <div className="grid grid-cols-1 gap-4">
+                              {filteredRooms.map((room: any, index) => {
+                                const style = getRoomStatusStyle(room);
+                                const StatusIcon = style.icon;
+                                const bookingsCount =
+                                  typeof room.bookings === "number"
+                                    ? room.bookings
+                                    : Array.isArray(room.bookings)
+                                      ? room.bookings.length
+                                      : 0;
+                                const timeRemaining = room.currentBooking
+                                  ? calculateTimeRemaining(room.currentBooking)
+                                  : null;
+
+                                return (
+                                  <motion.div
+                                    key={room.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    whileHover={{ scale: 1.02, y: -2 }}
+                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-4 transition-all duration-300 hover:shadow-lg`}
+                                  >
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div
+                                          className={`h-12 w-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
                                         >
-                                          <div className="text-center">
-                                            <p className="font-semibold text-gray-900 mb-1">
-                                              Capacité maximale
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                              Nombre de personnes pouvant être
-                                              accueillies
-                                            </p>
+                                          <StatusIcon
+                                            className={`h-6 w-6 ${style.iconColor}`}
+                                          />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <h4
+                                            className={`font-semibold truncate ${style.textColor}`}
+                                          >
+                                            {room.name}
+                                          </h4>
+                                          <div className="flex items-center gap-4 text-sm flex-wrap">
+                                            <span className={style.textColor}>
+                                              {room.capacity} places
+                                            </span>
+                                            {timeRemaining && (
+                                              <Badge className="bg-orange-200 text-orange-900 border-orange-400">
+                                                <Clock className="h-3 w-3 mr-1" />
+                                                {timeRemaining.hours > 0
+                                                  ? `${timeRemaining.hours}h `
+                                                  : ""}
+                                                {timeRemaining.minutes}m
+                                                restantes
+                                              </Badge>
+                                            )}
+                                            {room.currentBooking && (
+                                              <span
+                                                className={`${style.textColor} truncate max-w-xs`}
+                                              >
+                                                {room.currentBooking.title}
+                                              </span>
+                                            )}
                                           </div>
-                                          <TooltipArrow />
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <TooltipProvider>
-                                      <Tooltip delayDuration={200}>
-                                        <TooltipTrigger asChild>
-                                          <span className="cursor-help hover:text-green-600 transition-colors font-medium">
-                                            {room.bookings} réservations
-                                          </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="top"
-                                          className="font-medium"
-                                        >
-                                          <div className="text-center">
-                                            <p className="font-semibold text-gray-900 mb-1">
-                                              Réservations totales
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                              Nombre de réservations effectuées
-                                            </p>
-                                          </div>
-                                          <TooltipArrow />
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <TooltipProvider>
-                                      <Tooltip delayDuration={200}>
-                                        <TooltipTrigger asChild>
-                                          <span className="cursor-help hover:text-purple-600 transition-colors font-medium">
-                                            {room.equipment?.length || 0}{" "}
-                                            équipements
-                                          </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                          side="top"
-                                          className="font-medium"
-                                        >
-                                          <div className="text-center">
-                                            <p className="font-semibold text-gray-900 mb-1">
-                                              Équipements disponibles
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                              Nombre d'équipements dans la salle
-                                            </p>
-                                          </div>
-                                          <TooltipArrow />
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Badge
-                                  className={`${statusConfig.color} text-xs`}
-                                >
-                                  <StatusIcon className="h-3 w-3 mr-1" />
-                                  {room.status}
-                                </Badge>
-                                <div className="flex gap-1">
-                                  <TooltipProvider>
-                                    <Tooltip delayDuration={200}>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
-                                          onClick={() => handleViewRoom(room)}
-                                        >
-                                          <Eye className="h-4 w-4 text-blue-500" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        className="font-medium"
-                                      >
-                                        <div className="text-center">
-                                          <p className="font-semibold text-gray-900 mb-1">
-                                            Voir les détails
-                                          </p>
-                                          <p className="text-xs text-gray-600">
-                                            Consulter les informations complètes
-                                          </p>
                                         </div>
-                                        <TooltipArrow />
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip delayDuration={200}>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
-                                          onClick={() => handleEditRoom(room)}
-                                        >
-                                          <Edit className="h-4 w-4 text-green-500" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        className="font-medium"
-                                      >
-                                        <div className="text-center">
-                                          <p className="font-semibold text-gray-900 mb-1">
-                                            Modifier la salle
-                                          </p>
-                                          <p className="text-xs text-gray-600">
-                                            Éditer les informations de la salle
-                                          </p>
-                                        </div>
-                                        <TooltipArrow />
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip delayDuration={200}>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200 disabled:hover:scale-100 disabled:opacity-50"
-                                          onClick={() =>
-                                            handleMaintenanceRoom(room)
-                                          }
-                                          disabled={
-                                            room.status === "maintenance"
-                                          }
-                                        >
-                                          <Wrench className="h-4 w-4 text-orange-500" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        className="font-medium"
-                                      >
-                                        <div className="text-center">
-                                          <p className="font-semibold text-gray-900 mb-1">
-                                            {room.status === "maintenance"
-                                              ? "En maintenance"
-                                              : "Mettre en maintenance"}
-                                          </p>
-                                          <p className="text-xs text-gray-600">
-                                            {room.status === "maintenance"
-                                              ? "Cette salle est actuellement en maintenance"
-                                              : "Programmer une maintenance pour cette salle"}
-                                          </p>
-                                        </div>
-                                        <TooltipArrow />
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip delayDuration={200}>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
-                                          onClick={() => handleDeleteRoom(room)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        className="font-medium"
-                                      >
-                                        <div className="text-center">
-                                          <p className="font-semibold text-gray-900 mb-1">
-                                            Supprimer la salle
-                                          </p>
-                                          <p className="text-xs text-gray-600">
-                                            Cette action est irréversible
-                                          </p>
-                                        </div>
-                                        <TooltipArrow />
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              </div>
-                            </motion.div>
+                                      </div>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleViewRoom(room)
+                                                }
+                                              >
+                                                <Eye className="h-4 w-4 text-blue-500" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Voir les détails
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Consulter les informations
+                                                  complètes
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleEditRoom(room)
+                                                }
+                                              >
+                                                <Edit className="h-4 w-4 text-green-500" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Modifier la salle
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Éditer les informations de la
+                                                  salle
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200 disabled:hover:scale-100 disabled:opacity-50"
+                                                onClick={() =>
+                                                  handleMaintenanceRoom(room)
+                                                }
+                                                disabled={
+                                                  room.status === "maintenance"
+                                                }
+                                              >
+                                                <Wrench className="h-4 w-4 text-orange-500" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  {room.status === "maintenance"
+                                                    ? "En maintenance"
+                                                    : "Mettre en maintenance"}
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  {room.status === "maintenance"
+                                                    ? "Cette salle est actuellement en maintenance"
+                                                    : "Programmer une maintenance pour cette salle"}
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleDeleteRoom(room)
+                                                }
+                                              >
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Supprimer la salle
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Cette action est irréversible
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
                           );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                        })()}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -1363,157 +1635,345 @@ export default function AdminPage() {
                           Gérez les utilisateurs et leurs permissions
                         </CardDescription>
                       </div>
-                      {users.length > 0 && (
-                        <Button
-                          onClick={handleAddUser}
-                          className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white cursor-pointer"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Ajouter un utilisateur
-                        </Button>
-                      )}
+                      <Button
+                        onClick={handleAddUser}
+                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white cursor-pointer"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Ajouter un utilisateur
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {users.length === 0 ? (
-                      <EmptyState
-                        icon={Users}
-                        title="Aucun utilisateur"
-                        description="Il n'y a aucun utilisateur à afficher pour le moment. Commencez par ajouter votre premier utilisateur !"
-                        action={
-                          <Button
-                            onClick={handleAddUser}
-                            className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Ajouter mon premier utilisateur
-                          </Button>
-                        }
-                        iconColor="text-purple-400"
-                        gradientFrom="from-purple-100"
-                        gradientTo="to-violet-50"
-                      />
-                    ) : (
-                      <div className="space-y-4">
-                        {users.map((user, index) => (
-                          <motion.div
-                            key={user.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-                                <Users className="h-6 w-6 text-white" />
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                      {/* Statistiques sur le côté */}
+                      <div className="lg:col-span-3">
+                        <div className="sticky top-24">
+                          <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-5 border border-purple-100">
+                            <div className="flex items-center gap-2 mb-5">
+                              <BarChart3 className="h-5 w-5 text-purple-600" />
+                              <h3 className="font-semibold text-slate-900">
+                                Statistiques
+                              </h3>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div
+                                onClick={() => setUserFilter("all")}
+                                className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                  userFilter === "all"
+                                    ? "border-purple-500 shadow-md bg-purple-50"
+                                    : "border-purple-100 hover:border-purple-300"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span
+                                    className={`text-sm font-medium ${
+                                      userFilter === "all"
+                                        ? "text-purple-700"
+                                        : "text-slate-600"
+                                    }`}
+                                  >
+                                    Total
+                                  </span>
+                                  <span
+                                    className={`text-xl font-bold ${
+                                      userFilter === "all"
+                                        ? "text-purple-900"
+                                        : "text-purple-900"
+                                    }`}
+                                  >
+                                    {stats.totalUsers}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <h4 className="font-semibold text-slate-900">
-                                  {user.name}
-                                </h4>
-                                <div className="flex items-center gap-4 text-sm text-slate-600">
-                                  <span>{user.email}</span>
-                                  <span>{user.role}</span>
-                                  <span>{user.bookings} réservations</span>
+
+                              <div
+                                onClick={() => setUserFilter("active")}
+                                className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                  userFilter === "active"
+                                    ? "border-green-500 shadow-md bg-green-100"
+                                    : "border-green-200 hover:border-green-400"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <span
+                                      className={`text-sm font-medium ${
+                                        userFilter === "active"
+                                          ? "text-green-900"
+                                          : "text-green-700"
+                                      }`}
+                                    >
+                                      Actifs
+                                    </span>
+                                  </div>
+                                  <span className="text-xl font-bold text-green-900">
+                                    {stats.activeUsers}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div
+                                onClick={() => setUserFilter("inactive")}
+                                className={`bg-gray-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                  userFilter === "inactive"
+                                    ? "border-gray-500 shadow-md bg-gray-100"
+                                    : "border-gray-100 hover:border-gray-400"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-gray-600" />
+                                    <span
+                                      className={`text-sm font-medium ${
+                                        userFilter === "inactive"
+                                          ? "text-gray-900"
+                                          : "text-gray-700"
+                                      }`}
+                                    >
+                                      Inactifs
+                                    </span>
+                                  </div>
+                                  <span className="text-xl font-bold text-gray-900">
+                                    {stats.inactiveUsers}
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Badge className="bg-green-100 text-green-800 text-xs">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                {user.status}
-                              </Badge>
-                              <div className="flex gap-1">
-                                <TooltipProvider>
-                                  <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
-                                        onClick={() => handleViewUser(user)}
-                                      >
-                                        <Eye className="h-4 w-4 text-blue-500" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent
-                                      side="top"
-                                      className="font-medium"
-                                    >
-                                      <div className="text-center">
-                                        <p className="font-semibold text-gray-900 mb-1">
-                                          Voir les détails
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                          Consulter le profil utilisateur
-                                        </p>
-                                      </div>
-                                      <TooltipArrow />
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                  <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
-                                        onClick={() => handleEditUser(user)}
-                                      >
-                                        <Edit className="h-4 w-4 text-green-500" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent
-                                      side="top"
-                                      className="font-medium"
-                                    >
-                                      <div className="text-center">
-                                        <p className="font-semibold text-gray-900 mb-1">
-                                          Modifier l'utilisateur
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                          Éditer les informations utilisateur
-                                        </p>
-                                      </div>
-                                      <TooltipArrow />
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                  <Tooltip delayDuration={200}>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
-                                        onClick={() => handleDeleteUser(user)}
-                                      >
-                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent
-                                      side="top"
-                                      className="font-medium"
-                                    >
-                                      <div className="text-center">
-                                        <p className="font-semibold text-gray-900 mb-1">
-                                          Supprimer l'utilisateur
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                          Cette action est irréversible
-                                        </p>
-                                      </div>
-                                      <TooltipArrow />
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
+                          </div>
+                        </div>
                       </div>
-                    )}
+
+                      {/* Liste des utilisateurs */}
+                      <div className="lg:col-span-9">
+                        {(() => {
+                          if (filteredUsers.length === 0) {
+                            // Messages différents selon le filtre
+                            let title = "Aucun utilisateur";
+                            let description =
+                              "Il n'y a aucun utilisateur à afficher pour le moment. Commencez par ajouter votre premier utilisateur !";
+                            let actionButton = null;
+                            let icon = Users;
+                            let iconColor = "text-purple-400";
+                            let gradientFrom = "from-purple-100";
+                            let gradientTo = "to-violet-50";
+
+                            if (userFilter === "active") {
+                              title = "Aucun utilisateur actif";
+                              description =
+                                "Il n'y a aucun utilisateur actif pour le moment. Les utilisateurs actifs peuvent se connecter et utiliser le système.";
+                              icon = CheckCircle;
+                              iconColor = "text-green-400";
+                              gradientFrom = "from-green-100";
+                              gradientTo = "to-emerald-50";
+                            } else if (userFilter === "inactive") {
+                              title = "Aucun utilisateur inactif";
+                              description =
+                                "Tous les utilisateurs sont actifs. Excellente nouvelle !";
+                              icon = Clock;
+                              iconColor = "text-gray-400";
+                              gradientFrom = "from-gray-100";
+                              gradientTo = "to-slate-50";
+                            } else {
+                              actionButton = (
+                                <Button
+                                  onClick={handleAddUser}
+                                  className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Ajouter mon premier utilisateur
+                                </Button>
+                              );
+                            }
+
+                            return (
+                              <EmptyState
+                                icon={icon}
+                                title={title}
+                                description={description}
+                                action={actionButton}
+                                iconColor={iconColor}
+                                gradientFrom={gradientFrom}
+                                gradientTo={gradientTo}
+                              />
+                            );
+                          }
+
+                          return (
+                            <div className="grid grid-cols-1 gap-4">
+                              {filteredUsers.map((user, index) => {
+                                const userInitials = user.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                                  .slice(0, 2);
+                                // Calculer le nombre de réservations
+                                let bookingsCount = 0;
+                                if (
+                                  typeof (user as any).bookings === "number"
+                                ) {
+                                  bookingsCount = (user as any).bookings;
+                                } else if (
+                                  Array.isArray((user as any).bookings)
+                                ) {
+                                  bookingsCount = (user as any).bookings.length;
+                                }
+
+                                return (
+                                  <motion.div
+                                    key={user.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    whileHover={{ scale: 1 }}
+                                    className="group rounded-xl border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/30 p-5 transition-all duration-300 hover:shadow-lg hover:border-purple-200"
+                                  >
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        <div className="h-14 w-14 flex-shrink-0 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                                          <span className="text-white font-bold text-lg">
+                                            {userInitials}
+                                          </span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-3 mb-1">
+                                            <h4 className="font-semibold text-slate-900 truncate">
+                                              {user.name}
+                                            </h4>
+                                            <Badge
+                                              className={`${
+                                                user.status === "active"
+                                                  ? "bg-green-100 text-green-800 border-green-300"
+                                                  : "bg-gray-100 text-gray-800 border-gray-300"
+                                              } text-xs border`}
+                                            >
+                                              {user.status === "active" ? (
+                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                              ) : (
+                                                <Clock className="h-3 w-3 mr-1" />
+                                              )}
+                                              {user.status}
+                                            </Badge>
+                                          </div>
+                                          <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
+                                            <span className="truncate max-w-xs">
+                                              📧 {user.email}
+                                            </span>
+                                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                                              {user.role}
+                                            </Badge>
+                                            <span className="flex items-center gap-1">
+                                              📅 {bookingsCount} réservations
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleViewUser(user)
+                                                }
+                                              >
+                                                <Eye className="h-4 w-4 text-blue-600" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Voir les détails
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Consulter le profil
+                                                  utilisateur
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleEditUser(user)
+                                                }
+                                              >
+                                                <Edit className="h-4 w-4 text-green-600" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Modifier l'utilisateur
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Éditer les informations
+                                                  utilisateur
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                          <Tooltip delayDuration={200}>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
+                                                onClick={() =>
+                                                  handleDeleteUser(user)
+                                                }
+                                              >
+                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                              side="top"
+                                              className="font-medium"
+                                            >
+                                              <div className="text-center">
+                                                <p className="font-semibold text-gray-900 mb-1">
+                                                  Supprimer l'utilisateur
+                                                </p>
+                                                <p className="text-xs text-gray-600">
+                                                  Cette action est irréversible
+                                                </p>
+                                              </div>
+                                              <TooltipArrow />
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1532,7 +1992,7 @@ export default function AdminPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Server className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600" />
                         État du système
                       </CardTitle>
                     </CardHeader>
@@ -1578,7 +2038,7 @@ export default function AdminPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-blue-600" />
+                        <Lock className="h-5 w-5 text-blue-600" />
                         Sécurité
                       </CardTitle>
                     </CardHeader>
@@ -1597,7 +2057,7 @@ export default function AdminPage() {
                         </div>
                         <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                           <div className="flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-blue-600" />
+                            <Lock className="h-4 w-4 text-blue-600" />
                             <span className="text-sm font-medium text-slate-900">
                               Firewall
                             </span>
@@ -1628,99 +2088,101 @@ export default function AdminPage() {
       </div>
 
       {/* Modales */}
-      <RoomFormModal
-        isOpen={showRoomForm}
-        onClose={() => {
-          setShowRoomForm(false);
-          setSelectedRoom(null);
-        }}
-        onSubmit={handleRoomFormSubmit}
-        room={selectedRoom || undefined}
-        isLoading={isLoading}
-      />
-
-      {selectedRoom && (
-        <RoomDetailsModal
-          isOpen={showRoomDetails}
+      <div>
+        <RoomFormModal
+          isOpen={showRoomForm}
           onClose={() => {
-            setShowRoomDetails(false);
+            setShowRoomForm(false);
             setSelectedRoom(null);
           }}
-          room={selectedRoom}
+          onSubmit={handleRoomFormSubmit}
+          room={selectedRoom || undefined}
+          isLoading={isLoading}
         />
-      )}
 
-      {selectedRoom && (
-        <ConfirmationModal
-          isOpen={showDeleteConfirm}
+        {selectedRoom && (
+          <RoomDetailsModal
+            isOpen={showRoomDetails}
+            onClose={() => {
+              setShowRoomDetails(false);
+              setSelectedRoom(null);
+            }}
+            room={selectedRoom}
+          />
+        )}
+
+        {selectedRoom && (
+          <ConfirmationModal
+            isOpen={showDeleteConfirm}
+            onClose={() => {
+              setShowDeleteConfirm(false);
+              setSelectedRoom(null);
+            }}
+            onConfirm={handleConfirmDelete}
+            title="Supprimer la salle"
+            description={`Êtes-vous sûr de vouloir supprimer la salle "${selectedRoom.name}" ? Cette action est irréversible.`}
+            type="delete"
+            isLoading={isLoading}
+          />
+        )}
+
+        {selectedRoom && (
+          <MaintenanceModal
+            isOpen={showMaintenanceModal}
+            onClose={() => {
+              setShowMaintenanceModal(false);
+              setSelectedRoom(null);
+            }}
+            onSubmit={handleMaintenanceSubmit}
+            room={selectedRoom}
+            isLoading={isLoading}
+          />
+        )}
+
+        {/* Modales utilisateur */}
+        <UserFormModal
+          isOpen={showUserForm}
           onClose={() => {
-            setShowDeleteConfirm(false);
-            setSelectedRoom(null);
+            setShowUserForm(false);
+            setSelectedUser(null);
           }}
-          onConfirm={handleConfirmDelete}
-          title="Supprimer la salle"
-          description={`Êtes-vous sûr de vouloir supprimer la salle "${selectedRoom.name}" ? Cette action est irréversible.`}
+          onSubmit={handleUserFormSubmit}
+          user={selectedUser}
+          isLoading={isLoading}
+        />
+
+        {selectedUser && (
+          <UserDetailsModal
+            isOpen={showUserDetails}
+            onClose={() => {
+              setShowUserDetails(false);
+              setSelectedUser(null);
+            }}
+            user={selectedUser}
+            onEdit={() => {
+              setShowUserDetails(false);
+              setShowUserForm(true);
+            }}
+            onDelete={() => {
+              setShowUserDetails(false);
+              setShowUserDeleteConfirm(true);
+            }}
+          />
+        )}
+
+        <ConfirmationModal
+          isOpen={showUserDeleteConfirm}
+          onClose={() => {
+            setShowUserDeleteConfirm(false);
+            setSelectedUser(null);
+          }}
+          onConfirm={handleConfirmUserDelete}
+          title="Supprimer l'utilisateur"
+          description={`Êtes-vous sûr de vouloir supprimer l'utilisateur "${selectedUser?.name}" ? Cette action est irréversible.`}
           type="delete"
           isLoading={isLoading}
         />
-      )}
-
-      {selectedRoom && (
-        <MaintenanceModal
-          isOpen={showMaintenanceModal}
-          onClose={() => {
-            setShowMaintenanceModal(false);
-            setSelectedRoom(null);
-          }}
-          onSubmit={handleMaintenanceSubmit}
-          room={selectedRoom}
-          isLoading={isLoading}
-        />
-      )}
-
-      {/* Modales utilisateur */}
-      <UserFormModal
-        isOpen={showUserForm}
-        onClose={() => {
-          setShowUserForm(false);
-          setSelectedUser(null);
-        }}
-        onSubmit={handleUserFormSubmit}
-        user={selectedUser}
-        isLoading={isLoading}
-      />
-
-      {selectedUser && (
-        <UserDetailsModal
-          isOpen={showUserDetails}
-          onClose={() => {
-            setShowUserDetails(false);
-            setSelectedUser(null);
-          }}
-          user={selectedUser}
-          onEdit={() => {
-            setShowUserDetails(false);
-            setShowUserForm(true);
-          }}
-          onDelete={() => {
-            setShowUserDetails(false);
-            setShowUserDeleteConfirm(true);
-          }}
-        />
-      )}
-
-      <ConfirmationModal
-        isOpen={showUserDeleteConfirm}
-        onClose={() => {
-          setShowUserDeleteConfirm(false);
-          setSelectedUser(null);
-        }}
-        onConfirm={handleConfirmUserDelete}
-        title="Supprimer l'utilisateur"
-        description={`Êtes-vous sûr de vouloir supprimer l'utilisateur "${selectedUser?.name}" ? Cette action est irréversible.`}
-        type="delete"
-        isLoading={isLoading}
-      />
+      </div>
     </div>
   );
 }
