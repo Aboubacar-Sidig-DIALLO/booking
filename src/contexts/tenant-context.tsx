@@ -32,10 +32,17 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           const tenantData = await response.json();
           setTenant(tenantData);
         } else if (response.status === 404) {
-          // Aucun tenant trouvé, rediriger vers la sélection
+          // Aucun tenant trouvé, c'est normal pour certaines pages
+          console.log(
+            "Aucun tenant trouvé - redirection vers sélection si nécessaire"
+          );
           setTenant(null);
         } else {
-          throw new Error("Erreur lors de la récupération du tenant");
+          // Erreur serveur, définir l'erreur sans lancer d'exception
+          const errorMessage = `Erreur lors de la récupération du tenant (${response.status})`;
+          console.error(errorMessage);
+          setError(errorMessage);
+          setTenant(null);
         }
       } catch (err) {
         console.error("Erreur lors de la résolution du tenant:", err);

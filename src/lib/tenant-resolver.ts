@@ -44,6 +44,14 @@ export async function resolveTenant(
       }
     }
 
+    // 5. Résolution par défaut pour localhost (développement)
+    if (hostname === "localhost:3000" || hostname === "127.0.0.1:3000") {
+      const tenant = await getTenantByDomain("localhost");
+      if (tenant) {
+        return { tenant, method: "domain" };
+      }
+    }
+
     return { tenant: null, method: null };
   } catch (error) {
     console.error("Erreur lors de la résolution du tenant:", error);

@@ -33,6 +33,11 @@ model User {
   resetToken            String?  // Token pour réinitialisation de mot de passe
   resetTokenExpiry      DateTime? // Expiration du token de réinitialisation
   role                  Role     @default(VIEWER)
+  department            String?  // Département de l'utilisateur
+  phone                 String?  // Téléphone de l'utilisateur
+  location              String?  // Localisation de l'utilisateur
+  status                String   @default("active") // Statut: active, inactive, pending
+  notes                 String?  // Notes sur l'utilisateur
   orgId                 String
   org                   Organization @relation(fields: [orgId], references: [id])
   favorites             Favorite[]

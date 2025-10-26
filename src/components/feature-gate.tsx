@@ -1,12 +1,7 @@
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
-import {
-  useFeature,
-  useFeatureSettings,
-  useTenant,
-} from "@/contexts/tenant-context";
-import { TenantFeature } from "@/types/tenant";
+import { ReactNode, useEffect, useState } from "react";
+import { useFeature, useTenant } from "@/contexts/tenant-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,

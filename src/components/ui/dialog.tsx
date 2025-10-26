@@ -29,6 +29,9 @@ export function DialogContent({
   );
 }
 
+export const DialogTitle = DialogPrimitive.Title;
+export const DialogDescription = DialogPrimitive.Description;
+
 export function DialogHeader({
   title,
   description,
@@ -38,12 +41,12 @@ export function DialogHeader({
 }) {
   return (
     <div className="mb-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      {description ? (
-        <p className="text-sm text-neutral-600 dark:text-neutral-300">
+      <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
+      {description && (
+        <DialogDescription className="text-sm text-neutral-600 dark:text-neutral-300">
           {description}
-        </p>
-      ) : null}
+        </DialogDescription>
+      )}
     </div>
   );
 }
