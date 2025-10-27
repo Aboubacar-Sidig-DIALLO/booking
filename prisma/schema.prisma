@@ -1,144 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Organization {
-  id        String   @id @default(uuid())
+  id        String                @id @default(uuid())
   name      String
-  slug      String   @unique  // Pour l'URL: tenant1.votreapp.com
-  domain    String?  @unique  // Pour les domaines personnalisés
-  plan      PlanType @default(STARTER)
-  settings  Json?    // Configuration personnalisée
-  users     User[]
-  sites     Site[]
-  rooms     Room[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  domain    String?               @unique
+  plan      PlanType              @default(STARTER)
+  settings  Json?
+  slug      String                @unique
   bookings  Booking[]
   features  OrganizationFeature[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  rooms     Room[]
+  sites     Site[]
+  users     User[]
 }
 
 model User {
-  id                    String   @id @default(uuid())
-  email                 String   @unique
-  name                  String?
-  password              String?  // Mot de passe hashé
-  mustChangePassword    Boolean  @default(false) // Force le changement à la première connexion
-  passwordChangedAt     DateTime? // Date du dernier changement de mot de passe
-  resetToken            String?  // Token pour réinitialisation de mot de passe
-  resetTokenExpiry      DateTime? // Expiration du token de réinitialisation
-  role                  Role     @default(VIEWER)
-  department            String?  // Département de l'utilisateur
-  phone                 String?  // Téléphone de l'utilisateur
-  location              String?  // Localisation de l'utilisateur
-  status                String   @default("active") // Statut: active, inactive, pending
-  notes                 String?  // Notes sur l'utilisateur
-  orgId                 String
-  org                   Organization @relation(fields: [orgId], references: [id])
-  favorites             Favorite[]
-  messages              Message[]
-  bookings              BookingParticipant[]
-  createdBookings       Booking[]
-  notifications         Notification[]
-  checkins              Checkin[]
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-enum Role {
-  ADMIN
-  MANAGER
-  EMPLOYEE
-  VIEWER
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  name               String?
+  role               Role                 @default(VIEWER)
+  orgId              String
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  mustChangePassword Boolean              @default(false)
+  password           String?
+  passwordChangedAt  DateTime?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  department         String?
+  location           String?
+  notes              String?
+  phone              String?
+  status             String               @default("active")
+  createdBookings    Booking[]
+  bookings           BookingParticipant[]
+  checkins           Checkin[]
+  favorites          Favorite[]
+  messages           Message[]
+  notifications      Notification[]
+  org                Organization         @relation(fields: [orgId], references: [id])
 }
 
 model Site {
-  id        String   @id @default(uuid())
-  orgId     String
-  org       Organization @relation(fields: [orgId], references: [id])
-  name      String
-  rooms     Room[]
+  id    String       @id @default(uuid())
+  orgId String
+  name  String
+  rooms Room[]
+  org   Organization @relation(fields: [orgId], references: [id])
 }
 
 model Feature {
-  id    String @id @default(uuid())
-  name  String @unique
-  icon  String?
-  description String?
-  rooms RoomFeature[]
+  id            String                @id @default(uuid())
+  name          String                @unique
+  icon          String?
+  description   String?
+  howToUse      String?
+  createdAt     DateTime              @default(now())
+  isActive      Boolean               @default(true)
+  updatedAt     DateTime              @default(now()) @updatedAt
   organizations OrganizationFeature[]
+  rooms         RoomFeature[]
 }
 
 model OrganizationFeature {
   organizationId String
   featureId      String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  feature        Feature      @relation(fields: [featureId], references: [id], onDelete: Cascade)
   isEnabled      Boolean      @default(true)
-  settings       Json?        // Configuration spécifique du tenant
+  settings       Json?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  feature        Feature      @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
   @@id([organizationId, featureId])
 }
 
-enum PlanType {
-  STARTER
-  PROFESSIONAL
-  ENTERPRISE
-  CUSTOM
-}
-
 model Room {
-  id         String @id @default(uuid())
-  orgId      String
-  org        Organization @relation(fields: [orgId], references: [id])
-  siteId     String
-  site       Site   @relation(fields: [siteId], references: [id])
-  name       String
-  slug       String @unique
-  capacity   Int
-  location   String?
-  floor      Int?
+  id          String        @id @default(uuid())
+  orgId       String
+  siteId      String
+  name        String
+  slug        String        @unique
+  capacity    Int
+  location    String?
+  floor       Int?
   description String?
-  isActive   Boolean @default(true)
-  features   RoomFeature[]
-  bookings   Booking[]
-  favorites  Favorite[]
+  isActive    Boolean       @default(true)
+  bookings    Booking[]
+  favorites   Favorite[]
+  org         Organization  @relation(fields: [orgId], references: [id])
+  site        Site          @relation(fields: [siteId], references: [id])
+  features    RoomFeature[]
 }
 
 model RoomFeature {
-  roomId   String
+  roomId    String
   featureId String
-  room     Room    @relation(fields: [roomId], references: [id])
-  feature  Feature @relation(fields: [featureId], references: [id])
+  feature   Feature @relation(fields: [featureId], references: [id])
+  room      Room    @relation(fields: [roomId], references: [id])
+
   @@id([roomId, featureId])
 }
 
 model Booking {
-  id          String   @id @default(uuid())
-  orgId       String
-  org         Organization @relation(fields: [orgId], references: [id])
-  roomId      String
-  room        Room     @relation(fields: [roomId], references: [id])
-  title       String
-  description String?
-  start       DateTime
-  end         DateTime
-  privacy     Privacy  @default(ORG)
-  status      BookingStatus @default(PENDING)
+  id             String               @id @default(uuid())
+  orgId          String
+  roomId         String
+  title          String
+  description    String?
+  start          DateTime
+  end            DateTime
+  privacy        Privacy              @default(ORG)
+  status         BookingStatus        @default(PENDING)
   recurrenceRule String?
-  participants BookingParticipant[]
-  messages    Message[]
-  checkins    Checkin[]
-  createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdById    String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  createdBy      User                 @relation(fields: [createdById], references: [id])
+  org            Organization         @relation(fields: [orgId], references: [id])
+  room           Room                 @relation(fields: [roomId], references: [id])
+  participants   BookingParticipant[]
+  checkins       Checkin[]
+  messages       Message[]
 
   @@index([roomId, start, end])
 }
@@ -147,67 +139,49 @@ model BookingParticipant {
   bookingId String
   userId    String
   role      ParticipantRole @default(REQUIRED)
-  booking   Booking @relation(fields: [bookingId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
+  booking   Booking         @relation(fields: [bookingId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
+
   @@id([bookingId, userId])
-}
-
-enum ParticipantRole {
-  HOST
-  REQUIRED
-  OPTIONAL
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  REJECTED
-  EXPIRED
-}
-
-enum Privacy {
-  PUBLIC
-  ORG
-  INVITEES
 }
 
 model Message {
   id        String   @id @default(uuid())
   bookingId String
-  booking   Booking  @relation(fields: [bookingId], references: [id])
   senderId  String
-  sender    User     @relation(fields: [senderId], references: [id])
   content   String
   createdAt DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id])
 }
 
 model Favorite {
   userId String
   roomId String
-  user   User @relation(fields: [userId], references: [id])
-  room   Room @relation(fields: [roomId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
   @@id([userId, roomId])
 }
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   title     String
   body      String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Checkin {
-  id         String   @id @default(uuid())
-  bookingId  String
-  booking    Booking  @relation(fields: [bookingId], references: [id])
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  checkedInAt DateTime?
+  id           String    @id @default(uuid())
+  bookingId    String
+  userId       String
+  checkedInAt  DateTime?
   checkedOutAt DateTime?
+  booking      Booking   @relation(fields: [bookingId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
 
   @@unique([bookingId, userId], name: "bookingId_userId")
 }
@@ -232,4 +206,37 @@ model AuditLog {
   createdAt DateTime @default(now())
 }
 
+enum Role {
+  ROI
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  VIEWER
+}
 
+enum PlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
+}
+
+enum ParticipantRole {
+  HOST
+  REQUIRED
+  OPTIONAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  EXPIRED
+}
+
+enum Privacy {
+  PUBLIC
+  ORG
+  INVITEES
+}

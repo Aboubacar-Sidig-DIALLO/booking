@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const orgId = user.org.id;
     console.log("Fetching rooms for orgId:", orgId);
 
-    // Récupérer toutes les salles
+    // Récupérer toutes les salles avec leurs équipements activés pour cette organisation
     const rooms = await prisma.room.findMany({
       where: { orgId },
       include: {
@@ -50,7 +50,16 @@ export async function GET(req: NextRequest) {
         },
         features: {
           include: {
-            feature: true,
+            feature: {
+              include: {
+                organizations: {
+                  where: {
+                    organizationId: orgId,
+                    isEnabled: true,
+                  },
+                },
+              },
+            },
           },
         },
         bookings: {
@@ -126,8 +135,21 @@ export async function GET(req: NextRequest) {
         status: room.isActive ? "active" : "inactive",
         isOccupied,
         isMaintenance,
-        features: room.features.map((rf) => rf.feature.name),
-        equipment: room.features.map((rf) => rf.feature.name), // Alias pour compatibilité
+        // Filtrer pour ne montrer que les équipements actifs globalement ET activés pour cette organisation
+        features: room.features
+          .filter(
+            (rf) =>
+              rf.feature.isActive === true &&
+              rf.feature.organizations.length > 0
+          )
+          .map((rf) => rf.feature.name),
+        equipment: room.features
+          .filter(
+            (rf) =>
+              rf.feature.isActive === true &&
+              rf.feature.organizations.length > 0
+          )
+          .map((rf) => rf.feature.name), // Alias pour compatibilité
         currentBooking: activeBooking
           ? {
               id: activeBooking.id,

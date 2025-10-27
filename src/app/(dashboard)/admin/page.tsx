@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -11,6 +11,18 @@ import { MaintenanceModal } from "@/components/admin/MaintenanceModal";
 import { UserFormModal } from "@/components/admin/UserFormModal";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { EquipmentManagement } from "@/components/admin/EquipmentManagement";
+import {
+  useAdminStats,
+  useAdminRooms,
+  useCreateRoom,
+  useUpdateRoom,
+  useDeleteRoom,
+  useAdminUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "@/hooks/use-admin-queries";
 import { Button } from "@/components/ui/button";
 import { LoadingDots } from "@/components/ui/LoadingDots";
 import {
@@ -34,19 +46,15 @@ import {
   Users,
   BarChart3,
   Calendar,
-  Activity,
   AlertTriangle,
   CheckCircle,
   Plus,
   Edit,
   Trash2,
   Eye,
-  Globe,
-  Database,
   Wrench,
   Bell,
   LogOut,
-  Lock,
   Clock,
 } from "lucide-react";
 
@@ -301,23 +309,34 @@ const getAlertConfig = (type: string) => {
 };
 
 export default function AdminPage() {
-  const [selectedTab, setSelectedTab] = useState("overview");
+  // Initialiser avec l'onglet sauvegardé dans localStorage ou "overview" par défaut
+  const [selectedTab, setSelectedTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("admin-selected-tab") || "overview";
+    }
+    return "overview";
+  });
   const router = useRouter();
 
-  // État pour les statistiques dynamiques
-  const [stats, setStats] = useState<Stats>({
-    totalRooms: 0,
-    activeRooms: 0,
-    maintenanceRooms: 0,
-    totalUsers: 0,
-    activeUsers: 0,
-    inactiveUsers: 0,
-    activeBookings: 0,
-  });
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  // Sauvegarder l'onglet dans localStorage quand il change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("admin-selected-tab", selectedTab);
+    }
+  }, [selectedTab]);
 
-  // États pour la gestion des salles
-  const [rooms, setRooms] = useState<any[]>([]);
+  // TanStack Query hooks pour les données
+  const { data: stats, isLoading: isLoadingStats } = useAdminStats();
+  const { data: rooms = [] } = useAdminRooms();
+  const { data: users = recentUsers } = useAdminUsers();
+
+  // Mutations pour les opérations
+  const createRoomMutation = useCreateRoom();
+  const updateRoomMutation = useUpdateRoom();
+  const deleteRoomMutation = useDeleteRoom();
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
 
   // État pour le filtre des utilisateurs
   const [userFilter, setUserFilter] = useState<"all" | "active" | "inactive">(
@@ -337,8 +356,16 @@ export default function AdminPage() {
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // États pour les modales utilisateur
-  const [users, setUsers] = useState(recentUsers);
+  // Stats par défaut si données non chargées
+  const statsData = stats || {
+    totalRooms: 0,
+    activeRooms: 0,
+    maintenanceRooms: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    activeBookings: 0,
+  };
 
   // Optimisation : Utilisateurs filtrés avec useMemo
   const filteredUsers = useMemo(() => {
@@ -374,48 +401,7 @@ export default function AdminPage() {
   const [showUserDeleteConfirm, setShowUserDeleteConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  // Fonction pour charger les statistiques
-  const loadStats = async () => {
-    try {
-      const response = await fetch("/api/admin/stats");
-      if (response.ok) {
-        const statsData = await response.json();
-        setStats(statsData);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des statistiques:", error);
-    } finally {
-      setIsLoadingStats(false);
-    }
-  };
-
-  // Charger les données depuis l'API au montage
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Charger les statistiques
-        await loadStats();
-
-        // Charger les salles avec leur statut
-        const roomsResponse = await fetch("/api/admin/rooms/status");
-        if (roomsResponse.ok) {
-          const roomsData = await roomsResponse.json();
-          setRooms(roomsData);
-        }
-
-        // Charger les utilisateurs
-        const usersResponse = await fetch("/api/admin/users");
-        if (usersResponse.ok) {
-          const usersData = await usersResponse.json();
-          setUsers(usersData);
-        }
-      } catch (error) {
-        console.error("Erreur lors du chargement des données:", error);
-      }
-    };
-
-    loadData();
-  }, []);
+  // Utiliser les données depuis les hooks
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/login" });
@@ -448,127 +434,36 @@ export default function AdminPage() {
   };
 
   const handleMaintenanceSubmit = async (data: any) => {
-    setIsLoading(true);
-
-    // Simuler une requête API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Mettre à jour la salle avec les informations de maintenance
-    setRooms(
-      rooms.map((room) =>
-        room.id === selectedRoom.id
-          ? {
-              ...room,
-              status: "maintenance",
-              maintenanceReason: data.reason,
-              maintenanceEndDate: data.endDate,
-              maintenanceEndTime: data.endTime,
-              maintenanceEquipment: data.equipment || [],
-            }
-          : room
-      )
-    );
-
-    // Recharger les statistiques
-    await loadStats();
-
+    // TODO: Implémenter la mutation pour la maintenance
+    // Pour l'instant, on ferme juste la modale
     setIsLoading(false);
     setShowMaintenanceModal(false);
     setSelectedRoom(null);
   };
 
   const handleRoomFormSubmit = async (data: any) => {
-    setIsLoading(true);
-
     try {
       if (selectedRoom) {
-        // Modification
-        const response = await fetch("/api/admin/rooms", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, id: selectedRoom.id }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.error || "Erreur lors de la modification de la salle";
-          throw new Error(errorMessage);
-        }
-
-        const updatedRoom = await response.json();
-        setRooms(
-          rooms.map((room) =>
-            room.id === selectedRoom.id ? updatedRoom : room
-          )
-        );
-        // Recharger les statistiques
-        await loadStats();
+        await updateRoomMutation.mutateAsync({ id: selectedRoom.id, ...data });
       } else {
-        // Création
-        const response = await fetch("/api/admin/rooms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.error || "Erreur lors de la création de la salle";
-          throw new Error(errorMessage);
-        }
-
-        const newRoom = await response.json();
-        setRooms([...rooms, newRoom]);
-        // Recharger les statistiques
-        await loadStats();
+        await createRoomMutation.mutateAsync(data);
       }
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue. Veuillez réessayer."
-      );
-    } finally {
-      setIsLoading(false);
       setShowRoomForm(false);
       setSelectedRoom(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
     }
   };
 
   const handleConfirmDelete = async () => {
     if (!selectedRoom) return;
 
-    setIsLoading(true);
-
     try {
-      const response = await fetch(`/api/admin/rooms?id=${selectedRoom.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.error || "Erreur lors de la suppression de la salle";
-        throw new Error(errorMessage);
-      }
-
-      setRooms(rooms.filter((room) => room.id !== selectedRoom.id));
-      // Recharger les statistiques
-      await loadStats();
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue. Veuillez réessayer."
-      );
-    } finally {
-      setIsLoading(false);
+      await deleteRoomMutation.mutateAsync(selectedRoom.id);
       setShowDeleteConfirm(false);
       setSelectedRoom(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
     }
   };
 
@@ -594,109 +489,28 @@ export default function AdminPage() {
   };
 
   const handleUserFormSubmit = async (data: any) => {
-    setIsLoading(true);
-
     try {
       if (selectedUser) {
-        // Modification
-        const response = await fetch("/api/admin/users", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, id: selectedUser.id }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage =
-            errorData.error ||
-            "Erreur lors de la modification de l'utilisateur";
-          throw new Error(errorMessage);
-        }
-
-        const updatedUser = await response.json();
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.id === selectedUser.id ? updatedUser : user
-          )
-        );
-        // Recharger les statistiques
-        await loadStats();
+        await updateUserMutation.mutateAsync({ id: selectedUser.id, ...data });
       } else {
-        // Création
-        console.log("Création utilisateur avec données:", data);
-        const response = await fetch("/api/admin/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Error response:", errorText);
-
-          let errorMessage = "Erreur lors de la création de l'utilisateur";
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.error || errorMessage;
-          } catch (e) {
-            errorMessage = errorText || errorMessage;
-          }
-
-          throw new Error(errorMessage);
-        }
-
-        const newUser = await response.json();
-        setUsers((prevUsers) => [...prevUsers, newUser]);
-        // Recharger les statistiques
-        await loadStats();
+        await createUserMutation.mutateAsync(data);
       }
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue. Veuillez réessayer."
-      );
-    } finally {
-      setIsLoading(false);
       setShowUserForm(false);
       setSelectedUser(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
     }
   };
 
   const handleConfirmUserDelete = async () => {
     if (!selectedUser) return;
 
-    setIsLoading(true);
-
     try {
-      const response = await fetch(`/api/admin/users?id=${selectedUser.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.error || "Erreur lors de la suppression de l'utilisateur";
-        throw new Error(errorMessage);
-      }
-
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.id !== selectedUser.id)
-      );
-      // Recharger les statistiques
-      await loadStats();
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue. Veuillez réessayer."
-      );
-    } finally {
-      setIsLoading(false);
+      await deleteUserMutation.mutateAsync(selectedUser.id);
       setShowUserDeleteConfirm(false);
       setSelectedUser(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
     }
   };
 
@@ -704,7 +518,7 @@ export default function AdminPage() {
     { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
     { id: "rooms", label: "Gestion des salles", icon: Building2 },
     { id: "users", label: "Utilisateurs", icon: Users },
-    { id: "system", label: "Système", icon: Settings },
+    { id: "system", label: "Équipements", icon: Settings },
   ];
 
   return (
@@ -884,14 +698,14 @@ export default function AdminPage() {
                                 <LoadingDots size={8} color="#0f172a" />
                               ) : (
                                 <p className="text-3xl font-bold text-slate-900">
-                                  {stats.totalRooms}
+                                  {statsData.totalRooms}
                                 </p>
                               )}
                             </div>
                             <div className="flex items-center gap-1 mt-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               <span className="text-xs text-green-600 font-medium">
-                                {stats.activeRooms} opérationnelles
+                                {statsData.activeRooms} opérationnelles
                               </span>
                             </div>
                           </div>
@@ -939,10 +753,10 @@ export default function AdminPage() {
                             </TooltipProvider>
                             <div className="flex items-center mt-1">
                               {isLoadingStats ? (
-                                <LoadingDots size={12} color="#0f172a" />
+                                <LoadingDots size={8} color="#0f172a" />
                               ) : (
                                 <p className="text-3xl font-bold text-slate-900">
-                                  {stats.activeBookings}
+                                  {statsData.activeBookings}
                                 </p>
                               )}
                             </div>
@@ -997,10 +811,10 @@ export default function AdminPage() {
                             </TooltipProvider>
                             <div className="flex items-center mt-1">
                               {isLoadingStats ? (
-                                <LoadingDots size={12} color="#0f172a" />
+                                <LoadingDots size={8} color="#0f172a" />
                               ) : (
                                 <p className="text-3xl font-bold text-slate-900">
-                                  {stats.totalUsers}
+                                  {statsData.totalUsers}
                                 </p>
                               )}
                             </div>
@@ -1008,13 +822,13 @@ export default function AdminPage() {
                               <div className="flex items-center gap-1">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-xs text-green-600 font-medium">
-                                  {stats.activeUsers} actifs
+                                  {statsData.activeUsers} actifs
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                                 <span className="text-xs text-gray-600 font-medium">
-                                  {stats.inactiveUsers} inactifs
+                                  {statsData.inactiveUsers} inactifs
                                 </span>
                               </div>
                             </div>
@@ -1064,10 +878,10 @@ export default function AdminPage() {
                             </TooltipProvider>
                             <div className="flex items-center mt-1">
                               {isLoadingStats ? (
-                                <LoadingDots size={12} color="#0f172a" />
+                                <LoadingDots size={8} color="#0f172a" />
                               ) : (
                                 <p className="text-3xl font-bold text-slate-900">
-                                  {stats.maintenanceRooms}
+                                  {statsData.maintenanceRooms}
                                 </p>
                               )}
                             </div>
@@ -1231,7 +1045,7 @@ export default function AdminPage() {
                               <span className="text-xl font-bold text-green-900">
                                 {
                                   rooms.filter(
-                                    (r) =>
+                                    (r: any) =>
                                       r.isActive &&
                                       !r.isOccupied &&
                                       !r.isMaintenance
@@ -1296,7 +1110,7 @@ export default function AdminPage() {
                               <span className="text-xl font-bold text-red-900">
                                 {
                                   rooms.filter(
-                                    (r) => r.isMaintenance || !r.isActive
+                                    (r: any) => r.isMaintenance || !r.isActive
                                   ).length
                                 }
                               </span>
@@ -1701,7 +1515,7 @@ export default function AdminPage() {
                                         : "text-purple-900"
                                     }`}
                                   >
-                                    {stats.totalUsers}
+                                    {statsData.totalUsers}
                                   </span>
                                 </div>
                               </div>
@@ -1728,7 +1542,7 @@ export default function AdminPage() {
                                     </span>
                                   </div>
                                   <span className="text-lg sm:text-xl font-bold text-green-900">
-                                    {stats.activeUsers}
+                                    {statsData.activeUsers}
                                   </span>
                                 </div>
                               </div>
@@ -1755,7 +1569,7 @@ export default function AdminPage() {
                                     </span>
                                   </div>
                                   <span className="text-lg sm:text-xl font-bold text-gray-900">
-                                    {stats.inactiveUsers}
+                                    {statsData.inactiveUsers}
                                   </span>
                                 </div>
                               </div>
@@ -2004,101 +1818,8 @@ export default function AdminPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        État du système
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              Serveur principal
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-green-600">
-                            Opérationnel
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Database className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              Base de données
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-green-600">
-                            Opérationnel
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              API
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-green-600">
-                            Opérationnel
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Lock className="h-5 w-5 text-blue-600" />
-                        Sécurité
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Lock className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              Chiffrement
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-blue-600">
-                            Actif
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Lock className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              Firewall
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-blue-600">
-                            Actif
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-slate-900">
-                              Monitoring
-                            </span>
-                          </div>
-                          <span className="text-sm font-bold text-blue-600">
-                            Actif
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <EquipmentManagement />
               </motion.div>
             )}
           </AnimatePresence>

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,6 +116,45 @@ export function RoomFormModal({
         .filter((item, index, self) => self.indexOf(item) === index)
     : [];
 
+  // Mapper les noms d'équipements vers leurs icônes
+  const getEquipmentIconForName = (name: string) => {
+    const iconMap: Record<string, any> = {
+      Projecteur: Monitor,
+      Écran: Tv,
+      "Tableau blanc": Square,
+      "Tableau interactif": Smartphone,
+      "Système audio": Volume2,
+      Microphone: Mic,
+      Caméra: Video,
+      WiFi: Wifi,
+      Climatisation: Thermometer,
+      "Éclairage dimmable": Lightbulb,
+      "Tables mobiles": Table,
+      "Chaises confortables": User,
+      "Prise électrique": Plug,
+      Téléphone: Phone,
+      Vidéoconférence: Users,
+    };
+    return iconMap[name] || Settings;
+  };
+
+  // Charger les équipements actifs avec TanStack Query
+  const { data: equipments = [] } = useQuery({
+    queryKey: ["admin", "equipment", "active"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/equipment/active");
+      if (!response.ok)
+        throw new Error("Erreur lors du chargement des équipements");
+      return response.json();
+    },
+  });
+
+  // Mapper les équipements avec leurs icônes
+  const availableEquipment = equipments.map((eq: any) => ({
+    name: eq.name,
+    icon: getEquipmentIconForName(eq.name),
+  }));
+
   // Mettre à jour le formulaire quand la salle change
   useEffect(() => {
     if (room) {
@@ -150,25 +190,6 @@ export function RoomFormModal({
     }
   }, [room, reset]);
 
-  // Équipements prédéfinis disponibles avec leurs icônes
-  const availableEquipment = [
-    { name: "Projecteur", icon: Monitor },
-    { name: "Écran", icon: Tv },
-    { name: "Tableau blanc", icon: Square },
-    { name: "Tableau interactif", icon: Smartphone },
-    { name: "Système audio", icon: Volume2 },
-    { name: "Microphone", icon: Mic },
-    { name: "Caméra", icon: Video },
-    { name: "WiFi", icon: Wifi },
-    { name: "Climatisation", icon: Thermometer },
-    { name: "Éclairage dimmable", icon: Lightbulb },
-    { name: "Tables mobiles", icon: Table },
-    { name: "Chaises confortables", icon: User },
-    { name: "Prise électrique", icon: Plug },
-    { name: "Téléphone", icon: Phone },
-    { name: "Vidéoconférence", icon: Users },
-  ];
-
   const toggleEquipment = (itemName: string) => {
     const currentEquipment = equipment || [];
     if (currentEquipment.includes(itemName)) {
@@ -182,10 +203,7 @@ export function RoomFormModal({
   };
 
   const getEquipmentIcon = (itemName: string) => {
-    const equipmentItem = availableEquipment.find(
-      (item) => item.name === itemName
-    );
-    return equipmentItem ? equipmentItem.icon : Settings;
+    return getEquipmentIconForName(itemName);
   };
 
   const handleFormSubmit = (data: RoomFormData) => {
@@ -335,66 +353,68 @@ export function RoomFormModal({
                 </div>
 
                 {/* Équipements */}
-                <div className="space-y-0.5 sm:space-y-2">
-                  <Label className="text-[10px] sm:text-sm font-semibold block">
-                    Équipements disponibles
-                  </Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1 sm:gap-2">
-                    {availableEquipment.map((item) => {
-                      const IconComponent = item.icon;
-                      return (
-                        <div
-                          key={item.name}
-                          className="flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded transition-all border border-transparent hover:border-blue-200"
-                        >
-                          <Checkbox
-                            id={`equipment-${item.name}`}
-                            checked={equipment.includes(item.name)}
-                            onCheckedChange={() => toggleEquipment(item.name)}
-                            className="flex-shrink-0 h-3 w-3 sm:h-4 sm:w-4"
-                          />
-                          <Label
-                            htmlFor={`equipment-${item.name}`}
-                            className="text-[10px] sm:text-xs font-medium cursor-pointer flex items-center gap-0.5 sm:gap-2 flex-1 min-w-0"
+                {availableEquipment.length > 0 && (
+                  <div className="space-y-0.5 sm:space-y-2">
+                    <Label className="text-[10px] sm:text-sm font-semibold block">
+                      Équipements disponibles
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1 sm:gap-2">
+                      {availableEquipment.map((item: any) => {
+                        const IconComponent = item.icon;
+                        return (
+                          <div
+                            key={item.name}
+                            className="flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded transition-all border border-transparent hover:border-blue-200"
                           >
-                            <IconComponent className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
-                            <span className="truncate block text-[10px] sm:text-xs">
-                              {item.name}
-                            </span>
-                          </Label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {equipment.length > 0 && (
-                    <div className="mt-0.5 sm:mt-2 pt-0.5 sm:pt-2 border-t border-gray-100">
-                      <p className="text-[10px] sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-2">
-                        Sélectionnés ({equipment.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                        {equipment.map((item, index) => {
-                          const IconComponent = getEquipmentIcon(item);
-                          return (
-                            <span
-                              key={`${item}-${index}`}
-                              className="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-[9px] sm:text-xs font-medium rounded border border-blue-200"
+                            <Checkbox
+                              id={`equipment-${item.name}`}
+                              checked={equipment.includes(item.name)}
+                              onCheckedChange={() => toggleEquipment(item.name)}
+                              className="flex-shrink-0 h-3 w-3 sm:h-4 sm:w-4"
+                            />
+                            <Label
+                              htmlFor={`equipment-${item.name}`}
+                              className="text-[10px] sm:text-xs font-medium cursor-pointer flex items-center gap-0.5 sm:gap-2 flex-1 min-w-0"
                             >
-                              <IconComponent className="h-2 w-2 sm:h-3 sm:w-3 text-blue-600" />
-                              <span className="hidden sm:inline">{item}</span>
-                              <button
-                                type="button"
-                                onClick={() => toggleEquipment(item)}
-                                className="ml-0.5 hover:text-blue-900 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-                              >
-                                <X className="h-1.5 w-1.5 sm:h-2.5 sm:w-2.5" />
-                              </button>
-                            </span>
-                          );
-                        })}
-                      </div>
+                              <IconComponent className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
+                              <span className="truncate block text-[10px] sm:text-xs">
+                                {item.name}
+                              </span>
+                            </Label>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-                </div>
+                    {equipment.length > 0 && (
+                      <div className="mt-0.5 sm:mt-2 pt-0.5 sm:pt-2 border-t border-gray-100">
+                        <p className="text-[10px] sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-2">
+                          Sélectionnés ({equipment.length})
+                        </p>
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                          {equipment.map((item, index) => {
+                            const IconComponent = getEquipmentIcon(item);
+                            return (
+                              <span
+                                key={`${item}-${index}`}
+                                className="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-2 py-0.5 sm:py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 text-[9px] sm:text-xs font-medium rounded border border-blue-200"
+                              >
+                                <IconComponent className="h-2 w-2 sm:h-3 sm:w-3 text-blue-600" />
+                                <span className="hidden sm:inline">{item}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleEquipment(item)}
+                                  className="ml-0.5 hover:text-blue-900 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                                >
+                                  <X className="h-1.5 w-1.5 sm:h-2.5 sm:w-2.5" />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex justify-center gap-3 mt-1.5 sm:mt-4 pt-1.5 sm:pt-3 border-t border-gray-200">
                   <Button
