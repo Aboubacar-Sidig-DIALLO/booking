@@ -119,50 +119,52 @@ export function RoomDetailsModal({
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                  <Building2 className="h-5 w-5 text-white" />
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <DialogTitle className="text-xl font-bold">
+                <div className="flex-1 min-w-0">
+                  <DialogTitle className="text-base sm:text-xl font-bold truncate">
                     {room.name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-gray-600">
+                  <DialogDescription className="text-[10px] sm:text-xs text-gray-600">
                     Détails complets de la salle
                   </DialogDescription>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Statut */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">
                     Statut :
                   </span>
-                  <Badge className={`${statusConfig.color} text-sm`}>
-                    <StatusIcon className="h-3 w-3 mr-1" />
+                  <Badge className={`${statusConfig.color} text-xs sm:text-sm`}>
+                    <StatusIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                     {room.status}
                   </Badge>
                 </div>
 
                 {/* Informations principales */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
                   <Card>
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-blue-100 rounded-md">
-                          <Users className="h-4 w-4 text-blue-600" />
+                    <CardContent className="p-2 sm:p-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 bg-blue-100 rounded-md">
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Capacité</p>
-                          <p className="text-lg font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] sm:text-xs text-gray-600">
+                            Capacité
+                          </p>
+                          <p className="text-sm sm:text-lg font-semibold truncate">
                             {room.capacity} places
                           </p>
                         </div>
@@ -171,14 +173,16 @@ export function RoomDetailsModal({
                   </Card>
 
                   <Card>
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-green-100 rounded-md">
-                          <Calendar className="h-4 w-4 text-green-600" />
+                    <CardContent className="p-2 sm:p-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 bg-green-100 rounded-md">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Réservations</p>
-                          <p className="text-lg font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] sm:text-xs text-gray-600">
+                            Réservations
+                          </p>
+                          <p className="text-sm sm:text-lg font-semibold">
                             {room.bookings}
                           </p>
                         </div>
@@ -187,14 +191,16 @@ export function RoomDetailsModal({
                   </Card>
 
                   <Card>
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-purple-100 rounded-md">
-                          <MapPin className="h-4 w-4 text-purple-600" />
+                    <CardContent className="p-2 sm:p-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 bg-purple-100 rounded-md">
+                          <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs text-gray-600">Emplacement</p>
-                          <p className="text-sm font-semibold truncate">
+                          <p className="text-[10px] sm:text-xs text-gray-600">
+                            Emplacement
+                          </p>
+                          <p className="text-xs sm:text-sm font-semibold truncate">
                             {room.location || "Non spécifié"}
                           </p>
                         </div>
@@ -203,14 +209,16 @@ export function RoomDetailsModal({
                   </Card>
 
                   <Card>
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-indigo-100 rounded-md">
-                          <Settings className="h-4 w-4 text-indigo-600" />
+                    <CardContent className="p-2 sm:p-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 bg-indigo-100 rounded-md">
+                          <Settings className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-600" />
                         </div>
-                        <div>
-                          <p className="text-xs text-gray-600">Équipements</p>
-                          <p className="text-lg font-semibold">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] sm:text-xs text-gray-600">
+                            Équipements
+                          </p>
+                          <p className="text-sm sm:text-lg font-semibold">
                             {room.equipment?.length || 0}
                           </p>
                         </div>
@@ -220,8 +228,8 @@ export function RoomDetailsModal({
                 </div>
 
                 {/* Maintenance */}
-                <div className="space-y-2">
-                  <h4 className="text-base font-semibold text-gray-900">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-900">
                     Maintenance
                   </h4>
 
@@ -229,27 +237,27 @@ export function RoomDetailsModal({
                   {room.status === "maintenance" &&
                     room.maintenanceReason &&
                     room.maintenanceEndDate && (
-                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Wrench className="h-4 w-4 text-orange-600" />
-                          <h5 className="text-sm font-semibold text-orange-800">
+                      <div className="p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                          <Wrench className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
+                          <h5 className="text-xs sm:text-sm font-semibold text-orange-800">
                             Maintenance en cours
                           </h5>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5 sm:space-y-2">
                           <div>
-                            <span className="text-xs font-medium text-gray-700">
+                            <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                               Raison :
                             </span>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5">
                               {room.maintenanceReason}
                             </p>
                           </div>
                           <div>
-                            <span className="text-xs font-medium text-gray-700">
+                            <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                               Disponible le :
                             </span>
-                            <p className="text-xs text-gray-600 mt-0.5">
+                            <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5">
                               {new Date(
                                 room.maintenanceEndDate
                               ).toLocaleDateString("fr-FR", {
@@ -265,10 +273,10 @@ export function RoomDetailsModal({
                           {room.maintenanceEquipment &&
                             room.maintenanceEquipment.length > 0 && (
                               <div>
-                                <span className="text-xs font-medium text-gray-700">
+                                <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                                   Équipements en maintenance :
                                 </span>
-                                <div className="flex flex-wrap gap-1 mt-1">
+                                <div className="flex flex-wrap gap-1 mt-0.5 sm:mt-1">
                                   {room.maintenanceEquipment.map(
                                     (equipment, index) => {
                                       const EquipmentIcon =
@@ -276,10 +284,13 @@ export function RoomDetailsModal({
                                       return (
                                         <div
                                           key={index}
-                                          className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-orange-800 rounded text-xs"
+                                          className="flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 bg-orange-100 text-orange-800 rounded text-[10px] sm:text-xs"
                                         >
-                                          <EquipmentIcon className="h-2.5 w-2.5" />
-                                          <span>{equipment}</span>
+                                          <EquipmentIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                                          <span className="hidden sm:inline">
+                                            {equipment}
+                                          </span>
+                                          <span className="sm:hidden">...</span>
                                         </div>
                                       );
                                     }
@@ -292,26 +303,26 @@ export function RoomDetailsModal({
                     )}
 
                   {/* Historique de maintenance */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-gray-50 rounded-md">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Wrench className="h-3 w-3 text-gray-600" />
-                        <span className="text-xs font-medium text-gray-700">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="p-1.5 sm:p-2 bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
+                        <Wrench className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-600" />
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                           Dernière maintenance
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-[10px] sm:text-xs text-gray-600">
                         {room.lastMaintenance}
                       </p>
                     </div>
-                    <div className="p-2 bg-gray-50 rounded-md">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Clock className="h-3 w-3 text-gray-600" />
-                        <span className="text-xs font-medium text-gray-700">
+                    <div className="p-1.5 sm:p-2 bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
+                        <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-600" />
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                           Prochaine maintenance
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-[10px] sm:text-xs text-gray-600">
                         {room.nextMaintenance}
                       </p>
                     </div>
@@ -320,20 +331,23 @@ export function RoomDetailsModal({
 
                 {/* Équipements */}
                 {room.equipment && room.equipment.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-base font-semibold text-gray-900">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">
                       Équipements disponibles
                     </h4>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1 sm:gap-1.5">
                       {room.equipment.map((equipment, index) => {
                         const IconComponent = getEquipmentIcon(equipment);
                         return (
                           <Badge
                             key={index}
-                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 flex items-center gap-1 text-xs px-2 py-1"
+                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1"
                           >
-                            <IconComponent className="h-3 w-3" />
-                            {equipment}
+                            <IconComponent className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <span className="hidden sm:inline">
+                              {equipment}
+                            </span>
+                            <span className="sm:hidden">...</span>
                           </Badge>
                         );
                       })}
@@ -343,11 +357,11 @@ export function RoomDetailsModal({
 
                 {/* Description */}
                 {room.description && (
-                  <div className="space-y-2">
-                    <h4 className="text-base font-semibold text-gray-900">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">
                       Description
                     </h4>
-                    <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded-md">
+                    <p className="text-[10px] sm:text-xs text-gray-600 bg-gray-50 p-1.5 sm:p-2 rounded-md leading-relaxed">
                       {room.description}
                     </p>
                   </div>

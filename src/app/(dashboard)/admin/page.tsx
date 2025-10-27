@@ -1311,22 +1311,27 @@ export default function AdminPage() {
                   <div className="lg:col-span-9">
                     <Card>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              <Building2 className="h-5 w-5 text-blue-600" />
-                              Toutes les salles
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                              <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                              <span className="truncate">
+                                Toutes les salles
+                              </span>
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-xs sm:text-sm mt-1">
                               Vue d'ensemble complète des salles
                             </CardDescription>
                           </div>
                           <Button
                             onClick={handleAddRoom}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
                           >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Ajouter une salle
+                            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            <span className="hidden md:inline">
+                              Ajouter une salle
+                            </span>
+                            <span className="md:hidden">Nouvelle salle</span>
                           </Button>
                         </div>
                       </CardHeader>
@@ -1428,40 +1433,48 @@ export default function AdminPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     whileHover={{ scale: 1.02, y: -2 }}
-                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-4 transition-all duration-300 hover:shadow-lg`}
+                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-2 sm:p-4 transition-all duration-300 hover:shadow-lg`}
                                   >
-                                    <div className="flex items-center justify-between gap-4">
-                                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+                                      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
                                         <div
-                                          className={`h-12 w-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
+                                          className={`h-9 w-9 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
                                         >
                                           <StatusIcon
-                                            className={`h-6 w-6 ${style.iconColor}`}
+                                            className={`h-4 w-4 sm:h-6 sm:w-6 ${style.iconColor}`}
                                           />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <h4
-                                            className={`font-semibold truncate ${style.textColor}`}
+                                            className={`font-semibold text-sm sm:text-base truncate ${style.textColor}`}
                                           >
                                             {room.name}
                                           </h4>
-                                          <div className="flex items-center gap-4 text-sm flex-wrap">
+                                          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap mt-0.5">
                                             <span className={style.textColor}>
                                               {room.capacity} places
                                             </span>
                                             {timeRemaining && (
-                                              <Badge className="bg-orange-200 text-orange-900 border-orange-400">
-                                                <Clock className="h-3 w-3 mr-1" />
-                                                {timeRemaining.hours > 0
-                                                  ? `${timeRemaining.hours}h `
-                                                  : ""}
-                                                {timeRemaining.minutes}m
-                                                restantes
+                                              <Badge className="bg-orange-200 text-orange-900 border-orange-400 text-[10px] sm:text-xs py-0.5 sm:py-1 px-1.5 sm:px-2">
+                                                <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                                                <span className="hidden sm:inline">
+                                                  {timeRemaining.hours > 0
+                                                    ? `${timeRemaining.hours}h `
+                                                    : ""}
+                                                  {timeRemaining.minutes}m
+                                                  restantes
+                                                </span>
+                                                <span className="sm:hidden">
+                                                  {timeRemaining.hours > 0
+                                                    ? `${timeRemaining.hours}h `
+                                                    : ""}
+                                                  {timeRemaining.minutes}m
+                                                </span>
                                               </Badge>
                                             )}
                                             {room.currentBooking && (
                                               <span
-                                                className={`${style.textColor} truncate max-w-xs`}
+                                                className={`${style.textColor} truncate max-w-[150px] sm:max-w-xs text-[10px] sm:text-xs`}
                                               >
                                                 {room.currentBooking.title}
                                               </span>
@@ -1469,19 +1482,19 @@ export default function AdminPage() {
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 w-full sm:w-auto justify-end">
                                         <TooltipProvider>
                                           <Tooltip delayDuration={200}>
                                             <TooltipTrigger asChild>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleViewRoom(room)
                                                 }
                                               >
-                                                <Eye className="h-4 w-4 text-blue-500" />
+                                                <Eye className="h-4 w-4 sm:h-4 sm:w-4 text-blue-500" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
@@ -1507,7 +1520,7 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleEditRoom(room)
                                                 }
@@ -1538,7 +1551,7 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200 disabled:hover:scale-100 disabled:opacity-50"
+                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200 disabled:hover:scale-100 disabled:opacity-50"
                                                 onClick={() =>
                                                   handleMaintenanceRoom(room)
                                                 }
@@ -1575,7 +1588,7 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
+                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleDeleteRoom(room)
                                                 }
@@ -1625,22 +1638,27 @@ export default function AdminPage() {
               >
                 <Card>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="h-5 w-5 text-purple-600" />
-                          Gestion des utilisateurs
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                          <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                          <span className="truncate">
+                            Gestion des utilisateurs
+                          </span>
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-xs sm:text-sm mt-1">
                           Gérez les utilisateurs et leurs permissions
                         </CardDescription>
                       </div>
                       <Button
                         onClick={handleAddUser}
-                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white cursor-pointer"
+                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Ajouter un utilisateur
+                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                        <span className="hidden md:inline">
+                          Ajouter un utilisateur
+                        </span>
+                        <span className="md:hidden">Nouvel utilisateur</span>
                       </Button>
                     </div>
                   </CardHeader>
@@ -1648,19 +1666,19 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
                       {/* Statistiques sur le côté */}
                       <div className="lg:col-span-3">
-                        <div className="sticky top-24">
-                          <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-5 border border-purple-100">
-                            <div className="flex items-center gap-2 mb-5">
-                              <BarChart3 className="h-5 w-5 text-purple-600" />
-                              <h3 className="font-semibold text-slate-900">
+                        <div className="sticky top-20">
+                          <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-4 sm:p-5 border border-purple-100">
+                            <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                              <h3 className="font-semibold text-slate-900 text-sm sm:text-base">
                                 Statistiques
                               </h3>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2 sm:space-y-3">
                               <div
                                 onClick={() => setUserFilter("all")}
-                                className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                className={`bg-white rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
                                   userFilter === "all"
                                     ? "border-purple-500 shadow-md bg-purple-50"
                                     : "border-purple-100 hover:border-purple-300"
@@ -1668,7 +1686,7 @@ export default function AdminPage() {
                               >
                                 <div className="flex items-center justify-between">
                                   <span
-                                    className={`text-sm font-medium ${
+                                    className={`text-xs sm:text-sm font-medium ${
                                       userFilter === "all"
                                         ? "text-purple-700"
                                         : "text-slate-600"
@@ -1677,7 +1695,7 @@ export default function AdminPage() {
                                     Total
                                   </span>
                                   <span
-                                    className={`text-xl font-bold ${
+                                    className={`text-lg sm:text-xl font-bold ${
                                       userFilter === "all"
                                         ? "text-purple-900"
                                         : "text-purple-900"
@@ -1690,17 +1708,17 @@ export default function AdminPage() {
 
                               <div
                                 onClick={() => setUserFilter("active")}
-                                className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                className={`bg-green-50 rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
                                   userFilter === "active"
                                     ? "border-green-500 shadow-md bg-green-100"
                                     : "border-green-200 hover:border-green-400"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
                                     <span
-                                      className={`text-sm font-medium ${
+                                      className={`text-xs sm:text-sm font-medium ${
                                         userFilter === "active"
                                           ? "text-green-900"
                                           : "text-green-700"
@@ -1709,7 +1727,7 @@ export default function AdminPage() {
                                       Actifs
                                     </span>
                                   </div>
-                                  <span className="text-xl font-bold text-green-900">
+                                  <span className="text-lg sm:text-xl font-bold text-green-900">
                                     {stats.activeUsers}
                                   </span>
                                 </div>
@@ -1717,17 +1735,17 @@ export default function AdminPage() {
 
                               <div
                                 onClick={() => setUserFilter("inactive")}
-                                className={`bg-gray-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                                className={`bg-gray-50 rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
                                   userFilter === "inactive"
                                     ? "border-gray-500 shadow-md bg-gray-100"
                                     : "border-gray-100 hover:border-gray-400"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-gray-600" />
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
                                     <span
-                                      className={`text-sm font-medium ${
+                                      className={`text-xs sm:text-sm font-medium ${
                                         userFilter === "inactive"
                                           ? "text-gray-900"
                                           : "text-gray-700"
@@ -1736,7 +1754,7 @@ export default function AdminPage() {
                                       Inactifs
                                     </span>
                                   </div>
-                                  <span className="text-xl font-bold text-gray-900">
+                                  <span className="text-lg sm:text-xl font-bold text-gray-900">
                                     {stats.inactiveUsers}
                                   </span>
                                 </div>
@@ -1829,18 +1847,18 @@ export default function AdminPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     whileHover={{ scale: 1 }}
-                                    className="group rounded-xl border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/30 p-5 transition-all duration-300 hover:shadow-lg hover:border-purple-200"
+                                    className="group rounded-xl border-2 border-purple-100 bg-gradient-to-br from-white to-purple-50/30 p-3 sm:p-5 transition-all duration-300 hover:shadow-lg hover:border-purple-200"
                                   >
-                                    <div className="flex items-center justify-between gap-4">
-                                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="h-14 w-14 flex-shrink-0 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                                          <span className="text-white font-bold text-lg">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                                        <div className="h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                                          <span className="text-white font-bold text-base sm:text-lg">
                                             {userInitials}
                                           </span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-3 mb-1">
-                                            <h4 className="font-semibold text-slate-900 truncate">
+                                          <div className="flex items-center gap-2 sm:gap-3 mb-1 flex-wrap">
+                                            <h4 className="font-semibold text-slate-900 truncate text-sm sm:text-base">
                                               {user.name}
                                             </h4>
                                             <Badge
@@ -1848,42 +1866,42 @@ export default function AdminPage() {
                                                 user.status === "active"
                                                   ? "bg-green-100 text-green-800 border-green-300"
                                                   : "bg-gray-100 text-gray-800 border-gray-300"
-                                              } text-xs border`}
+                                              } text-[10px] sm:text-xs border`}
                                             >
                                               {user.status === "active" ? (
-                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                                <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                                               ) : (
-                                                <Clock className="h-3 w-3 mr-1" />
+                                                <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                                               )}
                                               {user.status}
                                             </Badge>
                                           </div>
-                                          <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
-                                            <span className="truncate max-w-xs">
+                                          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 flex-wrap">
+                                            <span className="truncate max-w-[120px] sm:max-w-xs text-[10px] sm:text-sm">
                                               📧 {user.email}
                                             </span>
-                                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                                            <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-[10px] sm:text-xs">
                                               {user.role}
                                             </Badge>
-                                            <span className="flex items-center gap-1">
+                                            <span className="flex items-center gap-1 text-[10px] sm:text-sm">
                                               📅 {bookingsCount} réservations
                                             </span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                      <div className="flex items-center gap-1 sm:gap-1 flex-shrink-0 justify-start sm:justify-end">
                                         <TooltipProvider>
                                           <Tooltip delayDuration={200}>
                                             <TooltipTrigger asChild>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleViewUser(user)
                                                 }
                                               >
-                                                <Eye className="h-4 w-4 text-blue-600" />
+                                                <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
@@ -1909,12 +1927,12 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleEditUser(user)
                                                 }
                                               >
-                                                <Edit className="h-4 w-4 text-green-600" />
+                                                <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
@@ -1940,12 +1958,12 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleDeleteUser(user)
                                                 }
                                               >
-                                                <Trash2 className="h-4 w-4 text-red-600" />
+                                                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent

@@ -32,13 +32,15 @@ export function ConfirmationModal({
   const getIcon = () => {
     switch (type) {
       case "delete":
-        return <Trash2 className="h-6 w-6 text-red-500" />;
+        return <Trash2 className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />;
       case "edit":
-        return <Edit className="h-6 w-6 text-blue-500" />;
+        return <Edit className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />;
       case "create":
-        return <Plus className="h-6 w-6 text-green-500" />;
+        return <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />;
       default:
-        return <AlertTriangle className="h-6 w-6 text-orange-500" />;
+        return (
+          <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+        );
     }
   };
 
@@ -59,7 +61,7 @@ export function ConfirmationModal({
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="w-[95vw] sm:max-w-md max-h-[95vh] overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -68,7 +70,7 @@ export function ConfirmationModal({
             >
               <div className="text-center">
                 <div
-                  className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg ${
+                  className={`mx-auto mb-4 sm:mb-6 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl shadow-lg ${
                     type === "delete"
                       ? "bg-red-100"
                       : type === "edit"
@@ -79,7 +81,7 @@ export function ConfirmationModal({
                   {getIcon()}
                 </div>
                 <DialogTitle
-                  className={`text-2xl font-bold mb-3 ${
+                  className={`text-xl sm:text-2xl font-bold mb-2 sm:mb-3 ${
                     type === "delete"
                       ? "text-red-900"
                       : type === "edit"
@@ -89,29 +91,29 @@ export function ConfirmationModal({
                 >
                   {title}
                 </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 mb-8 px-4">
+                <DialogDescription className="text-xs sm:text-sm text-gray-600 mb-6 sm:mb-8 px-3 sm:px-4">
                   {description}
                 </DialogDescription>
               </div>
 
-              <div className="flex gap-3 justify-center mt-8 pb-2">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center mt-6 sm:mt-8 pb-2">
                 <Button
                   variant="outline"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="px-8 py-2 min-w-[120px] text-base cursor-pointer hover:cursor-pointer"
+                  className="px-6 sm:px-8 py-2 sm:py-2 min-w-full sm:min-w-[120px] text-sm sm:text-base cursor-pointer hover:cursor-pointer"
                 >
                   Annuler
                 </Button>
                 <Button
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`px-8 py-2 min-w-[120px] text-base cursor-pointer hover:cursor-pointer ${getButtonStyle()}`}
+                  className={`px-6 sm:px-8 py-2 sm:py-2 min-w-full sm:min-w-[120px] text-sm sm:text-base cursor-pointer hover:cursor-pointer ${getButtonStyle()}`}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>En cours...</span>
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span className="text-xs sm:text-sm">En cours...</span>
                     </div>
                   ) : (
                     "Confirmer"

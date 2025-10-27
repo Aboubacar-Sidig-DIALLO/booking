@@ -48,6 +48,11 @@ export async function GET(req: NextRequest) {
             orgId: true,
           },
         },
+        features: {
+          include: {
+            feature: true,
+          },
+        },
         bookings: {
           where: {
             status: "CONFIRMED",
@@ -118,8 +123,11 @@ export async function GET(req: NextRequest) {
         location: room.location,
         description: room.description,
         isActive: room.isActive,
+        status: room.isActive ? "active" : "inactive",
         isOccupied,
         isMaintenance,
+        features: room.features.map((rf) => rf.feature.name),
+        equipment: room.features.map((rf) => rf.feature.name), // Alias pour compatibilité
         currentBooking: activeBooking
           ? {
               id: activeBooking.id,

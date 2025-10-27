@@ -189,25 +189,25 @@ export function UserFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start gap-4 mb-6 pb-6 border-b border-slate-200">
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto p-3 sm:p-6">
+        <div className="flex items-start gap-2 sm:gap-4 mb-3 sm:mb-6 pb-3 sm:pb-6 border-b border-slate-200">
           <div className="flex-shrink-0">
-            <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
-              <User className="h-7 w-7 text-white" />
+            <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+              <User className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <DialogTitle className="text-xl font-bold text-slate-900 mb-1">
+            <DialogTitle className="text-sm sm:text-xl font-bold text-slate-900 mb-0.5 sm:mb-1">
               {isEditing ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-600">
+            <DialogDescription className="text-[10px] sm:text-sm text-slate-600">
               {isEditing
                 ? "Modifiez les informations de l'utilisateur"
                 : "Renseignez les informations du nouvel utilisateur"}
             </DialogDescription>
             {isEditing && user && (
-              <div className="flex items-center gap-2 mt-2">
-                <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+                <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-[9px] sm:text-xs px-1.5 py-0.5">
                   {user.email}
                 </Badge>
               </div>
@@ -220,83 +220,98 @@ export function UserFormModal({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          <form
+            onSubmit={handleSubmit(handleFormSubmit)}
+            className="space-y-2 sm:space-y-4"
+          >
             {/* Informations de base */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="h-3.5 w-3.5 text-gray-600" />
-                <h4 className="font-semibold text-sm text-gray-800">
+            <div className="space-y-1.5 sm:space-y-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
+                <h4 className="font-semibold text-[10px] sm:text-sm text-gray-800">
                   Informations de base
                 </h4>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="name"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Nom complet *
                   </Label>
                   <Input
                     id="name"
                     {...register("name")}
                     placeholder="Jean Dupont"
-                    className="h-9 w-full"
+                    className="h-8 sm:h-9 w-full text-xs sm:text-sm"
                   />
                   {errors.name && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-[9px] sm:text-xs text-red-600">
                       {errors.name.message}
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs font-medium">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="email"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Email *
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Mail className="absolute left-2 sm:left-2.5 top-1/2 transform -translate-y-1/2 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-400" />
                     <Input
                       id="email"
                       type="email"
                       {...register("email")}
                       placeholder="jean.dupont@entreprise.com"
-                      className="h-9 pl-9"
+                      className="h-8 sm:h-9 pl-7 sm:pl-9 text-xs sm:text-sm"
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-[9px] sm:text-xs text-red-600">
                       {errors.email.message}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="phone" className="text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="phone"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Téléphone
                   </Label>
                   <div className="relative">
-                    <Phone className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <Phone className="absolute left-2 sm:left-2.5 top-1/2 transform -translate-y-1/2 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-400" />
                     <Input
                       id="phone"
                       {...register("phone")}
                       placeholder="+33 1 23 45 67 89"
-                      className="h-9 pl-9"
+                      className="h-8 sm:h-9 pl-7 sm:pl-9 text-xs sm:text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="location" className="text-xs font-medium">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="location"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Localisation
                   </Label>
                   <div className="relative">
-                    <MapPin className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                    <MapPin className="absolute left-2 sm:left-2.5 top-1/2 transform -translate-y-1/2 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-400" />
                     <Input
                       id="location"
                       {...register("location")}
                       placeholder="Paris, France"
-                      className="h-9 pl-9"
+                      className="h-8 sm:h-9 pl-7 sm:pl-9 text-xs sm:text-sm"
                     />
                   </div>
                 </div>
@@ -304,17 +319,20 @@ export function UserFormModal({
             </div>
 
             {/* Rôle et statut */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="h-3.5 w-3.5 text-gray-600" />
-                <h4 className="font-semibold text-sm text-gray-800">
+            <div className="space-y-1.5 sm:space-y-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
+                <h4 className="font-semibold text-[10px] sm:text-sm text-gray-800">
                   Rôle et statut
                 </h4>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="role" className="text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-3">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="role"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Rôle *
                   </Label>
                   <Select
@@ -323,7 +341,7 @@ export function UserFormModal({
                       setValue("role", value as "admin" | "user" | "manager")
                     }
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
                       <SelectValue placeholder="Sélectionner un rôle" />
                     </SelectTrigger>
                     <SelectContent>
@@ -331,9 +349,11 @@ export function UserFormModal({
                         const Icon = config.icon;
                         return (
                           <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              <Icon className="h-3.5 w-3.5" />
-                              <span className="text-sm">{config.label}</span>
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                              <span className="text-xs sm:text-sm">
+                                {config.label}
+                              </span>
                             </div>
                           </SelectItem>
                         );
@@ -341,14 +361,17 @@ export function UserFormModal({
                     </SelectContent>
                   </Select>
                   {errors.role && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-[9px] sm:text-xs text-red-600">
                       {errors.role.message}
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="status" className="text-xs font-medium">
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="status"
+                    className="text-[10px] sm:text-xs font-medium"
+                  >
                     Statut *
                   </Label>
                   <Select
@@ -360,14 +383,16 @@ export function UserFormModal({
                       )
                     }
                   >
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
                       <SelectValue placeholder="Sélectionner un statut" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(statusConfig).map(([key, config]) => (
                         <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <Badge className={`text-xs ${config.color}`}>
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <Badge
+                              className={`text-[9px] sm:text-xs ${config.color}`}
+                            >
                               {config.label}
                             </Badge>
                           </div>
@@ -376,28 +401,31 @@ export function UserFormModal({
                     </SelectContent>
                   </Select>
                   {errors.status && (
-                    <p className="text-xs text-red-600">
+                    <p className="text-[9px] sm:text-xs text-red-600">
                       {errors.status.message}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="department" className="text-xs font-medium">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="department"
+                  className="text-[10px] sm:text-xs font-medium"
+                >
                   Département *
                 </Label>
                 <div className="relative">
-                  <Briefcase className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                  <Briefcase className="absolute left-2 sm:left-2.5 top-1/2 transform -translate-y-1/2 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-400" />
                   <Input
                     id="department"
                     {...register("department")}
                     placeholder="Ressources Humaines"
-                    className="h-9 pl-9"
+                    className="h-8 sm:h-9 pl-7 sm:pl-9 text-xs sm:text-sm"
                   />
                 </div>
                 {errors.department && (
-                  <p className="text-xs text-red-600">
+                  <p className="text-[9px] sm:text-xs text-red-600">
                     {errors.department.message}
                   </p>
                 )}
@@ -405,16 +433,19 @@ export function UserFormModal({
             </div>
 
             {/* Notes */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-3.5 w-3.5 text-gray-600" />
-                <h4 className="font-semibold text-sm text-gray-800">
+            <div className="space-y-1.5 sm:space-y-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
+                <h4 className="font-semibold text-[10px] sm:text-sm text-gray-800">
                   Informations supplémentaires
                 </h4>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="notes" className="text-xs font-medium">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="notes"
+                  className="text-[10px] sm:text-xs font-medium"
+                >
                   Notes
                 </Label>
                 <Textarea
@@ -422,27 +453,27 @@ export function UserFormModal({
                   {...register("notes")}
                   placeholder="Informations complémentaires sur l'utilisateur..."
                   rows={2}
-                  className="resize-none text-sm"
+                  className="resize-none text-xs sm:text-sm min-h-[60px]"
                 />
               </div>
             </div>
 
             {/* Aperçu du rôle sélectionné */}
             {selectedRole && (
-              <div className="p-3 bg-gray-50 rounded-lg border">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <RoleIcon className="h-3.5 w-3.5 text-gray-600" />
-                  <span className="text-xs font-medium text-gray-700">
+              <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
+                  <RoleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-medium text-gray-700">
                     Aperçu du rôle sélectionné
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <Badge
-                    className={`text-xs ${roleConfig[selectedRole].color}`}
+                    className={`text-[9px] sm:text-xs ${roleConfig[selectedRole].color}`}
                   >
                     {roleConfig[selectedRole].label}
                   </Badge>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-[9px] sm:text-xs text-gray-600">
                     {selectedRole === "admin"
                       ? "Accès complet au système"
                       : selectedRole === "manager"
@@ -454,29 +485,27 @@ export function UserFormModal({
             )}
 
             {/* Boutons d'action */}
-            <div className="flex justify-end gap-2 pt-3 border-t">
+            <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 sm:justify-end pt-2 sm:pt-3 border-t">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="h-9 px-4"
+                className="h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm"
               >
-                <X className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-sm">Annuler</span>
+                <X className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
+                Annuler
               </Button>
               <Button
                 type="submit"
                 disabled={!isValid || isLoading}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white h-9 px-4"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm"
               >
-                <Save className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-sm">
-                  {isLoading
-                    ? "Enregistrement..."
-                    : isEditing
-                      ? "Modifier"
-                      : "Créer"}
-                </span>
+                <Save className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
+                {isLoading
+                  ? "Enregistrement..."
+                  : isEditing
+                    ? "Modifier"
+                    : "Créer"}
               </Button>
             </div>
           </form>

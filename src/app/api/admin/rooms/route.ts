@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -70,7 +72,54 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(room, { status: 201 });
+    // Gérer les équipements (features)
+    if (
+      validatedData.equipment &&
+      Array.isArray(validatedData.equipment) &&
+      validatedData.equipment.length > 0
+    ) {
+      // Créer ou récupérer les features
+      const featurePromises = validatedData.equipment.map(
+        async (eqName: string) => {
+          // Vérifier si la feature existe
+          let feature = await prisma.feature.findUnique({
+            where: { name: eqName },
+          });
+
+          // Si elle n'existe pas, la créer
+          if (!feature) {
+            feature = await prisma.feature.create({
+              data: { name: eqName },
+            });
+          }
+
+          // Créer la relation RoomFeature
+          return prisma.roomFeature.create({
+            data: {
+              roomId: room.id,
+              featureId: feature.id,
+            },
+          });
+        }
+      );
+
+      await Promise.all(featurePromises);
+    }
+
+    // Récupérer la salle créée avec ses features
+    const createdRoom = await prisma.room.findUnique({
+      where: { id: room.id },
+      include: {
+        site: true,
+        features: {
+          include: {
+            feature: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(createdRoom, { status: 201 });
   } catch (error) {
     console.error("Erreur lors de la création de la salle:", error);
 
@@ -96,14 +145,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -147,8 +198,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -166,7 +219,7 @@ export async function PUT(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -202,7 +255,58 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(room, { status: 200 });
+    // Gérer les équipements (features)
+    if (validatedData.equipment && Array.isArray(validatedData.equipment)) {
+      // Supprimer toutes les features existantes de cette salle
+      await prisma.roomFeature.deleteMany({
+        where: { roomId: id },
+      });
+
+      // Ajouter les nouvelles features
+      if (validatedData.equipment.length > 0) {
+        // Créer ou récupérer les features
+        const featurePromises = validatedData.equipment.map(
+          async (eqName: string) => {
+            // Vérifier si la feature existe
+            let feature = await prisma.feature.findUnique({
+              where: { name: eqName },
+            });
+
+            // Si elle n'existe pas, la créer
+            if (!feature) {
+              feature = await prisma.feature.create({
+                data: { name: eqName },
+              });
+            }
+
+            // Créer la relation RoomFeature
+            return prisma.roomFeature.create({
+              data: {
+                roomId: id,
+                featureId: feature.id,
+              },
+            });
+          }
+        );
+
+        await Promise.all(featurePromises);
+      }
+    }
+
+    // Récupérer la salle mise à jour avec ses features
+    const updatedRoom = await prisma.room.findUnique({
+      where: { id: id },
+      include: {
+        site: true,
+        features: {
+          include: {
+            feature: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(updatedRoom, { status: 200 });
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la salle:", error);
 
@@ -228,8 +332,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -245,7 +351,7 @@ export async function DELETE(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 

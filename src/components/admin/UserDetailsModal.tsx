@@ -135,18 +135,18 @@ export function UserDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200">
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto">
+        <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-6 pb-3 sm:pb-6 border-b border-slate-200">
           <div className="flex-shrink-0">
-            <div className="h-16 w-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <User className="h-8 w-8 text-white" />
+            <div className="h-10 w-10 sm:h-16 sm:w-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl">
+              <User className="h-5 w-5 sm:h-8 sm:w-8 text-white" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <DialogTitle className="text-2xl font-bold text-slate-900 mb-1">
+            <DialogTitle className="text-base sm:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1 truncate">
               Détails de l'utilisateur
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-600">
+            <DialogDescription className="text-xs sm:text-sm text-slate-600">
               Informations complètes de{" "}
               <span className="font-medium text-slate-700">{user.name}</span>
             </DialogDescription>
@@ -157,40 +157,46 @@ export function UserDetailsModal({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="space-y-5"
+          className="space-y-3 sm:space-y-5"
         >
           {/* Header avec avatar et actions */}
-          <div className="flex items-start gap-6 p-5 bg-gradient-to-br from-purple-50 via-violet-50 to-blue-50 rounded-xl border-2 border-purple-100">
-            <div className="flex items-center gap-5 flex-1 min-w-0">
-              <div className="h-20 w-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-xl">
-                <User className="h-10 w-10 text-white" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-start gap-3 sm:gap-6 p-3 sm:p-5 bg-gradient-to-br from-purple-50 via-violet-50 to-blue-50 rounded-xl border-2 border-purple-100">
+            <div className="flex items-start gap-3 sm:gap-5 flex-1 min-w-0 w-full">
+              <div className="h-14 w-14 sm:h-20 sm:w-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0">
+                <User className="h-7 w-7 sm:h-10 sm:w-10 text-white" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-2xl font-bold text-slate-900 truncate">
+              <div className="flex-1 min-w-0 w-full sm:w-auto">
+                <h3 className="text-base sm:text-2xl font-bold text-slate-900 leading-tight break-words text-center sm:text-left">
                   {user.name}
                 </h3>
-                <p className="text-slate-600 truncate mt-1">{user.email}</p>
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  <Badge className={`${roleInfo.color} border-2 shadow-sm`}>
-                    <RoleIcon className="h-3.5 w-3.5 mr-1.5" />
+                <p className="text-xs sm:text-sm text-slate-600 break-all mt-1 sm:mt-1.5 leading-tight text-center sm:text-left">
+                  {user.email}
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 mt-2 sm:mt-3 flex-wrap">
+                  <Badge
+                    className={`${roleInfo.color} border-2 shadow-sm text-[10px] sm:text-xs py-0.5 sm:py-1`}
+                  >
+                    <RoleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
                     {roleInfo.label}
                   </Badge>
-                  <Badge className={`${statusInfo.color} border-2 shadow-sm`}>
-                    <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
+                  <Badge
+                    className={`${statusInfo.color} border-2 shadow-sm text-[10px] sm:text-xs py-0.5 sm:py-1`}
+                  >
+                    <StatusIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
                     {statusInfo.label}
                   </Badge>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex flex-row sm:flex-col justify-center gap-1.5 sm:gap-2 flex-shrink-0 w-full sm:w-auto">
               {onEdit && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onEdit}
-                  className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
+                  className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center"
                 >
-                  <Edit className="h-4 w-4 mr-1.5" />
+                  <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                   Modifier
                 </Button>
               )}
@@ -199,9 +205,9 @@ export function UserDetailsModal({
                   variant="outline"
                   size="sm"
                   onClick={onDelete}
-                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200"
+                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center"
                 >
-                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                   Supprimer
                 </Button>
               )}
@@ -209,35 +215,35 @@ export function UserDetailsModal({
           </div>
 
           {/* Métriques */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="p-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Card className="p-2 sm:p-3">
               <CardContent className="p-0">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-4 w-4 text-green-600" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-600">
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                       Réservations
                     </p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-sm sm:text-lg font-bold text-gray-900 truncate">
                       {user.bookings}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="p-3">
+            <Card className="p-2 sm:p-3">
               <CardContent className="p-0">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-600">
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                       Dernière connexion
                     </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                       {formatDateShort(user.lastLogin)}
                     </p>
                   </div>
@@ -247,34 +253,34 @@ export function UserDetailsModal({
           </div>
 
           {/* Informations détaillées */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-gray-600" />
+          <div className="space-y-2 sm:space-y-4">
+            <h4 className="font-semibold text-xs sm:text-sm text-gray-800 flex items-center gap-1.5 sm:gap-2">
+              <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
               Informations professionnelles
             </h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Briefcase className="h-4 w-4 text-gray-600" />
-                  <div>
-                    <p className="text-xs font-medium text-gray-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                  <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                       Département
                     </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                       {user.department}
                     </p>
                   </div>
                 </div>
 
                 {user.phone && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Phone className="h-4 w-4 text-gray-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                         Téléphone
                       </p>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                         {user.phone}
                       </p>
                     </div>
@@ -282,28 +288,28 @@ export function UserDetailsModal({
                 )}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {user.location && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <MapPin className="h-4 w-4 text-gray-600" />
-                    <div>
-                      <p className="text-xs font-medium text-gray-600">
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                         Localisation
                       </p>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                         {user.location}
                       </p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Calendar className="h-4 w-4 text-gray-600" />
-                  <div>
-                    <p className="text-xs font-medium text-gray-600">
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                       Membre depuis
                     </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                       {formatDate(user.createdAt)}
                     </p>
                   </div>
@@ -314,21 +320,25 @@ export function UserDetailsModal({
 
           {/* Notes */}
           {user.notes && (
-            <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800 flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gray-600" />
+            <div className="space-y-2 sm:space-y-3">
+              <h4 className="font-semibold text-xs sm:text-sm text-gray-800 flex items-center gap-1.5 sm:gap-2">
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
                 Notes
               </h4>
-              <div className="p-3 bg-gray-50 rounded-lg border">
-                <p className="text-sm text-gray-700">{user.notes}</p>
+              <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border">
+                <p className="text-xs sm:text-sm text-gray-700">{user.notes}</p>
               </div>
             </div>
           )}
 
           {/* Bouton de fermeture */}
-          <div className="flex justify-end pt-4 border-t">
-            <Button variant="outline" onClick={onClose} className="px-6">
-              <X className="h-4 w-4 mr-2" />
+          <div className="flex justify-end pt-3 sm:pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="px-4 sm:px-6 text-xs sm:text-sm"
+            >
+              <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
               Fermer
             </Button>
           </div>
