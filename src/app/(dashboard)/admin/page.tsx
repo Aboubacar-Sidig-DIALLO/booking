@@ -1178,7 +1178,7 @@ export default function AdminPage() {
                           </Button>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-3">
                         {(() => {
                           // Afficher le loader si les données sont en cours de chargement
                           if (isLoadingRooms) {
@@ -1286,15 +1286,15 @@ export default function AdminPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     whileHover={{ scale: 1.02, y: -2 }}
-                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-2 sm:p-4 transition-all duration-300 hover:shadow-lg`}
+                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-3 sm:p-3 transition-all duration-300 hover:shadow-lg`}
                                   >
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-                                      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                                      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
                                         <div
-                                          className={`h-9 w-9 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
+                                          className={`h-10 w-10 sm:h-10 sm:w-10 flex-shrink-0 rounded-lg flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
                                         >
                                           <StatusIcon
-                                            className={`h-4 w-4 sm:h-6 sm:w-6 ${style.iconColor}`}
+                                            className={`h-5 w-5 sm:h-5 sm:w-5 ${style.iconColor}`}
                                           />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -1335,14 +1335,14 @@ export default function AdminPage() {
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 w-full sm:w-auto justify-end">
+                                      <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 w-full sm:w-auto justify-end">
                                         <TooltipProvider>
                                           <Tooltip delayDuration={200}>
                                             <TooltipTrigger asChild>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleViewRoom(room)
                                                 }
@@ -1373,12 +1373,12 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleEditRoom(room)
                                                 }
                                               >
-                                                <Edit className="h-4 w-4 text-green-500" />
+                                                <Edit className="h-4 w-4 sm:h-4 sm:w-4 text-green-500" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
@@ -1441,7 +1441,7 @@ export default function AdminPage() {
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200"
+                                                  className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200"
                                                   onClick={() =>
                                                     handleMaintenanceRoom(room)
                                                   }
@@ -1473,7 +1473,7 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-red-50 hover:scale-110 transition-all duration-200"
                                                 onClick={() =>
                                                   handleDeleteRoom(room)
                                                 }

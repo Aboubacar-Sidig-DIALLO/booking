@@ -90,7 +90,9 @@ export function useCreateRoom() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Erreur lors de la création");
+        throw new Error(
+          error.details || error.error || "Erreur lors de la création"
+        );
       }
 
       return response.json();
@@ -120,7 +122,9 @@ export function useUpdateRoom() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Erreur lors de la modification");
+        throw new Error(
+          error.details || error.error || "Erreur lors de la modification"
+        );
       }
 
       return response.json();
@@ -148,7 +152,9 @@ export function useDeleteRoom() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Erreur lors de la suppression");
+        throw new Error(
+          error.details || error.error || "Erreur lors de la suppression"
+        );
       }
 
       return response.json();

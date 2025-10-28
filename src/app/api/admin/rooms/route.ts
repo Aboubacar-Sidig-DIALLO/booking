@@ -120,13 +120,25 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(createdRoom, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur lors de la création de la salle:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
         { status: 400 }
+      );
+    }
+
+    // Gérer spécifiquement l'erreur de contrainte unique (nom de salle déjà existant)
+    if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+      return NextResponse.json(
+        {
+          error: "Une salle avec ce nom existe déjà",
+          details:
+            "Le nom de la salle doit être unique. Veuillez choisir un autre nom.",
+        },
+        { status: 409 }
       );
     }
 
@@ -307,13 +319,25 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json(updatedRoom, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur lors de la mise à jour de la salle:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
         { status: 400 }
+      );
+    }
+
+    // Gérer spécifiquement l'erreur de contrainte unique (nom de salle déjà existant)
+    if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+      return NextResponse.json(
+        {
+          error: "Une salle avec ce nom existe déjà",
+          details:
+            "Le nom de la salle doit être unique. Veuillez choisir un autre nom.",
+        },
+        { status: 409 }
       );
     }
 
@@ -374,6 +398,60 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Salle introuvable" }, { status: 404 });
     }
 
+    // Supprimer toutes les références associées à la salle
+    // Utiliser une transaction pour garantir la cohérence
+
+    // Supprimer d'abord les réservations et leurs données associées
+    const bookings = await prisma.booking.findMany({
+      where: { roomId: id },
+    });
+
+    if (bookings.length > 0) {
+      // Supprimer les participants des réservations
+      for (const booking of bookings) {
+        await prisma.bookingParticipant.deleteMany({
+          where: { bookingId: booking.id },
+        });
+      }
+
+      // Supprimer les check-ins des réservations
+      for (const booking of bookings) {
+        try {
+          await prisma.checkin.deleteMany({
+            where: { bookingId: booking.id },
+          });
+        } catch (error) {
+          console.log("Aucun check-in à supprimer", error);
+        }
+      }
+
+      // Supprimer les messages des réservations
+      for (const booking of bookings) {
+        await prisma.message.deleteMany({
+          where: { bookingId: booking.id },
+        });
+      }
+
+      // Supprimer les réservations
+      await prisma.booking.deleteMany({
+        where: { roomId: id },
+      });
+    }
+
+    // Supprimer les favoris
+    try {
+      await prisma.favorite.deleteMany({
+        where: { roomId: id },
+      });
+    } catch (error) {
+      console.log("Aucun favori à supprimer", error);
+    }
+
+    // Supprimer les features associées
+    await prisma.roomFeature.deleteMany({
+      where: { roomId: id },
+    });
+
     // Supprimer la salle
     await prisma.room.delete({
       where: { id: id },
@@ -383,8 +461,20 @@ export async function DELETE(req: NextRequest) {
       { message: "Salle supprimée avec succès" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur lors de la suppression de la salle:", error);
+
+    // Gérer les erreurs de contrainte de clé étrangère
+    if (error.code === "P2003") {
+      return NextResponse.json(
+        {
+          error: "Impossible de supprimer la salle",
+          details:
+            "Cette salle contient encore des réservations ou est référencée ailleurs dans le système.",
+        },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(
       { error: "Erreur lors de la suppression de la salle" },
