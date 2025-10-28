@@ -25,26 +25,37 @@ interface PasswordResetEmailData {
   resetUrl: string;
 }
 
+interface UserCreatedEmailData {
+  to: string;
+  userName: string;
+  adminName: string;
+  companyName: string;
+  temporaryPassword: string;
+  role: string;
+  loginUrl: string;
+}
+
 // Configuration du transporteur email (à adapter selon votre fournisseur)
 const createTransporter = () => {
-  // Pour le développement, utilisez un service comme Mailtrap ou similaire
-  if (process.env.NODE_ENV === "development") {
+  // Vérifier si on utilise Gmail en développement (pour envoyer de vrais emails en dev)
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    // Configuration Gmail
     return nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.mailtrap.io",
-      port: parseInt(process.env.SMTP_PORT || "2525"),
+      service: "gmail",
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // Utiliser un mot de passe d'application Gmail
       },
     });
   }
 
-  // Pour la production, utilisez votre service email (SendGrid, AWS SES, etc.)
+  // Pour le développement sans credentials Gmail, utilisez Mailtrap
   return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
+    host: process.env.SMTP_HOST || "smtp.mailtrap.io",
+    port: parseInt(process.env.SMTP_PORT || "2525"),
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   });
 };
@@ -178,6 +189,131 @@ export const sendWelcomeEmail = async (data: WelcomeEmailData) => {
       console.log(`🏢 Entreprise: ${data.companyName}`);
       console.log(`🔑 Mot de passe temporaire: ${data.temporaryPassword}`);
       console.log(`🔗 URL de connexion: ${data.loginUrl}`);
+      console.log("=".repeat(60));
+    }
+
+    throw error;
+  }
+};
+
+export const sendUserCreatedEmail = async (data: UserCreatedEmailData) => {
+  const transporter = createTransporter();
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Votre compte BookingApp</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: white; padding: 30px; border: 1px solid #e5e7eb; }
+        .footer { background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 14px; color: #6b7280; }
+        .button { display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+        .button:hover { background: #6366f1; }
+        .password-box { background: #f3f4f6; border: 2px solid #d1d5db; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-family: monospace; font-size: 18px; font-weight: bold; color: #dc2626; }
+        .warning { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .info { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .role-badge { display: inline-block; background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">👋 BookingApp</div>
+          <h1>Bienvenue ${data.userName} !</h1>
+        </div>
+        
+        <div class="content">
+          <p>Bonjour ${data.userName},</p>
+          
+          <p>Vous avez été invité par <strong>${data.adminName}</strong> à rejoindre l'organisation <strong>${data.companyName}</strong> sur BookingApp.</p>
+          
+          <div class="info">
+            <p><strong>Vos informations de compte :</strong></p>
+            <p>📧 Email : <strong>${data.to}</strong></p>
+            <p>👤 Rôle : <span class="role-badge">${data.role}</span></p>
+            <p>🏢 Organisation : <strong>${data.companyName}</strong></p>
+          </div>
+          
+          <div class="password-box">
+            🔑 Mot de passe temporaire : ${data.temporaryPassword}
+          </div>
+          
+          <div class="warning">
+            <strong>🔐 Important - Première connexion :</strong>
+            <ul>
+              <li>Utilisez le mot de passe temporaire ci-dessus pour votre première connexion</li>
+              <li>Vous serez <strong>obligé</strong> de changer ce mot de passe lors de votre première connexion</li>
+              <li>Choisissez un mot de passe sécurisé que vous seul connaissez</li>
+              <li>Ne partagez jamais ce mot de passe temporaire avec quiconque</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.loginUrl}" class="button">Se connecter à mon compte</a>
+          </div>
+          
+          <h3>🚀 Commencez à utiliser BookingApp :</h3>
+          <ul>
+            <li>Connectez-vous avec votre email et le mot de passe temporaire</li>
+            <li>Changez votre mot de passe lors de la première connexion</li>
+            <li>Parcourez les salles disponibles</li>
+            <li>Créez vos premières réservations</li>
+            ${data.role === "ADMIN" || data.role === "MANAGER" ? "<li>Gérez vos salles et équipe</li>" : ""}
+          </ul>
+          
+          <p>Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</p>
+          <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 4px;">${data.loginUrl}</p>
+        </div>
+        
+        <div class="footer">
+          <p>Bienvenue dans l'équipe BookingApp !</p>
+          <p>Si vous avez des questions, n'hésitez pas à contacter votre administrateur.</p>
+          <p>&copy; 2024 BookingApp. Tous droits réservés.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"BookingApp - ${data.companyName}" <${process.env.EMAIL_FROM || "noreply@bookingapp.com"}>`,
+      to: data.to,
+      subject: `👋 Votre compte BookingApp - ${data.companyName}`,
+      html: htmlContent,
+    });
+
+    console.log(`Email de création de compte envoyé à ${data.to}`);
+    return { success: true };
+  } catch (error) {
+    console.error(
+      "Erreur lors de l'envoi de l'email de création de compte:",
+      error
+    );
+
+    // En mode développement, afficher les informations dans la console
+    if (process.env.NODE_ENV === "development") {
+      console.log("=".repeat(60));
+      console.log("👤 NOUVEAU COMPTE UTILISATEUR CRÉÉ");
+      console.log("=".repeat(60));
+      console.log(`📧 Email: ${data.to}`);
+      console.log(`👤 Nom: ${data.userName}`);
+      console.log(`👤 Rôle: ${data.role}`);
+      console.log(`🏢 Organisation: ${data.companyName}`);
+      console.log(`🔑 Mot de passe temporaire: ${data.temporaryPassword}`);
+      console.log(`🔗 URL de connexion: ${data.loginUrl}`);
+      console.log("=".repeat(60));
+      console.log(
+        "⚠️  IMPORTANT: Utilisez ce mot de passe pour la première connexion"
+      );
+      console.log(
+        "⚠️  L'utilisateur sera obligé de le changer lors de sa première connexion"
+      );
       console.log("=".repeat(60));
     }
 

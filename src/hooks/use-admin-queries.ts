@@ -45,7 +45,10 @@ interface Equipment {
   id: string;
   name: string;
   description?: string | null;
+  icon?: string | null;
+  howToUse?: string | null;
   isActive: boolean;
+  isEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -497,6 +500,159 @@ export function useCancelMaintenance() {
       toast.error(
         error.message || "Erreur lors de l'annulation de la maintenance"
       );
+    },
+  });
+}
+
+// ============= RÉSERVATIONS =============
+interface Booking {
+  id: string;
+  roomId: string;
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  privacy: string;
+  status: string;
+  createdAt: string;
+  room: {
+    id: string;
+    name: string;
+    capacity: number;
+    location?: string;
+    floor?: number;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  participants: Array<{
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    role: string;
+  }>;
+}
+
+export function useAdminBookings(status?: string) {
+  return useQuery<Booking[]>({
+    queryKey: ["admin", "bookings", status],
+    queryFn: async () => {
+      const url = status
+        ? `/api/admin/bookings?status=${status}`
+        : "/api/admin/bookings";
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error("Erreur lors du chargement des réservations");
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+}
+
+export function useCreateBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.details || error.error || "Erreur lors de la création"
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Réservation créée avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la création");
+    },
+  });
+}
+
+export function useCancelBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/admin/bookings/${id}/cancel`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.details || error.error || "Erreur lors de l'annulation"
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Réservation annulée avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de l'annulation");
+    },
+  });
+}
+
+export function useBooking(id: string) {
+  return useQuery<Booking>({
+    queryKey: ["admin", "bookings", id],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/bookings/${id}`);
+      if (!response.ok)
+        throw new Error("Erreur lors du chargement de la réservation");
+      return response.json();
+    },
+    enabled: !!id,
+  });
+}
+
+export function useUpdateBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      const response = await fetch(`/api/admin/bookings/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.details || error.error || "Erreur lors de la modification"
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Réservation modifiée avec succès");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la modification");
     },
   });
 }

@@ -33,20 +33,39 @@ export const DialogTitle = DialogPrimitive.Title;
 export const DialogDescription = DialogPrimitive.Description;
 
 export function DialogHeader({
-  title,
-  description,
+  children,
+  className,
 }: {
-  title: string;
-  description?: string;
+  children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="mb-4">
-      <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
-      {description && (
-        <DialogDescription className="text-sm text-neutral-600 dark:text-neutral-300">
-          {description}
-        </DialogDescription>
+    <div
+      className={cn(
+        "flex flex-col space-y-1.5 text-center sm:text-left",
+        className
       )}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function DialogFooter({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-4",
+        className
+      )}
+    >
+      {children}
     </div>
   );
 }

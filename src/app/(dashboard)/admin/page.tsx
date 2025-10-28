@@ -12,6 +12,7 @@ import { UserFormModal } from "@/components/admin/UserFormModal";
 import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { EquipmentManagement } from "@/components/admin/EquipmentManagement";
+import { BookingManagement } from "@/components/admin/BookingManagement";
 import {
   useAdminStats,
   useAdminRooms,
@@ -27,7 +28,8 @@ import {
 } from "@/hooks/use-admin-queries";
 import { Button } from "@/components/ui/button";
 import { LoadingDots } from "@/components/ui/LoadingDots";
-import { DataLoader } from "@/components/admin/DataLoader";
+import { RoomSkeleton } from "@/components/admin/RoomSkeleton";
+import { UserSkeleton } from "@/components/admin/UserSkeleton";
 import {
   Card,
   CardContent,
@@ -58,6 +60,7 @@ import {
   Wrench,
   Bell,
   LogOut,
+  Calendar as CalendarIcon,
   Clock,
 } from "lucide-react";
 
@@ -553,6 +556,7 @@ export default function AdminPage() {
     { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
     { id: "rooms", label: "Gestion des salles", icon: Building2 },
     { id: "users", label: "Utilisateurs", icon: Users },
+    { id: "bookings", label: "Réservations", icon: CalendarIcon },
     { id: "system", label: "Équipements", icon: Settings },
   ];
 
@@ -1183,28 +1187,25 @@ export default function AdminPage() {
                               Vue d'ensemble complète des salles
                             </CardDescription>
                           </div>
-                          <Button
-                            onClick={handleAddRoom}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
-                          >
-                            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                            <span className="hidden md:inline">
-                              Ajouter une salle
-                            </span>
-                            <span className="md:hidden">Nouvelle salle</span>
-                          </Button>
+                          {rooms.length > 0 && (
+                            <Button
+                              onClick={handleAddRoom}
+                              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
+                            >
+                              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                              <span className="hidden md:inline">
+                                Ajouter une salle
+                              </span>
+                              <span className="md:hidden">Nouvelle salle</span>
+                            </Button>
+                          )}
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {(() => {
-                          // Afficher le loader si les données sont en cours de chargement
+                          // Afficher le skeleton si les données sont en cours de chargement
                           if (isLoadingRooms) {
-                            return (
-                              <DataLoader
-                                message="Chargement des salles..."
-                                size="md"
-                              />
-                            );
+                            return <RoomSkeleton />;
                           }
 
                           // Gérer les états vides selon le filtre
@@ -1282,7 +1283,7 @@ export default function AdminPage() {
                           }
 
                           return (
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               {filteredRooms.map((room: any, index) => {
                                 const style = getRoomStatusStyle(room);
                                 const StatusIcon = style.icon;
@@ -1302,85 +1303,62 @@ export default function AdminPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    whileHover={{ scale: 1.02, y: -2 }}
-                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-3 sm:p-3 transition-all duration-300 hover:shadow-lg`}
+                                    whileHover={{ scale: 1.01, y: -1 }}
+                                    className={`group rounded-xl border-2 ${style.borderColor} ${style.bgColor} p-3 transition-all duration-300 hover:shadow-md`}
                                   >
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-                                      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
+                                    <div className="flex items-center justify-between gap-2 sm:gap-3">
+                                      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
                                         <div
-                                          className={`h-10 w-10 sm:h-10 sm:w-10 flex-shrink-0 rounded-lg flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
+                                          className={`h-10 w-10 flex-shrink-0 rounded-lg flex items-center justify-center transition-transform duration-300 ${style.bgColor} border-2 ${style.borderColor}`}
                                         >
                                           <StatusIcon
-                                            className={`h-5 w-5 sm:h-5 sm:w-5 ${style.iconColor}`}
+                                            className={`h-5 w-5 ${style.iconColor}`}
                                           />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <h4
-                                            className={`font-semibold text-sm sm:text-base truncate ${style.textColor}`}
+                                            className={`font-semibold text-sm sm:text-base leading-tight break-words ${style.textColor}`}
                                           >
                                             {room.name}
                                           </h4>
-                                          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap mt-0.5">
-                                            <span className={style.textColor}>
+                                          <div className="flex items-center gap-2 text-xs">
+                                            <span
+                                              className={`${style.textColor} whitespace-nowrap`}
+                                            >
                                               {room.capacity} places
                                             </span>
                                             {timeRemaining && (
-                                              <Badge className="bg-orange-200 text-orange-900 border-orange-400 text-[10px] sm:text-xs py-0.5 sm:py-1 px-1.5 sm:px-2">
-                                                <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-                                                <span className="hidden sm:inline">
-                                                  {timeRemaining.hours > 0
-                                                    ? `${timeRemaining.hours}h `
-                                                    : ""}
-                                                  {timeRemaining.minutes}m
-                                                  restantes
-                                                </span>
-                                                <span className="sm:hidden">
-                                                  {timeRemaining.hours > 0
-                                                    ? `${timeRemaining.hours}h `
-                                                    : ""}
-                                                  {timeRemaining.minutes}m
-                                                </span>
+                                              <Badge className="bg-orange-100 text-orange-900 border border-orange-300 text-[10px] py-0.5 px-1.5">
+                                                <Clock className="h-2.5 w-2.5 mr-0.5" />
+                                                {timeRemaining.hours > 0
+                                                  ? `${timeRemaining.hours}h`
+                                                  : ""}
+                                                {timeRemaining.minutes}m
                                               </Badge>
-                                            )}
-                                            {room.currentBooking && (
-                                              <span
-                                                className={`${style.textColor} truncate max-w-[150px] sm:max-w-xs text-[10px] sm:text-xs`}
-                                              >
-                                                {room.currentBooking.title}
-                                              </span>
                                             )}
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0 w-full sm:w-auto justify-end">
+                                      <div className="flex items-center gap-1 flex-shrink-0">
                                         <TooltipProvider>
                                           <Tooltip delayDuration={200}>
                                             <TooltipTrigger asChild>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-blue-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-all"
                                                 onClick={() =>
                                                   handleViewRoom(room)
                                                 }
                                               >
-                                                <Eye className="h-4 w-4 sm:h-4 sm:w-4 text-blue-500" />
+                                                <Eye className="h-4 w-4 text-blue-500" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
                                               side="top"
-                                              className="font-medium"
+                                              className="font-medium text-xs"
                                             >
-                                              <div className="text-center">
-                                                <p className="font-semibold text-gray-900 mb-1">
-                                                  Voir les détails
-                                                </p>
-                                                <p className="text-xs text-gray-600">
-                                                  Consulter les informations
-                                                  complètes
-                                                </p>
-                                              </div>
-                                              <TooltipArrow />
+                                              Voir les détails
                                             </TooltipContent>
                                           </Tooltip>
                                         </TooltipProvider>
@@ -1390,12 +1368,12 @@ export default function AdminPage() {
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                className="h-8 w-8 p-0 cursor-pointer hover:bg-green-50 hover:text-green-700 transition-all"
                                                 onClick={() =>
                                                   handleEditRoom(room)
                                                 }
                                               >
-                                                <Edit className="h-4 w-4 sm:h-4 sm:w-4 text-green-500" />
+                                                <Edit className="h-4 w-4 text-green-500" />
                                               </Button>
                                             </TooltipTrigger>
                                             <TooltipContent
@@ -1538,145 +1516,143 @@ export default function AdminPage() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                          <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
-                          <span className="truncate">
-                            Gestion des utilisateurs
-                          </span>
-                        </CardTitle>
-                        <CardDescription className="text-xs sm:text-sm mt-1">
-                          Gérez les utilisateurs et leurs permissions
-                        </CardDescription>
-                      </div>
-                      <Button
-                        onClick={handleAddUser}
-                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
-                      >
-                        <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        <span className="hidden md:inline">
-                          Ajouter un utilisateur
-                        </span>
-                        <span className="md:hidden">Nouvel utilisateur</span>
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-                      {/* Statistiques sur le côté */}
-                      <div className="lg:col-span-3">
-                        <div className="sticky top-20">
-                          <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-4 sm:p-5 border border-purple-100">
-                            <div className="flex items-center gap-2 mb-4 sm:mb-5">
-                              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                              <h3 className="font-semibold text-slate-900 text-sm sm:text-base">
-                                Statistiques
-                              </h3>
-                            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                  {/* Stats sur le côté */}
+                  <div className="lg:col-span-3 space-y-4">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 rounded-xl p-5 sticky top-4"
+                    >
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Users className="h-5 w-5 text-purple-600" />
+                          <h3 className="font-semibold text-slate-900">
+                            Statistiques
+                          </h3>
+                        </div>
 
-                            <div className="space-y-2 sm:space-y-3">
-                              <div
-                                onClick={() => setUserFilter("all")}
-                                className={`bg-white rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                        <div className="space-y-3">
+                          <div
+                            onClick={() => setUserFilter("all")}
+                            className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              userFilter === "all"
+                                ? "border-purple-500 shadow-md bg-purple-50"
+                                : "border-purple-100 hover:border-purple-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-sm font-medium ${
                                   userFilter === "all"
-                                    ? "border-purple-500 shadow-md bg-purple-50"
-                                    : "border-purple-100 hover:border-purple-300"
+                                    ? "text-purple-700"
+                                    : "text-slate-600"
                                 }`}
                               >
-                                <div className="flex items-center justify-between">
-                                  <span
-                                    className={`text-xs sm:text-sm font-medium ${
-                                      userFilter === "all"
-                                        ? "text-purple-700"
-                                        : "text-slate-600"
-                                    }`}
-                                  >
-                                    Total
-                                  </span>
-                                  <span
-                                    className={`text-lg sm:text-xl font-bold ${
-                                      userFilter === "all"
-                                        ? "text-purple-900"
-                                        : "text-purple-900"
-                                    }`}
-                                  >
-                                    {statsData.totalUsers}
-                                  </span>
-                                </div>
-                              </div>
+                                Total
+                              </span>
+                              <span className="text-xl font-bold text-purple-900">
+                                {statsData.totalUsers}
+                              </span>
+                            </div>
+                          </div>
 
-                              <div
-                                onClick={() => setUserFilter("active")}
-                                className={`bg-green-50 rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                  userFilter === "active"
-                                    ? "border-green-500 shadow-md bg-green-100"
-                                    : "border-green-200 hover:border-green-400"
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
-                                    <span
-                                      className={`text-xs sm:text-sm font-medium ${
-                                        userFilter === "active"
-                                          ? "text-green-900"
-                                          : "text-green-700"
-                                      }`}
-                                    >
-                                      Actifs
-                                    </span>
-                                  </div>
-                                  <span className="text-lg sm:text-xl font-bold text-green-900">
-                                    {statsData.activeUsers}
-                                  </span>
-                                </div>
+                          <div
+                            onClick={() => setUserFilter("active")}
+                            className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              userFilter === "active"
+                                ? "border-green-500 shadow-md bg-green-100"
+                                : "border-green-200 hover:border-green-400"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    userFilter === "active"
+                                      ? "text-green-900"
+                                      : "text-green-700"
+                                  }`}
+                                >
+                                  Actifs
+                                </span>
                               </div>
+                              <span className="text-xl font-bold text-green-900">
+                                {statsData.activeUsers}
+                              </span>
+                            </div>
+                          </div>
 
-                              <div
-                                onClick={() => setUserFilter("inactive")}
-                                className={`bg-gray-50 rounded-lg p-2.5 sm:p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                  userFilter === "inactive"
-                                    ? "border-gray-500 shadow-md bg-gray-100"
-                                    : "border-gray-100 hover:border-gray-400"
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
-                                    <span
-                                      className={`text-xs sm:text-sm font-medium ${
-                                        userFilter === "inactive"
-                                          ? "text-gray-900"
-                                          : "text-gray-700"
-                                      }`}
-                                    >
-                                      Inactifs
-                                    </span>
-                                  </div>
-                                  <span className="text-lg sm:text-xl font-bold text-gray-900">
-                                    {statsData.inactiveUsers}
-                                  </span>
-                                </div>
+                          <div
+                            onClick={() => setUserFilter("inactive")}
+                            className={`bg-gray-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                              userFilter === "inactive"
+                                ? "border-gray-500 shadow-md bg-gray-100"
+                                : "border-gray-200 hover:border-gray-400"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-gray-600" />
+                                <span
+                                  className={`text-sm font-medium ${
+                                    userFilter === "inactive"
+                                      ? "text-gray-900"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  Inactifs
+                                </span>
                               </div>
+                              <span className="text-xl font-bold text-gray-900">
+                                {statsData.inactiveUsers}
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
+                    </motion.div>
+                  </div>
 
-                      {/* Liste des utilisateurs */}
-                      <div className="lg:col-span-9">
+                  {/* Utilisateurs au centre */}
+                  <div className="lg:col-span-9">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                              <span className="truncate">
+                                Gestion des utilisateurs
+                              </span>
+                            </CardTitle>
+                            <CardDescription className="text-xs sm:text-sm mt-1">
+                              Gérez les utilisateurs et leurs permissions
+                            </CardDescription>
+                          </div>
+                          {users.length > 0 && (
+                            <Button
+                              onClick={handleAddUser}
+                              className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
+                            >
+                              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                              <span className="hidden md:inline">
+                                Ajouter un utilisateur
+                              </span>
+                              <span className="md:hidden">
+                                Nouvel utilisateur
+                              </span>
+                            </Button>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
                         {(() => {
-                          // Afficher le loader si les données sont en cours de chargement
+                          // Afficher le skeleton si les données sont en cours de chargement
                           if (isLoadingUsers) {
-                            return (
-                              <DataLoader
-                                message="Chargement des utilisateurs..."
-                                size="md"
-                              />
-                            );
+                            return <UserSkeleton />;
                           }
 
                           if (filteredUsers.length === 0) {
@@ -1902,10 +1878,22 @@ export default function AdminPage() {
                             </div>
                           );
                         })()}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {selectedTab === "bookings" && (
+              <motion.div
+                key="bookings"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <BookingManagement />
               </motion.div>
             )}
 

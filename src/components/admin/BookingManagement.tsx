@@ -1,0 +1,512 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Plus,
+  Trash2,
+  Clock,
+  Users,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Building2,
+  Eye,
+  Edit,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  useAdminBookings,
+  useCancelBooking,
+  useUpdateBooking,
+  useAdminRooms,
+} from "@/hooks/use-admin-queries";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { BookingDetailModal } from "./BookingDetailModal";
+import { BookingEditModal } from "./BookingEditModal";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { BookingSkeleton } from "./BookingSkeleton";
+
+export function BookingManagement() {
+  const router = useRouter();
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    null
+  );
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const { data: bookings = [], isLoading: isLoadingBookings } =
+    useAdminBookings(selectedStatus === "all" ? undefined : selectedStatus);
+  const { data: rooms = [] } = useAdminRooms();
+
+  const cancelBookingMutation = useCancelBooking();
+  const updateBookingMutation = useUpdateBooking();
+
+  const handleCancelBooking = async (id: string) => {
+    try {
+      await cancelBookingMutation.mutateAsync(id);
+      setShowCancelConfirm(false);
+      setSelectedBookingId(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
+    }
+  };
+
+  const handleNewBooking = () => {
+    router.push("/bookings/new");
+  };
+
+  const statusCounts = {
+    all: bookings.length,
+    CONFIRMED: bookings.filter((b) => b.status === "CONFIRMED").length,
+    PENDING: bookings.filter((b) => b.status === "PENDING").length,
+    CANCELLED: bookings.filter((b) => b.status === "CANCELLED").length,
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "CONFIRMED":
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-300">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Confirmée
+          </Badge>
+        );
+      case "PENDING":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+            <Clock className="h-3 w-3 mr-1" />
+            En attente
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-300">
+            <XCircle className="h-3 w-3 mr-1" />
+            Annulée
+          </Badge>
+        );
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const isUpcoming = (start: string) => {
+    return new Date(start) > new Date();
+  };
+
+  const isActive = (start: string, end: string) => {
+    const now = new Date();
+    return new Date(start) <= now && new Date(end) >= now;
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+        {/* Statistiques sur le côté */}
+        <div className="lg:col-span-3 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5 sticky top-4"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="h-5 w-5 text-indigo-600" />
+                <h3 className="font-semibold text-slate-900">Statistiques</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div
+                  onClick={() => setSelectedStatus("all")}
+                  className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedStatus === "all"
+                      ? "border-indigo-500 shadow-md bg-indigo-50"
+                      : "border-indigo-100 hover:border-indigo-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-sm font-medium ${
+                        selectedStatus === "all"
+                          ? "text-indigo-700"
+                          : "text-slate-600"
+                      }`}
+                    >
+                      Total
+                    </span>
+                    <span className="text-xl font-bold text-indigo-900">
+                      {statusCounts.all}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setSelectedStatus("CONFIRMED")}
+                  className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedStatus === "CONFIRMED"
+                      ? "border-green-500 shadow-md bg-green-100"
+                      : "border-green-200 hover:border-green-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span
+                        className={`text-sm font-medium ${
+                          selectedStatus === "CONFIRMED"
+                            ? "text-green-900"
+                            : "text-green-700"
+                        }`}
+                      >
+                        Confirmées
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold text-green-900">
+                      {statusCounts.CONFIRMED}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setSelectedStatus("PENDING")}
+                  className={`bg-yellow-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedStatus === "PENDING"
+                      ? "border-yellow-500 shadow-md bg-yellow-100"
+                      : "border-yellow-200 hover:border-yellow-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-yellow-600" />
+                      <span
+                        className={`text-sm font-medium ${
+                          selectedStatus === "PENDING"
+                            ? "text-yellow-900"
+                            : "text-yellow-700"
+                        }`}
+                      >
+                        En attente
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold text-yellow-900">
+                      {statusCounts.PENDING}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setSelectedStatus("CANCELLED")}
+                  className={`bg-red-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedStatus === "CANCELLED"
+                      ? "border-red-500 shadow-md bg-red-100"
+                      : "border-red-200 hover:border-red-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-600" />
+                      <span
+                        className={`text-sm font-medium ${
+                          selectedStatus === "CANCELLED"
+                            ? "text-red-900"
+                            : "text-red-700"
+                        }`}
+                      >
+                        Annulées
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold text-red-900">
+                      {statusCounts.CANCELLED}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Liste des réservations */}
+        <div className="lg:col-span-9">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+                    Réservations
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    {selectedStatus === "all"
+                      ? "Toutes les réservations"
+                      : `Réservations ${selectedStatus.toLowerCase()}`}
+                  </CardDescription>
+                </div>
+                {bookings.length > 0 && (
+                  <Button
+                    onClick={handleNewBooking}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nouvelle réservation
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingBookings ? (
+                <BookingSkeleton />
+              ) : bookings.length === 0 ? (
+                <EmptyState
+                  icon={Calendar}
+                  title={`Aucune réservation ${selectedStatus !== "all" ? selectedStatus.toLowerCase() : ""}`}
+                  description="Il n'y a aucune réservation à afficher pour le moment."
+                  action={
+                    <Button
+                      onClick={handleNewBooking}
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Créer une réservation
+                    </Button>
+                  }
+                />
+              ) : (
+                <div className="space-y-3">
+                  {bookings.map((booking, index) => (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="p-4 border border-slate-200 rounded-lg hover:shadow-md transition-shadow bg-white"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-3 mb-2">
+                            <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Calendar className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <h4 className="font-semibold text-slate-900 truncate">
+                                  {booking.title}
+                                </h4>
+                                {getStatusBadge(booking.status)}
+                                {(isUpcoming(booking.start) ||
+                                  isActive(booking.start, booking.end)) && (
+                                  <Badge
+                                    className={`${
+                                      isActive(booking.start, booking.end)
+                                        ? "bg-green-100 text-green-800 border-green-300"
+                                        : "bg-blue-100 text-blue-800 border-blue-300"
+                                    }`}
+                                  >
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    {isActive(booking.start, booking.end)
+                                      ? "En cours"
+                                      : "À venir"}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-600 flex-wrap">
+                                <div className="flex items-center gap-1">
+                                  <Building2 className="h-3.5 w-3.5" />
+                                  <span>{booking.room.name}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  <span>
+                                    {formatTime(booking.start)} -{" "}
+                                    {formatTime(booking.end)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  <span>{formatDate(booking.start)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3.5 w-3.5" />
+                                  <span>
+                                    {booking.participants.length + 1}{" "}
+                                    participant
+                                    {booking.participants.length > 0 ? "s" : ""}
+                                  </span>
+                                </div>
+                              </div>
+                              {booking.description && (
+                                <p className="text-xs text-slate-500 mt-2 line-clamp-2">
+                                  {booking.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedBookingId(booking.id);
+                                    setShowDetailModal(true);
+                                  }}
+                                  className="h-8 w-8 p-0 cursor-pointer hover:bg-blue-50"
+                                >
+                                  <Eye className="h-4 w-4 text-blue-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Voir les détails</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedBookingId(booking.id);
+                                    setShowEditModal(true);
+                                  }}
+                                  className="h-8 w-8 p-0 cursor-pointer hover:bg-orange-50"
+                                >
+                                  <Edit className="h-4 w-4 text-orange-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Modifier</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedBookingId(booking.id);
+                                    setShowCancelConfirm(true);
+                                  }}
+                                  className="h-8 w-8 p-0 cursor-pointer hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Annuler la réservation</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Modales */}
+      {selectedBookingId && (
+        <>
+          <BookingDetailModal
+            isOpen={showDetailModal}
+            onClose={() => {
+              setShowDetailModal(false);
+              setSelectedBookingId(null);
+            }}
+            bookingId={selectedBookingId}
+            onEdit={() => {
+              setShowDetailModal(false);
+              setShowEditModal(true);
+            }}
+            onCancel={() => {
+              setShowDetailModal(false);
+              setShowCancelConfirm(true);
+            }}
+          />
+
+          <BookingEditModal
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setSelectedBookingId(null);
+            }}
+            onSubmit={async (data) => {
+              try {
+                await updateBookingMutation.mutateAsync({
+                  id: selectedBookingId,
+                  ...data,
+                });
+                setShowEditModal(false);
+                setSelectedBookingId(null);
+              } catch (error) {
+                // L'erreur est déjà gérée par la mutation
+              }
+            }}
+            bookingId={selectedBookingId}
+            rooms={rooms}
+            isLoading={updateBookingMutation.isPending}
+          />
+
+          <ConfirmationModal
+            isOpen={showCancelConfirm}
+            onClose={() => {
+              setShowCancelConfirm(false);
+              setSelectedBookingId(null);
+            }}
+            onConfirm={() => handleCancelBooking(selectedBookingId)}
+            title="Annuler la réservation"
+            description="Êtes-vous sûr de vouloir annuler cette réservation ? Cette action enverra une notification à l'utilisateur."
+            type="cancel"
+            isLoading={cancelBookingMutation.isPending}
+          />
+        </>
+      )}
+    </>
+  );
+}

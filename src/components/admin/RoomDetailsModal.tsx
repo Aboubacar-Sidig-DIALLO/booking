@@ -331,24 +331,32 @@ export function RoomDetailsModal({
 
                 {/* Équipements */}
                 {room.equipment && room.equipment.length > 0 && (
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                      <Settings className="h-4 w-4 text-indigo-600" />
                       Équipements disponibles
                     </h4>
-                    <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                       {room.equipment.map((equipment, index) => {
                         const IconComponent = getEquipmentIcon(equipment);
                         return (
-                          <Badge
+                          <motion.div
                             key={index}
-                            className="bg-blue-100 text-blue-800 hover:bg-blue-200 flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.03 }}
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2 sm:p-3 hover:shadow-md transition-all duration-200 cursor-pointer"
                           >
-                            <IconComponent className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                            <span className="hidden sm:inline">
-                              {equipment}
-                            </span>
-                            <span className="sm:hidden">...</span>
-                          </Badge>
+                            <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                              <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-sm">
+                                <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                              </div>
+                              <p className="text-[10px] sm:text-xs font-medium text-center text-slate-700 line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                                {equipment}
+                              </p>
+                            </div>
+                          </motion.div>
                         );
                       })}
                     </div>

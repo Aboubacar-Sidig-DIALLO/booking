@@ -23,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -505,44 +504,50 @@ export function EquipmentManagement() {
                     transition={{ delay: index * 0.03, duration: 0.2 }}
                   >
                     <Card
-                      className={`border-2 transition-all duration-300 hover:shadow-xl ${
+                      className={`border-2 transition-all duration-300 ${
                         equipment.isEnabled
-                          ? "border-green-200 hover:border-green-400 bg-white shadow-sm"
-                          : "border-red-200 hover:border-red-300 bg-gray-50 opacity-60 grayscale"
+                          ? "border-green-200 hover:border-green-400 bg-white shadow-sm hover:shadow-xl"
+                          : "border-red-200 bg-gray-50 opacity-70 grayscale hover:opacity-90 hover:grayscale-0 hover:border-red-400 hover:bg-gray-100 hover:shadow-md"
                       }`}
                     >
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div
+                              className={`p-2 rounded-xl ${
+                                equipment.isEnabled
+                                  ? "bg-blue-100"
+                                  : "bg-gray-200"
+                              }`}
+                            >
                               {(() => {
                                 const IconComponent = getIconComponent(
                                   equipment.icon
                                 );
                                 return (
                                   <IconComponent
-                                    className={`h-5 w-5 flex-shrink-0 ${
+                                    className={`h-6 w-6 ${
                                       equipment.isEnabled
-                                        ? "text-indigo-600"
+                                        ? "text-blue-600"
                                         : "text-gray-400"
                                     }`}
                                   />
                                 );
                               })()}
-                              <h4
-                                className={`font-semibold text-base truncate ${
-                                  equipment.isEnabled
-                                    ? "text-gray-900"
-                                    : "text-gray-500"
-                                }`}
-                              >
-                                {equipment.name}
-                              </h4>
+                            </div>
+                            <h4
+                              className={`font-semibold text-base flex items-center gap-2 ${
+                                equipment.isEnabled
+                                  ? "text-slate-900"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {equipment.name}
                               {equipment.howToUse && (
                                 <TooltipProvider>
                                   <Tooltip delayDuration={200}>
                                     <TooltipTrigger asChild>
-                                      <button className="text-gray-400 hover:text-indigo-600 transition-colors flex-shrink-0">
+                                      <button className="text-gray-400 hover:text-blue-600 transition-colors flex-shrink-0">
                                         <Info className="h-4 w-4" />
                                       </button>
                                     </TooltipTrigger>
@@ -551,8 +556,8 @@ export function EquipmentManagement() {
                                       className="max-w-xs bg-white border border-gray-200 shadow-lg p-3 rounded-lg"
                                     >
                                       <div className="flex items-start gap-2">
-                                        <div className="p-1.5 bg-indigo-100 rounded-md flex-shrink-0 mt-0.5">
-                                          <Info className="h-3.5 w-3.5 text-indigo-600" />
+                                        <div className="p-1.5 bg-blue-100 rounded-md flex-shrink-0 mt-0.5">
+                                          <Info className="h-3.5 w-3.5 text-blue-600" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <p className="font-semibold text-sm mb-1.5 text-gray-900">
@@ -567,26 +572,7 @@ export function EquipmentManagement() {
                                   </Tooltip>
                                 </TooltipProvider>
                               )}
-                            </div>
-                            <Badge
-                              className={`${
-                                equipment.isEnabled
-                                  ? "bg-green-100 text-green-800 border-green-300"
-                                  : "bg-red-100 text-red-800 border-red-300"
-                              } border`}
-                            >
-                              {equipment.isEnabled ? (
-                                <>
-                                  <CheckCircle className="h-3 w-3 mr-1 inline" />
-                                  Actif
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="h-3 w-3 mr-1 inline" />
-                                  Inactif
-                                </>
-                              )}
-                            </Badge>
+                            </h4>
                           </div>
                           {canManage && (
                             <TooltipProvider>
@@ -598,7 +584,7 @@ export function EquipmentManagement() {
                                     onClick={() =>
                                       handleToggleActive(equipment)
                                     }
-                                    className={`h-8 w-8 p-0 transition-all ${
+                                    className={`h-8 w-8 p-0 transition-all hover:cursor-pointer ${
                                       equipment.isEnabled
                                         ? "hover:bg-orange-50 hover:text-orange-700"
                                         : "hover:bg-green-50 hover:text-green-700"
@@ -623,7 +609,7 @@ export function EquipmentManagement() {
 
                         {equipment.description && (
                           <p
-                            className={`text-sm mb-4 line-clamp-2 ${
+                            className={`text-xs mt-2 line-clamp-2 ${
                               equipment.isEnabled
                                 ? "text-gray-600"
                                 : "text-gray-400"
@@ -633,25 +619,24 @@ export function EquipmentManagement() {
                           </p>
                         )}
 
+                        {/* Actions pour ROI */}
                         {isROI && (
-                          <div className="flex gap-2 pt-3 border-t border-gray-100">
+                          <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => handleEdit(equipment)}
-                              className="flex-1 text-xs h-8 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:cursor-pointer cursor-pointer"
+                              className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-700 hover:cursor-pointer"
                             >
-                              <Edit className="h-3.5 w-3.5 mr-1.5" />
-                              Modifier
+                              <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => handleDeleteClick(equipment)}
-                              className="flex-1 text-xs h-8 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 hover:cursor-pointer cursor-pointer"
+                              className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700 hover:cursor-pointer"
                             >
-                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                              Supprimer
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         )}

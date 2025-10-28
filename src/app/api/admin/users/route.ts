@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { sendUserCreatedEmail } from "@/lib/email-service";
 
 const UserSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
@@ -40,8 +41,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur admin
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -94,10 +97,30 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Envoyer l'email de bienvenue avec les informations de connexion
+    try {
+      const loginUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/login`;
+
+      await sendUserCreatedEmail({
+        to: user.email,
+        userName: user.name || "Utilisateur",
+        adminName: adminUser.name || "Administrateur",
+        companyName: adminUser.org.name,
+        temporaryPassword: temporaryPassword,
+        role: validatedData.role,
+        loginUrl: loginUrl,
+      });
+    } catch (emailError) {
+      console.error("Erreur lors de l'envoi de l'email:", emailError);
+      // Ne pas bloquer la création de l'utilisateur si l'email échoue
+      // Le mot de passe temporaire sera affiché dans la console en mode développement
+    }
+
     return NextResponse.json(
       {
         ...user,
-        temporaryPassword, // À envoyer par email ou autre moyen sécurisé
+        // Ne pas retourner le mot de passe temporaire dans la réponse
+        temporaryPassword: undefined,
       },
       { status: 201 }
     );
@@ -130,14 +153,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -152,7 +177,7 @@ export async function GET(req: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         orgId: user.org.id,
-        id: { not: session.user.id }, // Exclure l'admin connecté
+        id: { not: sessionUser.id }, // Exclure l'admin connecté
       },
       include: {
         bookings: {
@@ -182,8 +207,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -201,7 +228,7 @@ export async function PUT(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 
@@ -268,8 +295,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const sessionUser = session.user as any;
+
     // Vérifier si l'utilisateur est admin
-    if (session.user.role !== "ADMIN") {
+    if (sessionUser.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -284,7 +313,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Empêcher la suppression de l'utilisateur actuel
-    if (id === session.user.id) {
+    if (id === sessionUser.id) {
       return NextResponse.json(
         { error: "Vous ne pouvez pas supprimer votre propre compte" },
         { status: 400 }
@@ -293,7 +322,7 @@ export async function DELETE(req: NextRequest) {
 
     // Récupérer l'organization de l'utilisateur
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       include: { org: true },
     });
 

@@ -338,14 +338,7 @@ export default function SignInPage() {
                     >
                       <AlertCircle className="h-5 w-5 text-red-600" />
                       <AlertDescription className="text-sm font-medium text-red-900">
-                        <p className="font-semibold mb-2">{error}</p>
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-red-200">
-                          <Users className="h-4 w-4 text-red-600" />
-                          <span className="text-xs text-red-700">
-                            Besoin d'aide ? Contactez votre administrateur
-                            système.
-                          </span>
-                        </div>
+                        <p className="font-semibold">{error}</p>
                       </AlertDescription>
                     </Alert>
                   )}

@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Building2,
   Save,
@@ -355,31 +354,33 @@ export function RoomFormModal({
                 {/* Équipements */}
                 {availableEquipment.length > 0 && (
                   <div className="space-y-0.5 sm:space-y-2">
-                    <Label className="text-[10px] sm:text-sm font-semibold block">
+                    <Label className="text-[10px] sm:text-sm font-semibold block mb-2">
                       Équipements disponibles
                     </Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1 sm:gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {availableEquipment.map((item: any) => {
                         const IconComponent = item.icon;
+                        const isSelected = equipment.includes(item.name);
                         return (
                           <div
                             key={item.name}
-                            className="flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded transition-all border border-transparent hover:border-blue-200"
+                            className={`flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all duration-200 cursor-pointer hover:shadow-md ${
+                              isSelected
+                                ? "border-blue-300 bg-blue-50"
+                                : "border-gray-200 bg-white hover:border-blue-300"
+                            }`}
+                            onClick={() => toggleEquipment(item.name)}
                           >
-                            <Checkbox
-                              id={`equipment-${item.name}`}
-                              checked={equipment.includes(item.name)}
-                              onCheckedChange={() => toggleEquipment(item.name)}
-                              className="flex-shrink-0 h-3 w-3 sm:h-4 sm:w-4"
+                            <IconComponent
+                              className={`h-4 w-4 flex-shrink-0 ${
+                                isSelected ? "text-blue-600" : "text-gray-600"
+                              }`}
                             />
                             <Label
                               htmlFor={`equipment-${item.name}`}
-                              className="text-[10px] sm:text-xs font-medium cursor-pointer flex items-center gap-0.5 sm:gap-2 flex-1 min-w-0"
+                              className="text-xs sm:text-sm font-medium cursor-pointer whitespace-nowrap"
                             >
-                              <IconComponent className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-600 flex-shrink-0" />
-                              <span className="truncate block text-[10px] sm:text-xs">
-                                {item.name}
-                              </span>
+                              {item.name}
                             </Label>
                           </div>
                         );
