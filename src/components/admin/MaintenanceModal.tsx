@@ -37,14 +37,33 @@ import {
   Phone,
   Users,
   Clock,
+  Zap,
+  CalendarClock,
 } from "lucide-react";
 
-const MaintenanceSchema = z.object({
-  reason: z.string().min(1, "La raison de la maintenance est requise"),
-  endDate: z.string().min(1, "La date de fin est requise"),
-  endTime: z.string().min(1, "L'heure de fin est requise"),
-  equipment: z.array(z.string()).optional(),
-});
+const MaintenanceSchema = z
+  .object({
+    startImmediately: z.boolean().default(true),
+    startDate: z.string().optional(),
+    startTime: z.string().optional(),
+    reason: z.string().min(1, "La raison de la maintenance est requise"),
+    endDate: z.string().min(1, "La date de fin est requise"),
+    endTime: z.string().min(1, "L'heure de fin est requise"),
+    equipment: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.startImmediately && (!data.startDate || !data.startTime)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "La date et l'heure de début sont requises pour une maintenance planifiée",
+      path: ["startDate"],
+    }
+  );
 
 type MaintenanceFormData = z.infer<typeof MaintenanceSchema>;
 
@@ -101,6 +120,9 @@ export function MaintenanceModal({
   } = useForm<MaintenanceFormData>({
     resolver: zodResolver(MaintenanceSchema),
     defaultValues: {
+      startImmediately: true,
+      startDate: "",
+      startTime: "",
       reason: "",
       endDate: "",
       endTime: "17:00",
@@ -108,6 +130,9 @@ export function MaintenanceModal({
     },
   });
 
+  const startImmediately = watch("startImmediately");
+  const startDate = watch("startDate");
+  const startTime = watch("startTime");
   const endDate = watch("endDate");
   const endTime = watch("endTime");
   const selectedEquipment = watch("equipment") || [];
@@ -129,10 +154,20 @@ export function MaintenanceModal({
     setValue("equipment", newEquipment);
   };
 
-  const getMinDate = () => {
-    const today = new Date();
-    today.setDate(today.getDate() + 1); // Demain minimum
-    return today.toISOString().split("T")[0];
+  const getMinEndDate = () => {
+    if (startImmediately) {
+      // Si maintenance immédiate, la date de fin doit être dans le futur
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split("T")[0];
+    }
+    if (startDate) {
+      // Si planifiée, la date de fin doit être après la date de début
+      const start = new Date(startDate);
+      start.setDate(start.getDate());
+      return start.toISOString().split("T")[0];
+    }
+    return new Date().toISOString().split("T")[0];
   };
 
   const getMaxDate = () => {
@@ -198,6 +233,107 @@ export function MaintenanceModal({
                   onSubmit={handleSubmit(handleFormSubmit)}
                   className="space-y-2.5 sm:space-y-4"
                 >
+                  {/* Type de maintenance */}
+                  <div className="space-y-2 sm:space-y-3">
+                    <Label className="text-xs sm:text-sm font-medium">
+                      Type de maintenance
+                    </Label>
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setValue("startImmediately", true)}
+                        className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
+                          startImmediately
+                            ? "border-orange-500 bg-orange-50 shadow-sm"
+                            : "border-gray-200 bg-white hover:border-orange-300"
+                        }`}
+                      >
+                        <Zap
+                          className={`h-4 w-4 sm:h-5 sm:w-5 ${startImmediately ? "text-orange-600" : "text-gray-500"}`}
+                        />
+                        <span
+                          className={`text-xs sm:text-sm font-medium ${startImmediately ? "text-orange-900" : "text-gray-700"}`}
+                        >
+                          Immédiate
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setValue("startImmediately", false)}
+                        className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
+                          !startImmediately
+                            ? "border-orange-500 bg-orange-50 shadow-sm"
+                            : "border-gray-200 bg-white hover:border-orange-300"
+                        }`}
+                      >
+                        <CalendarClock
+                          className={`h-4 w-4 sm:h-5 sm:w-5 ${!startImmediately ? "text-orange-600" : "text-gray-500"}`}
+                        />
+                        <span
+                          className={`text-xs sm:text-sm font-medium ${!startImmediately ? "text-orange-900" : "text-gray-700"}`}
+                        >
+                          Planifiée
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Date et heure de début (si planifiée) */}
+                  {!startImmediately && (
+                    <div className="space-y-2 sm:space-y-3">
+                      <Label className="text-xs sm:text-sm font-medium">
+                        Date et heure de début *
+                      </Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        <div className="space-y-1 sm:space-y-2">
+                          <Label
+                            htmlFor="startDate"
+                            className="text-[10px] sm:text-xs text-gray-600"
+                          >
+                            Date
+                          </Label>
+                          <div className="relative">
+                            <Calendar className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                            <Input
+                              id="startDate"
+                              type="date"
+                              {...register("startDate")}
+                              min={new Date().toISOString().split("T")[0]}
+                              className={`text-xs sm:text-sm h-9 sm:h-10 pl-8 sm:pl-10 ${errors.startDate ? "border-red-500" : ""}`}
+                            />
+                          </div>
+                          {errors.startDate && (
+                            <p className="text-[10px] sm:text-xs text-red-600">
+                              {errors.startDate.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-1 sm:space-y-2">
+                          <Label
+                            htmlFor="startTime"
+                            className="text-[10px] sm:text-xs text-gray-600"
+                          >
+                            Heure
+                          </Label>
+                          <div className="relative">
+                            <Clock className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                            <Input
+                              id="startTime"
+                              type="time"
+                              {...register("startTime")}
+                              className={`text-xs sm:text-sm h-9 sm:h-10 pl-8 sm:pl-10 ${errors.startTime ? "border-red-500" : ""}`}
+                            />
+                          </div>
+                          {errors.startTime && (
+                            <p className="text-[10px] sm:text-xs text-red-600">
+                              {errors.startTime.message}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Raison de la maintenance */}
                   <div className="space-y-1 sm:space-y-2">
                     <Label htmlFor="reason" className="text-xs sm:text-sm">
@@ -237,7 +373,7 @@ export function MaintenanceModal({
                             id="endDate"
                             type="date"
                             {...register("endDate")}
-                            min={getMinDate()}
+                            min={getMinEndDate()}
                             max={getMaxDate()}
                             className={`text-xs sm:text-sm h-9 sm:h-10 pl-8 sm:pl-10 ${errors.endDate ? "border-red-500" : ""}`}
                           />

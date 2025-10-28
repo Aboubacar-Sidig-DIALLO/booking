@@ -428,3 +428,68 @@ export function useToggleEquipmentOrg() {
     },
   });
 }
+
+// Mutation pour mettre une salle en maintenance
+export function useMaintenanceRoom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/admin/rooms/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la mise en maintenance");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Salle mise en maintenance");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la mise en maintenance");
+    },
+  });
+}
+
+// Mutation pour annuler une maintenance
+export function useCancelMaintenance() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roomId: string) => {
+      const response = await fetch(
+        `/api/admin/rooms/maintenance?roomId=${roomId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.error || "Erreur lors de l'annulation de la maintenance"
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Maintenance annulée");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error.message || "Erreur lors de l'annulation de la maintenance"
+      );
+    },
+  });
+}

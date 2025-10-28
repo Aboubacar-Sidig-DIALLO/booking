@@ -233,7 +233,7 @@ export function EquipmentManagement() {
   };
 
   // Filtrer les équipements
-  const filteredEquipments = equipments.filter((eq) => {
+  const filteredEquipments = equipments.filter((eq: any) => {
     const matchesSearch = eq.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -244,8 +244,8 @@ export function EquipmentManagement() {
     return matchesSearch && matchesFilter;
   });
 
-  const activeCount = equipments.filter((e) => e.isEnabled).length;
-  const inactiveCount = equipments.filter((e) => !e.isEnabled).length;
+  const activeCount = equipments.filter((e: any) => e.isEnabled).length;
+  const inactiveCount = equipments.filter((e: any) => !e.isEnabled).length;
 
   return (
     <div className="space-y-6">
@@ -259,32 +259,44 @@ export function EquipmentManagement() {
             transition={{ duration: 0.3 }}
           >
             <div className="sticky top-24 space-y-4">
-              <Card className="border-indigo-100 shadow-lg">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl">
-                      <Package className="h-5 w-5 text-white" />
+              <Card className="border border-gray-200 bg-white shadow-md">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg">
+                      <Package className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">Statistiques</CardTitle>
+                      <CardTitle className="text-sm font-semibold">
+                        Filtres
+                      </CardTitle>
                       <CardDescription className="text-xs mt-0.5">
-                        Vue d'ensemble
+                        Filtrer par statut
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2.5">
                   <div
                     onClick={() => setFilter("all")}
-                    className={`rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                       filter === "all"
-                        ? "border-indigo-500 shadow-md bg-indigo-50"
-                        : "border-gray-200 hover:border-indigo-300 bg-white"
+                        ? "bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-300 shadow-sm"
+                        : "bg-white border-2 border-gray-200 hover:bg-indigo-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-indigo-600" />
+                        <div
+                          className={`p-1.5 rounded-md ${
+                            filter === "all" ? "bg-indigo-500" : "bg-gray-100"
+                          }`}
+                        >
+                          <Package
+                            className={`h-3.5 w-3.5 ${
+                              filter === "all" ? "text-white" : "text-gray-600"
+                            }`}
+                          />
+                        </div>
                         <span
                           className={`text-sm font-medium ${
                             filter === "all"
@@ -295,7 +307,11 @@ export function EquipmentManagement() {
                           Total
                         </span>
                       </div>
-                      <span className="text-xl font-bold text-gray-900">
+                      <span
+                        className={`text-xl font-bold ${
+                          filter === "all" ? "text-indigo-900" : "text-gray-900"
+                        }`}
+                      >
                         {equipments.length}
                       </span>
                     </div>
@@ -303,15 +319,29 @@ export function EquipmentManagement() {
 
                   <div
                     onClick={() => setFilter("active")}
-                    className={`rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                       filter === "active"
-                        ? "border-green-500 shadow-md bg-green-50"
-                        : "border-green-200 hover:border-green-400 bg-white"
+                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 shadow-sm"
+                        : "bg-white border-2 border-gray-200 hover:bg-green-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <div
+                          className={`p-1.5 rounded-md ${
+                            filter === "active"
+                              ? "bg-green-500"
+                              : "bg-green-100"
+                          }`}
+                        >
+                          <CheckCircle
+                            className={`h-3.5 w-3.5 ${
+                              filter === "active"
+                                ? "text-white"
+                                : "text-green-600"
+                            }`}
+                          />
+                        </div>
                         <span
                           className={`text-sm font-medium ${
                             filter === "active"
@@ -322,7 +352,13 @@ export function EquipmentManagement() {
                           Actifs
                         </span>
                       </div>
-                      <span className="text-xl font-bold text-green-900">
+                      <span
+                        className={`text-xl font-bold ${
+                          filter === "active"
+                            ? "text-green-900"
+                            : "text-green-700"
+                        }`}
+                      >
                         {activeCount}
                       </span>
                     </div>
@@ -330,15 +366,27 @@ export function EquipmentManagement() {
 
                   <div
                     onClick={() => setFilter("inactive")}
-                    className={`rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    className={`rounded-lg p-3 cursor-pointer transition-all duration-200 ${
                       filter === "inactive"
-                        ? "border-red-500 shadow-md bg-red-50"
-                        : "border-red-200 hover:border-red-400 bg-white"
+                        ? "bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 shadow-sm"
+                        : "bg-white border-2 border-gray-200 hover:bg-red-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-600" />
+                        <div
+                          className={`p-1.5 rounded-md ${
+                            filter === "inactive" ? "bg-red-500" : "bg-red-100"
+                          }`}
+                        >
+                          <XCircle
+                            className={`h-3.5 w-3.5 ${
+                              filter === "inactive"
+                                ? "text-white"
+                                : "text-red-600"
+                            }`}
+                          />
+                        </div>
                         <span
                           className={`text-sm font-medium ${
                             filter === "inactive"
@@ -349,7 +397,13 @@ export function EquipmentManagement() {
                           Inactifs
                         </span>
                       </div>
-                      <span className="text-xl font-bold text-red-900">
+                      <span
+                        className={`text-xl font-bold ${
+                          filter === "inactive"
+                            ? "text-red-900"
+                            : "text-red-700"
+                        }`}
+                      >
                         {inactiveCount}
                       </span>
                     </div>
@@ -444,7 +498,7 @@ export function EquipmentManagement() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence>
-                {filteredEquipments.map((equipment, index) => (
+                {filteredEquipments.map((equipment: any, index) => (
                   <motion.div
                     key={equipment.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -454,9 +508,9 @@ export function EquipmentManagement() {
                   >
                     <Card
                       className={`border-2 transition-all duration-300 hover:shadow-xl ${
-                        equipment.isActive
-                          ? "border-gray-200 hover:border-green-300 bg-white"
-                          : "border-gray-200 hover:border-red-300 opacity-70 bg-gray-50"
+                        equipment.isEnabled
+                          ? "border-green-200 hover:border-green-400 bg-white shadow-sm"
+                          : "border-red-200 hover:border-red-300 bg-gray-50 opacity-60 grayscale"
                       }`}
                     >
                       <CardContent className="p-5">
@@ -468,10 +522,22 @@ export function EquipmentManagement() {
                                   equipment.icon
                                 );
                                 return (
-                                  <IconComponent className="h-5 w-5 text-indigo-600 flex-shrink-0" />
+                                  <IconComponent
+                                    className={`h-5 w-5 flex-shrink-0 ${
+                                      equipment.isEnabled
+                                        ? "text-indigo-600"
+                                        : "text-gray-400"
+                                    }`}
+                                  />
                                 );
                               })()}
-                              <h4 className="font-semibold text-base text-gray-900 truncate">
+                              <h4
+                                className={`font-semibold text-base truncate ${
+                                  equipment.isEnabled
+                                    ? "text-gray-900"
+                                    : "text-gray-500"
+                                }`}
+                              >
                                 {equipment.name}
                               </h4>
                               {equipment.howToUse && (
@@ -484,14 +550,21 @@ export function EquipmentManagement() {
                                     </TooltipTrigger>
                                     <TooltipContent
                                       side="top"
-                                      className="max-w-xs"
+                                      className="max-w-xs bg-white border border-gray-200 shadow-lg p-3 rounded-lg"
                                     >
-                                      <p className="font-semibold text-sm mb-1">
-                                        Comment utiliser
-                                      </p>
-                                      <p className="text-xs text-gray-600">
-                                        {equipment.howToUse}
-                                      </p>
+                                      <div className="flex items-start gap-2">
+                                        <div className="p-1.5 bg-indigo-100 rounded-md flex-shrink-0 mt-0.5">
+                                          <Info className="h-3.5 w-3.5 text-indigo-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-semibold text-sm mb-1.5 text-gray-900">
+                                            Comment utiliser
+                                          </p>
+                                          <p className="text-xs text-gray-600 leading-relaxed">
+                                            {equipment.howToUse}
+                                          </p>
+                                        </div>
+                                      </div>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -551,7 +624,13 @@ export function EquipmentManagement() {
                         </div>
 
                         {equipment.description && (
-                          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                          <p
+                            className={`text-sm mb-4 line-clamp-2 ${
+                              equipment.isEnabled
+                                ? "text-gray-600"
+                                : "text-gray-400"
+                            }`}
+                          >
                             {equipment.description}
                           </p>
                         )}

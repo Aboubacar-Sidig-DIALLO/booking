@@ -18,6 +18,8 @@ import {
   useCreateRoom,
   useUpdateRoom,
   useDeleteRoom,
+  useMaintenanceRoom,
+  useCancelMaintenance,
   useAdminUsers,
   useCreateUser,
   useUpdateUser,
@@ -334,6 +336,8 @@ export default function AdminPage() {
   const createRoomMutation = useCreateRoom();
   const updateRoomMutation = useUpdateRoom();
   const deleteRoomMutation = useDeleteRoom();
+  const maintenanceRoomMutation = useMaintenanceRoom();
+  const cancelMaintenanceMutation = useCancelMaintenance();
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
@@ -433,12 +437,35 @@ export default function AdminPage() {
     setShowMaintenanceModal(true);
   };
 
+  const handleCancelMaintenance = async (room: any) => {
+    try {
+      await cancelMaintenanceMutation.mutateAsync(room.id.toString());
+    } catch (error) {
+      console.error("Erreur lors de l'annulation de la maintenance:", error);
+    }
+  };
+
   const handleMaintenanceSubmit = async (data: any) => {
-    // TODO: Implémenter la mutation pour la maintenance
-    // Pour l'instant, on ferme juste la modale
-    setIsLoading(false);
-    setShowMaintenanceModal(false);
-    setSelectedRoom(null);
+    if (!selectedRoom) return;
+
+    try {
+      await maintenanceRoomMutation.mutateAsync({
+        roomId: selectedRoom.id.toString(),
+        startImmediately: data.startImmediately,
+        startDate: data.startDate || undefined,
+        startTime: data.startTime || undefined,
+        reason: data.reason,
+        endDate: data.endDate,
+        endTime: data.endTime,
+        equipment: data.equipment || [],
+      });
+
+      setShowMaintenanceModal(false);
+      setSelectedRoom(null);
+    } catch (error) {
+      // L'erreur est déjà gérée par la mutation
+      console.error("Erreur lors de la mise en maintenance:", error);
+    }
   };
 
   const handleRoomFormSubmit = async (data: any) => {
@@ -634,8 +661,8 @@ export default function AdminPage() {
                     variant={isActive ? "default" : "ghost"}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg hover:cursor-pointer"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:cursor-pointer"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -658,22 +685,22 @@ export default function AdminPage() {
                 className="space-y-8"
               >
                 {/* Statistiques principales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     className="group"
                   >
-                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100/50">
-                      <CardContent className="p-5 sm:p-6">
+                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md hover:shadow-blue-100/50">
+                      <CardContent className="p-4 sm:p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
                               <Tooltip delayDuration={200}>
                                 <TooltipTrigger asChild>
-                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-blue-600 transition-colors">
+                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-blue-600 transition-colors">
                                     Salles totales
                                   </p>
                                 </TooltipTrigger>
@@ -697,20 +724,20 @@ export default function AdminPage() {
                               {isLoadingStats ? (
                                 <LoadingDots size={8} color="#0f172a" />
                               ) : (
-                                <p className="text-3xl font-bold text-slate-900">
+                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
                                   {statsData.totalRooms}
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 mt-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                               <span className="text-xs text-green-600 font-medium">
                                 {statsData.activeRooms} opérationnelles
                               </span>
                             </div>
                           </div>
-                          <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <Building2 className="h-6 w-6 text-white" />
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
                         </div>
                       </CardContent>
@@ -721,17 +748,17 @@ export default function AdminPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     className="group"
                   >
-                    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg hover:shadow-green-100/50">
-                      <CardContent className="p-5 sm:p-6">
+                    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-md hover:shadow-green-100/50">
+                      <CardContent className="p-4 sm:p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
                               <Tooltip delayDuration={200}>
                                 <TooltipTrigger asChild>
-                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-green-600 transition-colors">
+                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-green-600 transition-colors">
                                     Réservations actives
                                   </p>
                                 </TooltipTrigger>
@@ -755,20 +782,20 @@ export default function AdminPage() {
                               {isLoadingStats ? (
                                 <LoadingDots size={8} color="#0f172a" />
                               ) : (
-                                <p className="text-3xl font-bold text-slate-900">
+                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
                                   {statsData.activeBookings}
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 mt-2">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                               <span className="text-xs text-blue-600 font-medium">
                                 En cours
                               </span>
                             </div>
                           </div>
-                          <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <Calendar className="h-6 w-6 text-white" />
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
                         </div>
                       </CardContent>
@@ -779,17 +806,17 @@ export default function AdminPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     className="group"
                   >
-                    <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg hover:shadow-purple-100/50">
-                      <CardContent className="p-5 sm:p-6">
+                    <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-md hover:shadow-purple-100/50">
+                      <CardContent className="p-4 sm:p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
                               <Tooltip delayDuration={200}>
                                 <TooltipTrigger asChild>
-                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-purple-600 transition-colors">
+                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-purple-600 transition-colors">
                                     Utilisateurs
                                   </p>
                                 </TooltipTrigger>
@@ -813,28 +840,28 @@ export default function AdminPage() {
                               {isLoadingStats ? (
                                 <LoadingDots size={8} color="#0f172a" />
                               ) : (
-                                <p className="text-3xl font-bold text-slate-900">
+                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
                                   {statsData.totalUsers}
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 mt-2 flex-wrap">
+                            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                               <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                                 <span className="text-xs text-green-600 font-medium">
                                   {statsData.activeUsers} actifs
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
                                 <span className="text-xs text-gray-600 font-medium">
                                   {statsData.inactiveUsers} inactifs
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <Users className="h-6 w-6 text-white" />
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
                         </div>
                       </CardContent>
@@ -845,17 +872,17 @@ export default function AdminPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     className="group"
                   >
-                    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300 transition-all duration-300 hover:shadow-lg hover:shadow-amber-100/50">
-                      <CardContent className="p-5 sm:p-6">
+                    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 hover:border-amber-300 transition-all duration-300 hover:shadow-md hover:shadow-amber-100/50">
+                      <CardContent className="p-4 sm:p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <TooltipProvider>
                               <Tooltip delayDuration={200}>
                                 <TooltipTrigger asChild>
-                                  <p className="text-sm font-medium text-slate-600 cursor-help hover:text-amber-600 transition-colors">
+                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-amber-600 transition-colors">
                                     Salles en maintenance
                                   </p>
                                 </TooltipTrigger>
@@ -880,20 +907,20 @@ export default function AdminPage() {
                               {isLoadingStats ? (
                                 <LoadingDots size={8} color="#0f172a" />
                               ) : (
-                                <p className="text-3xl font-bold text-slate-900">
+                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
                                   {statsData.maintenanceRooms}
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 mt-2">
-                              <Wrench className="h-3.5 w-3.5 text-amber-600" />
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <Wrench className="h-3 w-3 text-amber-600" />
                               <span className="text-xs text-amber-600 font-medium">
                                 Nécessitent attention
                               </span>
                             </div>
                           </div>
-                          <div className="h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                            <Wrench className="h-6 w-6 text-white" />
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                            <Wrench className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
                         </div>
                       </CardContent>
@@ -1139,7 +1166,7 @@ export default function AdminPage() {
                           </div>
                           <Button
                             onClick={handleAddRoom}
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
                           >
                             <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                             <span className="hidden md:inline">
@@ -1359,43 +1386,75 @@ export default function AdminPage() {
                                             </TooltipContent>
                                           </Tooltip>
                                         </TooltipProvider>
-                                        <TooltipProvider>
-                                          <Tooltip delayDuration={200}>
-                                            <TooltipTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200 disabled:hover:scale-100 disabled:opacity-50"
-                                                onClick={() =>
-                                                  handleMaintenanceRoom(room)
-                                                }
-                                                disabled={
-                                                  room.status === "maintenance"
-                                                }
+                                        {!room.isActive ||
+                                        room.isMaintenance ? (
+                                          // Si en maintenance, afficher le bouton d'annulation
+                                          <TooltipProvider>
+                                            <Tooltip delayDuration={200}>
+                                              <TooltipTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-green-50 hover:scale-110 transition-all duration-200"
+                                                  onClick={() =>
+                                                    handleCancelMaintenance(
+                                                      room
+                                                    )
+                                                  }
+                                                >
+                                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                                </Button>
+                                              </TooltipTrigger>
+                                              <TooltipContent
+                                                side="top"
+                                                className="font-medium"
                                               >
-                                                <Wrench className="h-4 w-4 text-orange-500" />
-                                              </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent
-                                              side="top"
-                                              className="font-medium"
-                                            >
-                                              <div className="text-center">
-                                                <p className="font-semibold text-gray-900 mb-1">
-                                                  {room.status === "maintenance"
-                                                    ? "En maintenance"
-                                                    : "Mettre en maintenance"}
-                                                </p>
-                                                <p className="text-xs text-gray-600">
-                                                  {room.status === "maintenance"
-                                                    ? "Cette salle est actuellement en maintenance"
-                                                    : "Programmer une maintenance pour cette salle"}
-                                                </p>
-                                              </div>
-                                              <TooltipArrow />
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
+                                                <div className="text-center">
+                                                  <p className="font-semibold text-gray-900 mb-1">
+                                                    Annuler la maintenance
+                                                  </p>
+                                                  <p className="text-xs text-gray-600">
+                                                    Réactiver la salle
+                                                  </p>
+                                                </div>
+                                                <TooltipArrow />
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        ) : (
+                                          // Sinon, afficher le bouton de mise en maintenance
+                                          <TooltipProvider>
+                                            <Tooltip delayDuration={200}>
+                                              <TooltipTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-9 w-9 sm:h-8 sm:w-8 p-0 cursor-pointer hover:bg-orange-50 hover:scale-110 transition-all duration-200"
+                                                  onClick={() =>
+                                                    handleMaintenanceRoom(room)
+                                                  }
+                                                >
+                                                  <Wrench className="h-4 w-4 text-orange-500" />
+                                                </Button>
+                                              </TooltipTrigger>
+                                              <TooltipContent
+                                                side="top"
+                                                className="font-medium"
+                                              >
+                                                <div className="text-center">
+                                                  <p className="font-semibold text-gray-900 mb-1">
+                                                    Mettre en maintenance
+                                                  </p>
+                                                  <p className="text-xs text-gray-600">
+                                                    Programmer une maintenance
+                                                    pour cette salle
+                                                  </p>
+                                                </div>
+                                                <TooltipArrow />
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        )}
                                         <TooltipProvider>
                                           <Tooltip delayDuration={200}>
                                             <TooltipTrigger asChild>
@@ -1466,7 +1525,7 @@ export default function AdminPage() {
                       </div>
                       <Button
                         onClick={handleAddUser}
-                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
+                        className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
                       >
                         <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         <span className="hidden md:inline">
@@ -1612,7 +1671,7 @@ export default function AdminPage() {
                               actionButton = (
                                 <Button
                                   onClick={handleAddUser}
-                                  className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                                  className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
                                   Ajouter mon premier utilisateur
@@ -1874,7 +1933,7 @@ export default function AdminPage() {
             }}
             onSubmit={handleMaintenanceSubmit}
             room={selectedRoom}
-            isLoading={isLoading}
+            isLoading={maintenanceRoomMutation.isPending}
           />
         )}
 
