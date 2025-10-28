@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { DataLoader } from "@/components/admin/DataLoader";
 import {
   useAdminEquipment,
   useCreateEquipment,
@@ -461,14 +462,11 @@ export function EquipmentManagement() {
 
           {/* Liste des équipements */}
           {isLoading ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mx-auto mb-4" />
-                <p className="text-sm text-gray-600 font-medium">
-                  Chargement des équipements...
-                </p>
-              </CardContent>
-            </Card>
+            <DataLoader
+              message="Chargement des équipements..."
+              size="md"
+              variant="spinner"
+            />
           ) : filteredEquipments.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">

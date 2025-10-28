@@ -27,6 +27,7 @@ import {
 } from "@/hooks/use-admin-queries";
 import { Button } from "@/components/ui/button";
 import { LoadingDots } from "@/components/ui/LoadingDots";
+import { DataLoader } from "@/components/admin/DataLoader";
 import {
   Card,
   CardContent,
@@ -329,8 +330,9 @@ export default function AdminPage() {
 
   // TanStack Query hooks pour les données
   const { data: stats, isLoading: isLoadingStats } = useAdminStats();
-  const { data: rooms = [] } = useAdminRooms();
-  const { data: users = recentUsers } = useAdminUsers();
+  const { data: rooms = [], isLoading: isLoadingRooms } = useAdminRooms();
+  const { data: users = recentUsers, isLoading: isLoadingUsers } =
+    useAdminUsers();
 
   // Mutations pour les opérations
   const createRoomMutation = useCreateRoom();
@@ -1178,6 +1180,16 @@ export default function AdminPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {(() => {
+                          // Afficher le loader si les données sont en cours de chargement
+                          if (isLoadingRooms) {
+                            return (
+                              <DataLoader
+                                message="Chargement des salles..."
+                                size="md"
+                              />
+                            );
+                          }
+
                           // Gérer les états vides selon le filtre
                           if (rooms.length === 0) {
                             return (
@@ -1640,6 +1652,16 @@ export default function AdminPage() {
                       {/* Liste des utilisateurs */}
                       <div className="lg:col-span-9">
                         {(() => {
+                          // Afficher le loader si les données sont en cours de chargement
+                          if (isLoadingUsers) {
+                            return (
+                              <DataLoader
+                                message="Chargement des utilisateurs..."
+                                size="md"
+                              />
+                            );
+                          }
+
                           if (filteredUsers.length === 0) {
                             // Messages différents selon le filtre
                             let title = "Aucun utilisateur";
