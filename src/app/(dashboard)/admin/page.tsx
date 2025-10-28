@@ -289,24 +289,28 @@ const getAlertConfig = (type: string) => {
       return {
         color: "bg-yellow-50 border-yellow-200",
         iconColor: "text-yellow-600",
+        iconBgColor: "bg-yellow-100",
         icon: AlertTriangle,
       };
     case "info":
       return {
         color: "bg-blue-50 border-blue-200",
         iconColor: "text-blue-600",
+        iconBgColor: "bg-blue-100",
         icon: Bell,
       };
     case "success":
       return {
         color: "bg-green-50 border-green-200",
         iconColor: "text-green-600",
+        iconBgColor: "bg-green-100",
         icon: CheckCircle,
       };
     default:
       return {
         color: "bg-gray-50 border-gray-200",
         iconColor: "text-gray-600",
+        iconBgColor: "bg-gray-100",
         icon: Bell,
       };
   }
@@ -955,45 +959,50 @@ export default function AdminPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {systemAlerts.map((alert, index) => {
                           const alertConfig = getAlertConfig(alert.type);
                           const Icon = alertConfig.icon;
                           return (
                             <motion.div
                               key={alert.id}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className={`p-4 rounded-lg border ${alertConfig.color}`}
+                              className={`p-4 rounded-xl border-2 ${alertConfig.color} hover:shadow-md transition-shadow duration-300`}
                             >
                               <div className="flex items-start gap-3">
-                                <Icon
-                                  className={`h-5 w-5 ${alertConfig.iconColor} mt-0.5`}
-                                />
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-slate-900 mb-1">
-                                    {alert.title}
-                                  </h4>
-                                  <p className="text-sm text-slate-600 mb-2">
-                                    {alert.message}
-                                  </p>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-slate-500">
-                                      {alert.timestamp}
-                                    </span>
+                                <div
+                                  className={`h-10 w-10 rounded-lg ${alertConfig.iconBgColor} flex items-center justify-center flex-shrink-0`}
+                                >
+                                  <Icon
+                                    className={`h-5 w-5 ${alertConfig.iconColor}`}
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                                    <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+                                      {alert.title}
+                                    </h4>
                                     <Badge
-                                      className={`text-xs ${
+                                      className={`text-xs px-2 py-0.5 flex-shrink-0 ${
                                         alert.priority === "high"
-                                          ? "bg-red-100 text-red-800"
+                                          ? "bg-red-100 text-red-800 border-red-300"
                                           : alert.priority === "medium"
-                                            ? "bg-yellow-100 text-yellow-800"
-                                            : "bg-green-100 text-green-800"
+                                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                                            : "bg-green-100 text-green-800 border-green-300"
                                       }`}
                                     >
                                       {alert.priority}
                                     </Badge>
                                   </div>
+                                  <p className="text-xs text-slate-600 mb-2.5 leading-relaxed line-clamp-2">
+                                    {alert.message}
+                                  </p>
+                                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    {alert.timestamp}
+                                  </span>
                                 </div>
                               </div>
                             </motion.div>
