@@ -437,7 +437,7 @@ export function EquipmentManagement() {
                   {isROI && (
                     <Button
                       onClick={handleAdd}
-                      className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white w-full sm:w-auto text-sm px-6 h-10"
+                      className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:cursor-pointer text-white w-full sm:w-auto text-sm px-6 h-10 cursor-pointer"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Ajouter
@@ -641,7 +641,7 @@ export function EquipmentManagement() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(equipment)}
-                              className="flex-1 text-xs h-8 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                              className="flex-1 text-xs h-8 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:cursor-pointer cursor-pointer"
                             >
                               <Edit className="h-3.5 w-3.5 mr-1.5" />
                               Modifier
@@ -650,7 +650,7 @@ export function EquipmentManagement() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDeleteClick(equipment)}
-                              className="flex-1 text-xs h-8 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                              className="flex-1 text-xs h-8 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 hover:cursor-pointer cursor-pointer"
                             >
                               <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                               Supprimer
@@ -769,14 +769,14 @@ export function EquipmentManagement() {
               variant="outline"
               onClick={() => setShowAddModal(false)}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 cursor-pointer hover:cursor-pointer"
             >
               Annuler
             </Button>
             <Button
               onClick={handleCreate}
               disabled={isSubmitting || !formData.name}
-              className="flex-1 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
+              className="flex-1 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:cursor-pointer cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -899,14 +899,14 @@ export function EquipmentManagement() {
               variant="outline"
               onClick={() => setShowEditModal(false)}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 cursor-pointer hover:cursor-pointer"
             >
               Annuler
             </Button>
             <Button
               onClick={handleUpdate}
               disabled={isSubmitting || !formData.name}
-              className="flex-1 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
+              className="flex-1 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:cursor-pointer cursor-pointer"
             >
               {isSubmitting ? (
                 <>

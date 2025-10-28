@@ -490,7 +490,7 @@ export function UserFormModal({
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm"
+                className="h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm cursor-pointer hover:cursor-pointer"
               >
                 <X className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
                 Annuler
@@ -498,7 +498,7 @@ export function UserFormModal({
               <Button
                 type="submit"
                 disabled={!isValid || isLoading}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:cursor-pointer text-white h-8 sm:h-9 px-3 sm:px-4 w-full sm:w-auto text-xs sm:text-sm cursor-pointer"
               >
                 <Save className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5" />
                 {isLoading

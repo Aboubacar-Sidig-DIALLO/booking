@@ -422,7 +422,7 @@ export function RoomFormModal({
                     variant="outline"
                     onClick={handleClose}
                     disabled={isLoading}
-                    className="px-6 sm:px-8 py-2.5 text-sm sm:text-base min-w-[120px] sm:min-w-[150px]"
+                    className="px-6 sm:px-8 py-2.5 text-sm sm:text-base min-w-[120px] sm:min-w-[150px] cursor-pointer hover:cursor-pointer"
                   >
                     <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                     Annuler
@@ -430,7 +430,7 @@ export function RoomFormModal({
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 sm:px-8 py-2.5 text-sm sm:text-base bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white min-w-[120px] sm:min-w-[150px]"
+                    className="px-6 sm:px-8 py-2.5 text-sm sm:text-base bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:cursor-pointer text-white min-w-[120px] sm:min-w-[150px] cursor-pointer"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-1">

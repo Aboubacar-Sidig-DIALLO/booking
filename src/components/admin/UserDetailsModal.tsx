@@ -194,7 +194,7 @@ export function UserDetailsModal({
                   variant="outline"
                   size="sm"
                   onClick={onEdit}
-                  className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center"
+                  className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 hover:cursor-pointer transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center cursor-pointer"
                 >
                   <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                   Modifier
@@ -205,7 +205,7 @@ export function UserDetailsModal({
                   variant="outline"
                   size="sm"
                   onClick={onDelete}
-                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center"
+                  className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 hover:cursor-pointer transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 justify-center cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" />
                   Supprimer
@@ -336,7 +336,7 @@ export function UserDetailsModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="px-4 sm:px-6 text-xs sm:text-sm"
+              className="px-4 sm:px-6 text-xs sm:text-sm cursor-pointer hover:cursor-pointer"
             >
               <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
               Fermer

@@ -505,7 +505,7 @@ export function MaintenanceModal({
                       variant="outline"
                       onClick={handleClose}
                       disabled={isLoading}
-                      className="px-5 sm:px-6 py-2 text-xs sm:text-sm w-full sm:w-auto"
+                      className="px-5 sm:px-6 py-2 text-xs sm:text-sm w-full sm:w-auto cursor-pointer hover:cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                       Annuler
@@ -513,7 +513,7 @@ export function MaintenanceModal({
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="px-5 sm:px-6 py-2 text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white w-full sm:w-auto"
+                      className="px-5 sm:px-6 py-2 text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 hover:cursor-pointer text-white w-full sm:w-auto cursor-pointer"
                     >
                       {isLoading ? (
                         <div className="flex items-center gap-1.5 sm:gap-2">
