@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
       totalUsers,
       activeUsers,
       inactiveUsers,
+      pendingUsers,
       activeBookings,
     ] = await Promise.all([
       // Total de salles
@@ -61,23 +62,44 @@ export async function GET(req: NextRequest) {
           isActive: false,
         },
       }),
-      // Total d'utilisateurs
+      // Total d'utilisateurs (exclure l'admin courant)
       prisma.user.count({
-        where: { orgId },
+        where: {
+          orgId,
+          id: {
+            not: sessionUser.id,
+          },
+        },
       }),
-      // Utilisateurs actifs
+      // Utilisateurs actifs (exclure l'admin courant)
       prisma.user.count({
         where: {
           orgId,
           status: "active",
+          id: {
+            not: sessionUser.id,
+          },
         },
       }),
-      // Utilisateurs non actifs
+      // Utilisateurs non actifs (exclure l'admin courant)
       prisma.user.count({
         where: {
           orgId,
           status: {
             not: "active",
+          },
+          id: {
+            not: sessionUser.id,
+          },
+        },
+      }),
+      // Utilisateurs en attente (exclure l'admin courant)
+      prisma.user.count({
+        where: {
+          orgId,
+          status: "pending",
+          id: {
+            not: sessionUser.id,
           },
         },
       }),
@@ -104,6 +126,7 @@ export async function GET(req: NextRequest) {
         totalUsers,
         activeUsers,
         inactiveUsers,
+        pendingUsers,
         activeBookings,
       },
       { status: 200 }

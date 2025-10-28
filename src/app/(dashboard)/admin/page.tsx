@@ -70,6 +70,7 @@ interface Stats {
   activeUsers: number;
   inactiveUsers: number;
   activeBookings: number;
+  pendingUsers: number;
 }
 
 // Données simulées pour les salles
@@ -371,6 +372,7 @@ export default function AdminPage() {
     activeUsers: 0,
     inactiveUsers: 0,
     activeBookings: 0,
+    pendingUsers: 0,
   };
 
   // Optimisation : Utilisateurs filtrés avec useMemo
@@ -847,17 +849,23 @@ export default function AdminPage() {
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                <span className="text-xs text-green-600 font-medium">
+                            <div className="flex items-center gap-2 mt-1.5 whitespace-nowrap overflow-x-auto">
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
+                                <span className="text-xs text-green-600 font-medium whitespace-nowrap">
                                   {statsData.activeUsers} actifs
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                                <span className="text-xs text-gray-600 font-medium">
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></div>
+                                <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
                                   {statsData.inactiveUsers} inactifs
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 whitespace-nowrap">
+                                <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full flex-shrink-0"></div>
+                                <span className="text-xs text-yellow-700 font-medium whitespace-nowrap">
+                                  {statsData.pendingUsers} en attente
                                 </span>
                               </div>
                             </div>

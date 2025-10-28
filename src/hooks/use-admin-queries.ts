@@ -11,6 +11,7 @@ interface Stats {
   totalUsers: number;
   activeUsers: number;
   inactiveUsers: number;
+  pendingUsers: number;
   activeBookings: number;
 }
 
