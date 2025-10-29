@@ -212,8 +212,24 @@ export function RoomFormModal({
     return getEquipmentIconForName(itemName);
   };
 
-  const handleFormSubmit = (data: RoomFormData) => {
-    onSubmit(data);
+  const handleFormSubmit = async (data: RoomFormData) => {
+    // Exécuter l'action parent (supporte sync ou async)
+    try {
+      await onSubmit(data);
+      // Après création (mode ajout), vider proprement le formulaire
+      if (!isEdit) {
+        reset({
+          name: "",
+          capacity: 1,
+          description: "",
+          status: "active",
+          location: "",
+          equipment: [],
+        });
+      }
+    } catch (e) {
+      // On ignore ici: la gestion d'erreur se fait côté parent/notification
+    }
   };
 
   const handleClose = () => {

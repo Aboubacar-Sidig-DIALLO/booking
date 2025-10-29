@@ -10,7 +10,6 @@ import DateTimeRangePicker, {
 import { Button } from "@/components/ui/button";
 import ParticipantsPicker, { Participant } from "./ParticipantsPicker";
 import { Privacy } from "./PrivacySelector";
-import { api } from "@/lib/api";
 import { useEffect, useState as useReactState, useCallback } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1001,15 +1000,36 @@ export default function BookingWizard() {
                 onClick={async () => {
                   setSubmitting(true);
                   try {
-                    await api.post("/bookings", {
+                    const startISO = new Date(range.from).toISOString();
+                    const endISO = new Date(range.to).toISOString();
+                    const payload = {
                       roomId: selectedRoomId,
                       title: form.getValues("title"),
-                      from: new Date(range.from).toISOString(),
-                      to: new Date(range.to).toISOString(),
-                      participants,
-                      privacy,
-                      recurrence,
+                      description: "",
+                      start: startISO,
+                      end: endISO,
+                      privacy: (typeof privacy === "string"
+                        ? privacy.toUpperCase()
+                        : privacy) as "PUBLIC" | "ORG" | "INVITEES",
+                      participants: participants.map((p) => ({
+                        userId: p.id,
+                        role: p.role.toUpperCase() as
+                          | "HOST"
+                          | "REQUIRED"
+                          | "OPTIONAL",
+                      })),
+                      recurrenceRule: recurrence || null,
+                    };
+
+                    const res = await fetch("/api/bookings", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(payload),
                     });
+                    if (!res.ok) {
+                      const err = await res.text();
+                      throw new Error(err || "Création impossible");
+                    }
                   } catch (e) {
                     // ignore (mock)
                   } finally {

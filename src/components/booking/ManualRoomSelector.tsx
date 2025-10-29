@@ -12,7 +12,6 @@ import {
   CheckCircle,
   Star,
   Sparkles,
-  TrendingUp,
   Clock,
   Zap,
   Heart,
@@ -33,7 +32,6 @@ interface Room {
   features: Array<{ feature: { name: string; icon?: string } }>;
   site: { name: string };
   matchScore?: number;
-  category?: "recommended" | "perfect" | "available" | "large";
   isAvailable?: boolean;
   conflictingBooking?: {
     title: string;
@@ -62,7 +60,6 @@ export default function ManualRoomSelector({
 }: ManualRoomSelectorProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [capacityFilter, setCapacityFilter] = useState<string>("all");
   const [roomsWithAvailability, setRoomsWithAvailability] = useState<Room[]>(
     []
@@ -174,39 +171,6 @@ export default function ManualRoomSelector({
         return <Coffee className="h-3 w-3" />;
       default:
         return null;
-    }
-  };
-
-  const getCategoryInfo = (category: Room["category"]) => {
-    switch (category) {
-      case "perfect":
-        return {
-          label: "Parfait",
-          icon: Star,
-          color: "text-green-600 bg-green-100",
-          description: "Taille idéale pour votre groupe",
-        };
-      case "recommended":
-        return {
-          label: "Recommandé",
-          icon: TrendingUp,
-          color: "text-blue-600 bg-blue-100",
-          description: "Très bon choix",
-        };
-      case "large":
-        return {
-          label: "Grande salle",
-          icon: Building2,
-          color: "text-orange-600 bg-orange-100",
-          description: "Plus grande que nécessaire",
-        };
-      default:
-        return {
-          label: "Disponible",
-          icon: CheckCircle,
-          color: "text-slate-600 bg-slate-100",
-          description: "Salle disponible",
-        };
     }
   };
 
@@ -441,14 +405,6 @@ export default function ManualRoomSelector({
                           <Users className="h-3 w-3" />
                           <span>{suggestion.room.capacity}</span>
                         </div>
-                        {suggestion.room.matchScore && (
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-3 w-3 text-amber-500" />
-                            <span className="text-amber-600 font-medium">
-                              {suggestion.room.matchScore}%
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -519,34 +475,10 @@ export default function ManualRoomSelector({
 
         {/* Filtres modernes en ligne */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Filtres de suggestion */}
-          <div className="flex items-center space-x-2">
-            {[
-              { value: "all", label: "Toutes", icon: "🏢" },
-              { value: "perfect", label: "Parfaites", icon: "⭐" },
-              { value: "recommended", label: "Recommandées", icon: "👍" },
-            ].map(({ value, label, icon }) => (
-              <button
-                key={value}
-                onClick={() => setSelectedCategory(value)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  selectedCategory === value
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
-                }`}
-              >
-                <span className="mr-1">{icon}</span>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="w-px h-6 bg-slate-200"></div>
-
           {/* Filtres de capacité */}
           <div className="flex items-center space-x-2">
             {[
-              { value: "all", label: "Toutes", icon: "📊" },
+              { value: "all", label: "Toutes", icon: "🏢" },
               { value: "exact", label: `~${attendeeCount}`, icon: "🎯" },
               { value: "small", label: "≤8", icon: "👥" },
               { value: "medium", label: "9-16", icon: "👨‍👩‍👧‍👦" },
@@ -642,10 +574,6 @@ export default function ManualRoomSelector({
                   : rooms;
 
               const filteredRooms = roomsToDisplay.filter((room) => {
-                const matchesCategory =
-                  selectedCategory === "all" ||
-                  room.category === selectedCategory;
-
                 let matchesCapacity = true;
                 if (capacityFilter === "small")
                   matchesCapacity = room.capacity <= 8;
@@ -661,9 +589,7 @@ export default function ManualRoomSelector({
                 const matchesAvailability =
                   showUnavailable || room.isAvailable !== false;
 
-                return (
-                  matchesCategory && matchesCapacity && matchesAvailability
-                );
+                return matchesCapacity && matchesAvailability;
               });
 
               if (filteredRooms.length === 0) {

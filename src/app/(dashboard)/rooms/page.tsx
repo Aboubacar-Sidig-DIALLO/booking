@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/select";
 import {
   Users,
-  Clock,
   Plus,
   Search,
   Filter,
@@ -33,8 +32,6 @@ import {
   List,
   Grid,
   MapPin,
-  Star,
-  Activity,
   CheckCircle2,
   AlertCircle,
   X,
@@ -51,105 +48,23 @@ import {
   Lightbulb,
 } from "lucide-react";
 import Link from "next/link";
+import { Skeleton as BaseSkeleton } from "@/components/common/Skeleton";
+import { useRouter } from "next/navigation";
 
-const rooms = [
-  {
-    id: 1,
-    name: "Salle de conférence A",
-    capacity: 12,
-    equipment: ["Écran", "WiFi", "Projecteur"],
-    status: "disponible",
-    nextBooking: "14:00 - 16:00",
-    location: "Étage 2, Bureau 201",
-    type: "conférence",
-    occupancy: 85,
-    isFavorite: true,
-    rating: 4.8,
-    description: "Salle moderne équipée pour les présentations importantes",
-    features: ["Vue panoramique", "Climatisation", "Éclairage LED"],
-    image: "/api/placeholder/400/300",
-  },
-  {
-    id: 2,
-    name: "Salle de réunion B",
-    capacity: 8,
-    equipment: ["Écran", "WiFi"],
-    status: "occupée",
-    nextBooking: "10:00 - 11:30",
-    location: "Étage 1, Bureau 105",
-    type: "réunion",
-    occupancy: 92,
-    isFavorite: false,
-    rating: 4.5,
-    description: "Espace intime pour les réunions d'équipe",
-    features: ["Tableau blanc", "Climatisation"],
-    image: "/api/placeholder/400/300",
-  },
-  {
-    id: 3,
-    name: "Espace créatif",
-    capacity: 6,
-    equipment: ["WiFi", "Café"],
-    status: "disponible",
-    nextBooking: "09:00 - 12:00",
-    location: "Étage 3, Bureau 301",
-    type: "atelier",
-    occupancy: 67,
-    isFavorite: true,
-    rating: 4.9,
-    description: "Espace inspirant pour le brainstorming et la créativité",
-    features: ["Décoration moderne", "Fauteuils confortables", "Café gratuit"],
-    image: "/api/placeholder/400/300",
-  },
-  {
-    id: 4,
-    name: "Salle de formation",
-    capacity: 20,
-    equipment: ["Écran", "WiFi", "Projecteur", "Café"],
-    status: "disponible",
-    nextBooking: "15:00 - 17:00",
-    location: "Étage 1, Bureau 120",
-    type: "formation",
-    occupancy: 78,
-    isFavorite: false,
-    rating: 4.7,
-    description: "Grande salle pour les formations et séminaires",
-    features: ["Écran géant", "Sonorisation", "Espace détente"],
-    image: "/api/placeholder/400/300",
-  },
-  {
-    id: 5,
-    name: "Salle VIP",
-    capacity: 4,
-    equipment: ["Écran", "WiFi", "Café", "Micro"],
-    status: "disponible",
-    nextBooking: "16:00 - 18:00",
-    location: "Étage 4, Bureau 401",
-    type: "vip",
-    occupancy: 45,
-    isFavorite: true,
-    rating: 5.0,
-    description: "Salle premium pour les réunions importantes",
-    features: ["Design luxueux", "Service premium", "Vue panoramique"],
-    image: "/api/placeholder/400/300",
-  },
-  {
-    id: 6,
-    name: "Salle de téléconférence",
-    capacity: 10,
-    equipment: ["Écran", "WiFi", "Caméra", "Micro"],
-    status: "occupée",
-    nextBooking: "11:00 - 12:30",
-    location: "Étage 2, Bureau 205",
-    type: "téléconférence",
-    occupancy: 88,
-    isFavorite: false,
-    rating: 4.6,
-    description: "Équipée pour les réunions à distance",
-    features: ["Caméra HD", "Son haute qualité", "Écran tactile"],
-    image: "/api/placeholder/400/300",
-  },
-];
+type UiRoom = {
+  id: string | number;
+  name: string;
+  capacity: number;
+  equipment: string[];
+  status: "disponible" | "occupée" | string;
+  nextBooking?: string;
+  location: string;
+  type: string;
+  occupancy?: number;
+  isFavorite?: boolean;
+  rating?: number;
+  description?: string;
+};
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -306,21 +221,55 @@ const getEquipmentIcon = (equipment: string) => {
 };
 
 export default function RoomsPage() {
+  const router = useRouter();
+  const [dbRooms, setDbRooms] = useState<UiRoom[]>([]);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [capacityFilter, setCapacityFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<
-    "name" | "capacity" | "occupancy" | "rating"
-  >("name");
+  const [sortBy, setSortBy] = useState<"name" | "capacity">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [hoveredEquipment, setHoveredEquipment] = useState<string | null>(null);
 
+  // Charger depuis la base
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/rooms");
+        const data = await res.json();
+        const mapped: UiRoom[] = (data || []).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          capacity: r.capacity,
+          equipment: (r.features || [])
+            .map((f: any) => f.feature?.name)
+            .filter(Boolean),
+          status: "disponible", // statut temps-réel géré ailleurs; ici on n'invente rien
+          nextBooking: undefined,
+          location: r.location || r.site?.name || "",
+          type: "réunion",
+          occupancy: undefined,
+          isFavorite: false,
+          rating: undefined,
+          description: r.description || "",
+        }));
+        setDbRooms(mapped);
+      } catch (e) {
+        setDbRooms([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   // Filtrer et trier les salles
   const filteredAndSortedRooms = useMemo(() => {
-    let filtered = rooms.filter((room) => {
+    let filtered = dbRooms.filter((room) => {
       const statusMatch =
         statusFilter === "all" || room.status === statusFilter;
       const typeMatch = typeFilter === "all" || room.type === typeFilter;
@@ -334,8 +283,8 @@ export default function RoomsPage() {
       const searchMatch =
         searchQuery === "" ||
         room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        room.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        room.location.toLowerCase().includes(searchQuery.toLowerCase());
+        room.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        room.location?.toLowerCase().includes(searchQuery.toLowerCase());
 
       return statusMatch && typeMatch && capacityMatch && searchMatch;
     });
@@ -350,12 +299,6 @@ export default function RoomsPage() {
         case "capacity":
           comparison = a.capacity - b.capacity;
           break;
-        case "occupancy":
-          comparison = a.occupancy - b.occupancy;
-          break;
-        case "rating":
-          comparison = a.rating - b.rating;
-          break;
       }
       return sortOrder === "asc" ? comparison : -comparison;
     });
@@ -368,6 +311,7 @@ export default function RoomsPage() {
     searchQuery,
     sortBy,
     sortOrder,
+    dbRooms,
   ]);
 
   const clearFilters = () => {
@@ -383,104 +327,125 @@ export default function RoomsPage() {
     capacityFilter !== "all" ||
     searchQuery !== "";
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = (id: string | number) => {
     // Logique pour basculer le favori
     console.log("Toggle favorite:", id);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
-      {/* Header moderne avec gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-indigo-600/90 to-purple-600/90"></div>
+      {/* Header moderne, élégant, avec espaces optimisés */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-600">
+        <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_20%_0%,rgba(255,255,255,0.18),transparent)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(70%_50%_at_100%_10%,rgba(255,255,255,0.08),transparent)]"></div>
 
-        {/* Éléments décoratifs */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-          <div className="absolute top-20 right-20 w-24 h-24 bg-white/5 rounded-full blur-lg"></div>
-          <div className="absolute bottom-10 left-1/4 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-        </div>
+        {/* Ligne douce en bas pour une séparation élégante */}
+        <div className="absolute inset-x-0 bottom-0 h-4 bg-white/0 [mask-image:linear-gradient(to_top,white,transparent)]"></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+            transition={{ duration: 0.5 }}
+            className="flex flex-col gap-4"
           >
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <div className="mb-2 -ml-1">
+                  <Button
+                    aria-label="Retour"
+                    onClick={() => router.back()}
+                    variant="outline"
+                    className="h-8 sm:h-9 px-2.5 rounded-lg bg-white/10 border-white/20 text-white hover:bg-white/15 transition cursor-pointer hover:cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                    >
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                  </Button>
                 </div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+
+                <h1 className="font-bold tracking-tight text-white text-[clamp(1.65rem,2.5vw,2.75rem)] leading-tight">
                   Nos salles
                 </h1>
+                <p className="mt-1 text-indigo-100/90 text-sm sm:text-base max-w-xl">
+                  Découvrez et réservez des espaces confortables, lumineux et
+                  parfaitement équipés.
+                </p>
               </div>
-              <p className="text-blue-100 text-lg sm:text-xl max-w-2xl">
-                Découvrez et réservez nos espaces de travail modernes et équipés
-              </p>
 
-              {/* Statistiques rapides */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-300" />
-                  <span className="text-white text-sm font-medium">
-                    {rooms.filter((r) => r.status === "disponible").length}{" "}
-                    Disponibles
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-300" />
-                  <span className="text-white text-sm font-medium">
-                    {rooms.filter((r) => r.status === "occupée").length}{" "}
-                    Occupées
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <Users className="h-4 w-4 text-blue-300" />
-                  <span className="text-white text-sm font-medium">
-                    {rooms.reduce((sum, r) => sum + r.capacity, 0)} Places
-                    totales
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                  <Heart className="h-4 w-4 text-pink-300" />
-                  <span className="text-white text-sm font-medium">
-                    {rooms.filter((r) => r.isFavorite).length} Favoris
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/15 transition cursor-pointer hover:cursor-pointer ${
+                    showFilters ? "bg-white/15" : ""
+                  }`}
+                >
+                  <Filter className="h-4 w-4 mr-1.5" />
+                  <span className="hidden sm:inline">Filtres</span>
+                </Button>
+                <Link href="/bookings/new">
+                  <Button className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl font-semibold text-indigo-700 bg-white hover:bg-indigo-50 shadow-md cursor-pointer hover:cursor-pointer">
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Nouvelle réservation
+                  </Button>
+                </Link>
               </div>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-3"
-            >
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className={`bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 h-12 px-6 rounded-xl transition-all duration-200 cursor-pointer ${
-                  showFilters ? "bg-white/20" : ""
-                }`}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Filtrer</span>
-                {hasActiveFilters && (
-                  <div className="ml-2 w-2 h-2 bg-yellow-400 rounded-full"></div>
-                )}
-              </Button>
-
-              <Link href="/bookings/new">
-                <Button className="bg-gradient-to-r from-white to-blue-50 text-blue-600 hover:from-blue-50 hover:to-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouvelle réservation
-                </Button>
-              </Link>
-            </motion.div>
+            {/* Statistiques compactes et respirantes */}
+            {loading ? (
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10"
+                  >
+                    <BaseSkeleton className="h-3.5 w-3.5 rounded-full bg-white/30" />
+                    <BaseSkeleton className="h-3.5 w-24 sm:w-28 bg-white/30" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 text-[12px] sm:text-[13px]">
+                <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                  <span>
+                    {dbRooms.filter((r) => r.status === "disponible").length}{" "}
+                    disponibles
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-300" />
+                  <span>
+                    {dbRooms.filter((r) => r.status === "occupée").length}{" "}
+                    occupées
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
+                  <Users className="h-3.5 w-3.5 text-sky-300" />
+                  <span>
+                    {dbRooms.reduce((sum, r) => sum + (r.capacity || 0), 0)}{" "}
+                    places au total
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
+                  <Heart className="h-3.5 w-3.5 text-rose-300" />
+                  <span>
+                    {dbRooms.filter((r) => r.isFavorite).length} favoris
+                  </span>
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
@@ -488,75 +453,91 @@ export default function RoomsPage() {
       {/* Barre de recherche et contrôles */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Recherche */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Rechercher une salle..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Contrôles */}
-            <div className="flex items-center gap-3">
-              {/* Tri */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">Trier par:</span>
-                <Select
-                  value={sortBy}
-                  onValueChange={(value: any) => setSortBy(value)}
-                >
-                  <SelectTrigger className="h-9 w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Nom</SelectItem>
-                    <SelectItem value="capacity">Capacité</SelectItem>
-                    <SelectItem value="occupancy">Occupation</SelectItem>
-                    <SelectItem value="rating">Note</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                  }
-                  className="h-9 w-9 p-0"
-                >
-                  {sortOrder === "asc" ? (
-                    <SortAsc className="h-4 w-4" />
-                  ) : (
-                    <SortDesc className="h-4 w-4" />
-                  )}
-                </Button>
+          {loading ? (
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              <div className="relative flex-1 max-w-md w-full">
+                <BaseSkeleton className="h-10 w-full rounded-xl bg-slate-200" />
               </div>
-
-              {/* Mode d'affichage */}
-              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className="h-8 w-8 p-0"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="h-8 w-8 p-0"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-2">
+                  <BaseSkeleton className="h-9 w-24 rounded-lg bg-slate-200" />
+                  <BaseSkeleton className="h-9 w-9 rounded-lg bg-slate-200" />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                  <BaseSkeleton className="h-8 w-8 rounded-md bg-slate-200" />
+                  <BaseSkeleton className="h-8 w-8 rounded-md bg-slate-200" />
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              {/* Recherche */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher une salle..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Contrôles */}
+              <div className="flex items-center gap-3">
+                {/* Tri */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-600">Trier par:</span>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value: any) => setSortBy(value)}
+                  >
+                    <SelectTrigger className="h-9 w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Nom</SelectItem>
+                      <SelectItem value="capacity">Capacité</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }
+                    className="h-9 w-9 p-0 cursor-pointer hover:cursor-pointer"
+                  >
+                    {sortOrder === "asc" ? (
+                      <SortAsc className="h-4 w-4" />
+                    ) : (
+                      <SortDesc className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {/* Mode d'affichage */}
+                <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -672,7 +653,55 @@ export default function RoomsPage() {
 
       {/* Section principale des salles */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {filteredAndSortedRooms.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden"
+              >
+                <div className="p-5 border-b border-slate-100/60">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <BaseSkeleton className="h-10 w-10 rounded-xl bg-slate-200" />
+                      <div className="flex-1 min-w-0">
+                        <BaseSkeleton className="h-5 w-40 mb-2 bg-slate-200" />
+                        <BaseSkeleton className="h-4 w-28 bg-slate-200" />
+                        <div className="mt-3 flex items-center gap-2">
+                          <BaseSkeleton className="h-6 w-20 rounded-full bg-slate-200" />
+                          <BaseSkeleton className="h-6 w-24 rounded-full bg-slate-200" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BaseSkeleton className="h-8 w-8 rounded-lg bg-slate-200" />
+                      <BaseSkeleton className="h-8 w-8 rounded-lg bg-slate-200" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 space-y-4">
+                  <BaseSkeleton className="h-4 w-full bg-slate-200" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <BaseSkeleton className="h-4 w-24 bg-slate-200" />
+                    <BaseSkeleton className="h-4 w-20 bg-slate-200" />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <BaseSkeleton
+                        key={i}
+                        className="h-7 w-24 rounded-xl bg-slate-200"
+                      />
+                    ))}
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <BaseSkeleton className="h-8 w-20 rounded-lg bg-slate-200" />
+                    <BaseSkeleton className="h-8 w-24 rounded-lg bg-slate-200" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredAndSortedRooms.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -702,7 +731,7 @@ export default function RoomsPage() {
             className="space-y-6"
           >
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredAndSortedRooms.map((room, index) => {
                   const statusConfig = getStatusConfig(room.status);
                   const typeConfig = getTypeConfig(room.type);
@@ -757,7 +786,7 @@ export default function RoomsPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => toggleFavorite(room.id)}
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
                               >
                                 <Heart
                                   className={`h-4 w-4 ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400"}`}
@@ -766,7 +795,7 @@ export default function RoomsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
                               >
                                 <MoreVertical className="h-4 w-4 text-slate-400" />
                               </Button>
@@ -787,18 +816,6 @@ export default function RoomsPage() {
                               <span className="font-medium">
                                 {room.capacity} places
                               </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Activity className="h-4 w-4 text-green-500" />
-                              <span>{room.occupancy}% occupation</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              <span>{room.rating}/5</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Clock className="h-4 w-4 text-orange-500" />
-                              <span>{room.nextBooking}</span>
                             </div>
                           </div>
 
@@ -930,7 +947,7 @@ export default function RoomsPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-8"
+                                  className="h-8 cursor-pointer hover:cursor-pointer"
                                 >
                                   <Eye className="h-3 w-3 mr-1" />
                                   Voir
@@ -940,7 +957,7 @@ export default function RoomsPage() {
                             <Link href={`/bookings/new?room=${room.id}`}>
                               <Button
                                 size="sm"
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8"
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8 cursor-pointer hover:cursor-pointer"
                                 disabled={room.status === "occupée"}
                               >
                                 Réserver
@@ -1010,16 +1027,6 @@ export default function RoomsPage() {
                                     <MapPin className="h-4 w-4 text-green-500" />
                                     <span className="truncate">
                                       {room.location}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Star className="h-4 w-4 text-yellow-500" />
-                                    <span>{room.rating}/5</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4 text-orange-500" />
-                                    <span className="truncate">
-                                      {room.nextBooking}
                                     </span>
                                   </div>
                                 </div>
@@ -1167,7 +1174,7 @@ export default function RoomsPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => toggleFavorite(room.id)}
-                                className="h-8 w-8 p-0"
+                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
                               >
                                 <Heart
                                   className={`h-4 w-4 ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400"}`}
@@ -1177,7 +1184,7 @@ export default function RoomsPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-8"
+                                  className="h-8 cursor-pointer hover:cursor-pointer"
                                 >
                                   <Eye className="h-3 w-3 mr-1" />
                                   <span className="hidden sm:inline">Voir</span>
@@ -1186,7 +1193,7 @@ export default function RoomsPage() {
                               <Link href={`/bookings/new?room=${room.id}`}>
                                 <Button
                                   size="sm"
-                                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8"
+                                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8 cursor-pointer hover:cursor-pointer"
                                   disabled={room.status === "occupée"}
                                 >
                                   <span className="hidden sm:inline">
