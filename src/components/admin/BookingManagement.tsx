@@ -42,6 +42,7 @@ import { BookingDetailModal } from "./BookingDetailModal";
 import { BookingEditModal } from "./BookingEditModal";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { BookingSkeleton } from "./BookingSkeleton";
+import { BookingFilterSidebar } from "./BookingFilterSidebar";
 
 export function BookingManagement() {
   const router = useRouter();
@@ -72,13 +73,6 @@ export function BookingManagement() {
 
   const handleNewBooking = () => {
     router.push("/bookings/new");
-  };
-
-  const statusCounts = {
-    all: bookings.length,
-    CONFIRMED: bookings.filter((b) => b.status === "CONFIRMED").length,
-    PENDING: bookings.filter((b) => b.status === "PENDING").length,
-    CANCELLED: bookings.filter((b) => b.status === "CANCELLED").length,
   };
 
   const getStatusBadge = (status: string) => {
@@ -138,128 +132,13 @@ export function BookingManagement() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-        {/* Statistiques sur le côté */}
-        <div className="lg:col-span-3 space-y-4">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5 sticky top-4"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-semibold text-slate-900">Statistiques</h3>
-              </div>
-
-              <div className="space-y-3">
-                <div
-                  onClick={() => setSelectedStatus("all")}
-                  className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedStatus === "all"
-                      ? "border-indigo-500 shadow-md bg-indigo-50"
-                      : "border-indigo-100 hover:border-indigo-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-sm font-medium ${
-                        selectedStatus === "all"
-                          ? "text-indigo-700"
-                          : "text-slate-600"
-                      }`}
-                    >
-                      Total
-                    </span>
-                    <span className="text-xl font-bold text-indigo-900">
-                      {statusCounts.all}
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setSelectedStatus("CONFIRMED")}
-                  className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedStatus === "CONFIRMED"
-                      ? "border-green-500 shadow-md bg-green-100"
-                      : "border-green-200 hover:border-green-400"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span
-                        className={`text-sm font-medium ${
-                          selectedStatus === "CONFIRMED"
-                            ? "text-green-900"
-                            : "text-green-700"
-                        }`}
-                      >
-                        Confirmées
-                      </span>
-                    </div>
-                    <span className="text-xl font-bold text-green-900">
-                      {statusCounts.CONFIRMED}
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setSelectedStatus("PENDING")}
-                  className={`bg-yellow-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedStatus === "PENDING"
-                      ? "border-yellow-500 shadow-md bg-yellow-100"
-                      : "border-yellow-200 hover:border-yellow-400"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-yellow-600" />
-                      <span
-                        className={`text-sm font-medium ${
-                          selectedStatus === "PENDING"
-                            ? "text-yellow-900"
-                            : "text-yellow-700"
-                        }`}
-                      >
-                        En attente
-                      </span>
-                    </div>
-                    <span className="text-xl font-bold text-yellow-900">
-                      {statusCounts.PENDING}
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setSelectedStatus("CANCELLED")}
-                  className={`bg-red-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedStatus === "CANCELLED"
-                      ? "border-red-500 shadow-md bg-red-100"
-                      : "border-red-200 hover:border-red-400"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-600" />
-                      <span
-                        className={`text-sm font-medium ${
-                          selectedStatus === "CANCELLED"
-                            ? "text-red-900"
-                            : "text-red-700"
-                        }`}
-                      >
-                        Annulées
-                      </span>
-                    </div>
-                    <span className="text-xl font-bold text-red-900">
-                      {statusCounts.CANCELLED}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+        {/* Filtres sur le côté */}
+        <div className="lg:col-span-3">
+          <BookingFilterSidebar
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            bookings={bookings}
+          />
         </div>
 
         {/* Liste des réservations */}

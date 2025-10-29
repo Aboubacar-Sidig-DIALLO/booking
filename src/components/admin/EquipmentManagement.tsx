@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DataLoader } from "@/components/admin/DataLoader";
+import { EquipmentSkeleton } from "@/components/admin/EquipmentSkeleton";
 import {
   useAdminEquipment,
   useCreateEquipment,
@@ -80,6 +80,7 @@ import {
   Building2,
   Waves,
   Plug,
+  Sofa,
 } from "lucide-react";
 
 interface Equipment {
@@ -106,6 +107,7 @@ const iconOptions = [
   { name: "Laptop", icon: Laptop },
   { name: "Phone", icon: Phone },
   { name: "Users", icon: Users },
+  { name: "Sofa", icon: Sofa },
   { name: "Thermometer", icon: Thermometer },
   { name: "Lightbulb", icon: Lightbulb },
   { name: "Table", icon: Table },
@@ -121,7 +123,29 @@ const iconOptions = [
 ];
 
 // Fonction utilitaire pour obtenir le composant d'icône
-const getIconComponent = (iconName: string | null | undefined) => {
+const getIconComponent = (
+  iconName: string | null | undefined,
+  equipmentName?: string
+) => {
+  // Mapping spécial pour certains équipements basé sur le nom
+  if (equipmentName) {
+    const name = equipmentName.toLowerCase();
+    if (
+      name.includes("chaise") ||
+      name.includes("siege") ||
+      name.includes("fauteuil")
+    ) {
+      return Sofa;
+    }
+    if (
+      name.includes("laptop") ||
+      name.includes("ordinateur") ||
+      name.includes("portable")
+    ) {
+      return Laptop;
+    }
+  }
+
   if (!iconName) return Settings;
   const iconOption = iconOptions.find((opt) => opt.name === iconName);
   return iconOption ? iconOption.icon : Settings;
@@ -461,11 +485,7 @@ export function EquipmentManagement() {
 
           {/* Liste des équipements */}
           {isLoading ? (
-            <DataLoader
-              message="Chargement des équipements..."
-              size="md"
-              variant="spinner"
-            />
+            <EquipmentSkeleton />
           ) : filteredEquipments.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
@@ -522,7 +542,8 @@ export function EquipmentManagement() {
                             >
                               {(() => {
                                 const IconComponent = getIconComponent(
-                                  equipment.icon
+                                  equipment.icon,
+                                  equipment.name
                                 );
                                 return (
                                   <IconComponent

@@ -137,18 +137,10 @@ export async function GET(req: NextRequest) {
         isMaintenance,
         // Filtrer pour ne montrer que les équipements actifs globalement ET activés pour cette organisation
         features: room.features
-          .filter(
-            (rf) =>
-              rf.feature.isActive === true &&
-              rf.feature.organizations.length > 0
-          )
+          .filter((rf) => rf.feature.isActive === true)
           .map((rf) => rf.feature.name),
         equipment: room.features
-          .filter(
-            (rf) =>
-              rf.feature.isActive === true &&
-              rf.feature.organizations.length > 0
-          )
+          .filter((rf) => rf.feature.isActive === true)
           .map((rf) => rf.feature.name), // Alias pour compatibilité
         currentBooking: activeBooking
           ? {

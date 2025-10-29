@@ -30,6 +30,10 @@ import { Button } from "@/components/ui/button";
 import { LoadingDots } from "@/components/ui/LoadingDots";
 import { RoomSkeleton } from "@/components/admin/RoomSkeleton";
 import { UserSkeleton } from "@/components/admin/UserSkeleton";
+import { StatsCardsSkeleton } from "@/components/admin/StatsCardsSkeleton";
+import { SystemAlertsSkeleton } from "@/components/admin/SystemAlertsSkeleton";
+import { RoomFilterSidebar } from "@/components/admin/RoomFilterSidebar";
+import { UserFilterSidebar } from "@/components/admin/UserFilterSidebar";
 import {
   Card,
   CardContent,
@@ -62,6 +66,24 @@ import {
   LogOut,
   Calendar as CalendarIcon,
   Clock,
+  Monitor,
+  Tv,
+  Mic,
+  Video,
+  Wifi,
+  Phone,
+  Square as Whiteboard,
+  Thermometer,
+  Lightbulb,
+  Table,
+  Coffee,
+  Presentation,
+  Laptop,
+  Shield,
+  Building2 as BuildingIcon,
+  Waves,
+  Plug,
+  Sofa,
 } from "lucide-react";
 
 // Interface pour les statistiques
@@ -317,6 +339,56 @@ const getAlertConfig = (type: string) => {
         icon: Bell,
       };
   }
+};
+
+// Mapping des équipements vers leurs icônes
+const getEquipmentIcon = (equipmentName: string) => {
+  const equipmentMap: { [key: string]: any } = {
+    Monitor: Monitor,
+    Ecran: Monitor,
+    Écran: Monitor,
+    TV: Tv,
+    Tv: Tv,
+    Présentation: Presentation,
+    Presentation: Presentation,
+    Micro: Mic,
+    Mic: Mic,
+    Microphone: Mic,
+    Vidéo: Video,
+    Video: Video,
+    Caméra: Video,
+    Camera: Video,
+    WiFi: Wifi,
+    Wifi: Wifi,
+    "Tableau blanc": Whiteboard,
+    Laptop: Laptop,
+    Ordinateur: Laptop,
+    Portable: Laptop,
+    "Chaises confortables": Sofa,
+    "Chaise confortable": Sofa,
+    Chaise: Sofa,
+    Chaises: Sofa,
+    Phone: Phone,
+    Users: Users,
+    Thermomètre: Thermometer,
+    Thermometer: Thermometer,
+    Éclairage: Lightbulb,
+    Lightbulb: Lightbulb,
+    Table: Table,
+    Café: Coffee,
+    Coffee: Coffee,
+    Security: Shield,
+    Shield: Shield,
+    Building: BuildingIcon,
+    Plug: Plug,
+    Waves: Waves,
+    Settings: Settings,
+    Climatisation: Thermometer,
+    "Système audio": Phone,
+    Projecteur: Monitor,
+  };
+
+  return equipmentMap[equipmentName] || Settings;
 };
 
 export default function AdminPage() {
@@ -697,325 +769,333 @@ export default function AdminPage() {
                 className="space-y-8"
               >
                 {/* Statistiques principales */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="group"
-                  >
-                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md hover:shadow-blue-100/50">
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <TooltipProvider>
-                              <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-blue-600 transition-colors">
-                                    Salles totales
+                {isLoadingStats ? (
+                  <StatsCardsSkeleton />
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="group"
+                    >
+                      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md hover:shadow-blue-100/50">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <TooltipProvider>
+                                <Tooltip delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-blue-600 transition-colors">
+                                      Salles totales
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="font-medium"
+                                  >
+                                    <div className="text-center">
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Salles disponibles
+                                      </p>
+                                      <p className="text-xs text-gray-600">
+                                        Nombre total de salles dans le système
+                                      </p>
+                                    </div>
+                                    <TooltipArrow />
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <div className="flex items-center mt-1">
+                                {isLoadingStats ? (
+                                  <LoadingDots size={8} color="#0f172a" />
+                                ) : (
+                                  <p className="text-2xl sm:text-3xl font-bold text-slate-900">
+                                    {statsData.totalRooms}
                                   </p>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  side="top"
-                                  className="font-medium"
-                                >
-                                  <div className="text-center">
-                                    <p className="font-semibold text-gray-900 mb-1">
-                                      Salles disponibles
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      Nombre total de salles dans le système
-                                    </p>
-                                  </div>
-                                  <TooltipArrow />
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <div className="flex items-center mt-1">
-                              {isLoadingStats ? (
-                                <LoadingDots size={8} color="#0f172a" />
-                              ) : (
-                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
-                                  {statsData.totalRooms}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1.5">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                              <span className="text-xs text-green-600 font-medium">
-                                {statsData.activeRooms} opérationnelles
-                              </span>
-                            </div>
-                          </div>
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                            <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="group"
-                  >
-                    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-md hover:shadow-green-100/50">
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <TooltipProvider>
-                              <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-green-600 transition-colors">
-                                    Réservations actives
-                                  </p>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  side="top"
-                                  className="font-medium"
-                                >
-                                  <div className="text-center">
-                                    <p className="font-semibold text-gray-900 mb-1">
-                                      Réservations en cours
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      Réservations actives aujourd'hui
-                                    </p>
-                                  </div>
-                                  <TooltipArrow />
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <div className="flex items-center mt-1">
-                              {isLoadingStats ? (
-                                <LoadingDots size={8} color="#0f172a" />
-                              ) : (
-                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
-                                  {statsData.activeBookings}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1.5">
-                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                              <span className="text-xs text-blue-600 font-medium">
-                                En cours
-                              </span>
-                            </div>
-                          </div>
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                            <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="group"
-                  >
-                    <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-md hover:shadow-purple-100/50">
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <TooltipProvider>
-                              <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-purple-600 transition-colors">
-                                    Utilisateurs
-                                  </p>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  side="top"
-                                  className="font-medium"
-                                >
-                                  <div className="text-center">
-                                    <p className="font-semibold text-gray-900 mb-1">
-                                      Utilisateurs enregistrés
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      Nombre total d'utilisateurs actifs
-                                    </p>
-                                  </div>
-                                  <TooltipArrow />
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <div className="flex items-center mt-1">
-                              {isLoadingStats ? (
-                                <LoadingDots size={8} color="#0f172a" />
-                              ) : (
-                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
-                                  {statsData.totalUsers}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1.5 whitespace-nowrap overflow-x-auto">
-                              <div className="flex items-center gap-1 whitespace-nowrap">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
-                                <span className="text-xs text-green-600 font-medium whitespace-nowrap">
-                                  {statsData.activeUsers} actifs
-                                </span>
+                                )}
                               </div>
-                              <div className="flex items-center gap-1 whitespace-nowrap">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></div>
-                                <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
-                                  {statsData.inactiveUsers} inactifs
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1 whitespace-nowrap">
-                                <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full flex-shrink-0"></div>
-                                <span className="text-xs text-yellow-700 font-medium whitespace-nowrap">
-                                  {statsData.pendingUsers} en attente
+                              <div className="flex items-center gap-1 mt-1.5">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                <span className="text-xs text-green-600 font-medium">
+                                  {statsData.activeRooms} opérationnelles
                                 </span>
                               </div>
                             </div>
+                            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                              <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                            </div>
                           </div>
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
 
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="group"
-                  >
-                    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 hover:border-amber-300 transition-all duration-300 hover:shadow-md hover:shadow-amber-100/50">
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <TooltipProvider>
-                              <Tooltip delayDuration={200}>
-                                <TooltipTrigger asChild>
-                                  <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-amber-600 transition-colors">
-                                    Salles en maintenance
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="group"
+                    >
+                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-md hover:shadow-green-100/50">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <TooltipProvider>
+                                <Tooltip delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-green-600 transition-colors">
+                                      Réservations actives
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="font-medium"
+                                  >
+                                    <div className="text-center">
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Réservations en cours
+                                      </p>
+                                      <p className="text-xs text-gray-600">
+                                        Réservations actives aujourd'hui
+                                      </p>
+                                    </div>
+                                    <TooltipArrow />
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <div className="flex items-center mt-1">
+                                {isLoadingStats ? (
+                                  <LoadingDots size={8} color="#0f172a" />
+                                ) : (
+                                  <p className="text-2xl sm:text-3xl font-bold text-slate-900">
+                                    {statsData.activeBookings}
                                   </p>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                  side="top"
-                                  className="font-medium"
-                                >
-                                  <div className="text-center">
-                                    <p className="font-semibold text-gray-900 mb-1">
-                                      Maintenance en cours
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                      Nombre de salles actuellement en
-                                      maintenance
-                                    </p>
-                                  </div>
-                                  <TooltipArrow />
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <div className="flex items-center mt-1">
-                              {isLoadingStats ? (
-                                <LoadingDots size={8} color="#0f172a" />
-                              ) : (
-                                <p className="text-2xl sm:text-3xl font-bold text-slate-900">
-                                  {statsData.maintenanceRooms}
-                                </p>
-                              )}
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1.5">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                <span className="text-xs text-blue-600 font-medium">
+                                  En cours
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1 mt-1.5">
-                              <Wrench className="h-3 w-3 text-amber-600" />
-                              <span className="text-xs text-amber-600 font-medium">
-                                Nécessitent attention
-                              </span>
+                            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                             </div>
                           </div>
-                          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                            <Wrench className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
 
-                {/* Alertes système */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Bell className="h-5 w-5 text-orange-600" />
-                        Alertes système
-                      </CardTitle>
-                      <CardDescription>
-                        Notifications et alertes importantes
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {systemAlerts.map((alert, index) => {
-                          const alertConfig = getAlertConfig(alert.type);
-                          const Icon = alertConfig.icon;
-                          return (
-                            <motion.div
-                              key={alert.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              className={`p-4 rounded-xl border-2 ${alertConfig.color} hover:shadow-md transition-shadow duration-300`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div
-                                  className={`h-10 w-10 rounded-lg ${alertConfig.iconBgColor} flex items-center justify-center flex-shrink-0`}
-                                >
-                                  <Icon
-                                    className={`h-5 w-5 ${alertConfig.iconColor}`}
-                                  />
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="group"
+                    >
+                      <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 hover:border-purple-300 transition-all duration-300 hover:shadow-md hover:shadow-purple-100/50">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <TooltipProvider>
+                                <Tooltip delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-purple-600 transition-colors">
+                                      Utilisateurs
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="font-medium"
+                                  >
+                                    <div className="text-center">
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Utilisateurs enregistrés
+                                      </p>
+                                      <p className="text-xs text-gray-600">
+                                        Nombre total d'utilisateurs actifs
+                                      </p>
+                                    </div>
+                                    <TooltipArrow />
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <div className="flex items-center mt-1">
+                                {isLoadingStats ? (
+                                  <LoadingDots size={8} color="#0f172a" />
+                                ) : (
+                                  <p className="text-2xl sm:text-3xl font-bold text-slate-900">
+                                    {statsData.totalUsers}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1.5 whitespace-nowrap overflow-x-auto">
+                                <div className="flex items-center gap-1 whitespace-nowrap">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
+                                  <span className="text-xs text-green-600 font-medium whitespace-nowrap">
+                                    {statsData.activeUsers} actifs
+                                  </span>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                                    <h4 className="font-semibold text-slate-900 text-sm leading-tight">
-                                      {alert.title}
-                                    </h4>
-                                    <Badge
-                                      className={`text-xs px-2 py-0.5 flex-shrink-0 ${
-                                        alert.priority === "high"
-                                          ? "bg-red-100 text-red-800 border-red-300"
-                                          : alert.priority === "medium"
-                                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                                            : "bg-green-100 text-green-800 border-green-300"
-                                      }`}
-                                    >
-                                      {alert.priority}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-xs text-slate-600 mb-2.5 leading-relaxed line-clamp-2">
-                                    {alert.message}
-                                  </p>
-                                  <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    {alert.timestamp}
+                                <div className="flex items-center gap-1 whitespace-nowrap">
+                                  <div className="w-1.5 h-1.5 bg-gray-400 rounded-full flex-shrink-0"></div>
+                                  <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
+                                    {statsData.inactiveUsers} inactifs
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 whitespace-nowrap">
+                                  <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full flex-shrink-0"></div>
+                                  <span className="text-xs text-yellow-700 font-medium whitespace-nowrap">
+                                    {statsData.pendingUsers} en attente
                                   </span>
                                 </div>
                               </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                            </div>
+                            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="group"
+                    >
+                      <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 hover:border-amber-300 transition-all duration-300 hover:shadow-md hover:shadow-amber-100/50">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <TooltipProvider>
+                                <Tooltip delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <p className="text-xs sm:text-sm font-semibold text-slate-700 cursor-help hover:text-amber-600 transition-colors">
+                                      Salles en maintenance
+                                    </p>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="font-medium"
+                                  >
+                                    <div className="text-center">
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Maintenance en cours
+                                      </p>
+                                      <p className="text-xs text-gray-600">
+                                        Nombre de salles actuellement en
+                                        maintenance
+                                      </p>
+                                    </div>
+                                    <TooltipArrow />
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <div className="flex items-center mt-1">
+                                {isLoadingStats ? (
+                                  <LoadingDots size={8} color="#0f172a" />
+                                ) : (
+                                  <p className="text-2xl sm:text-3xl font-bold text-slate-900">
+                                    {statsData.maintenanceRooms}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1.5">
+                                <Wrench className="h-3 w-3 text-amber-600" />
+                                <span className="text-xs text-amber-600 font-medium">
+                                  Nécessitent attention
+                                </span>
+                              </div>
+                            </div>
+                            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                              <Wrench className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </div>
+                )}
+
+                {/* Alertes système */}
+                {isLoadingStats ? (
+                  <SystemAlertsSkeleton />
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Bell className="h-5 w-5 text-orange-600" />
+                          Alertes système
+                        </CardTitle>
+                        <CardDescription>
+                          Notifications et alertes importantes
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {systemAlerts.map((alert, index) => {
+                            const alertConfig = getAlertConfig(alert.type);
+                            const Icon = alertConfig.icon;
+                            return (
+                              <motion.div
+                                key={alert.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className={`p-4 rounded-xl border-2 ${alertConfig.color} hover:shadow-md transition-shadow duration-300`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className={`h-10 w-10 rounded-lg ${alertConfig.iconBgColor} flex items-center justify-center flex-shrink-0`}
+                                  >
+                                    <Icon
+                                      className={`h-5 w-5 ${alertConfig.iconColor}`}
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                                      <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+                                        {alert.title}
+                                      </h4>
+                                      <Badge
+                                        className={`text-xs px-2 py-0.5 flex-shrink-0 ${
+                                          alert.priority === "high"
+                                            ? "bg-red-100 text-red-800 border-red-300"
+                                            : alert.priority === "medium"
+                                              ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                                              : "bg-green-100 text-green-800 border-green-300"
+                                        }`}
+                                      >
+                                        {alert.priority}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-slate-600 mb-2.5 leading-relaxed line-clamp-2">
+                                      {alert.message}
+                                    </p>
+                                    <span className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                      <Clock className="h-3.5 w-3.5" />
+                                      {alert.timestamp}
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
@@ -1030,145 +1110,13 @@ export default function AdminPage() {
               >
                 {/* Interface unifiée */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-                  {/* Stats sur le côté */}
-                  <div className="lg:col-span-3 space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 sticky top-4"
-                    >
-                      <div className="space-y-5">
-                        <div className="flex items-center gap-2 mb-5">
-                          <BarChart3 className="h-5 w-5 text-blue-600" />
-                          <h3 className="font-semibold text-slate-900">
-                            Statistiques
-                          </h3>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div
-                            onClick={() => setRoomFilter("all")}
-                            className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              roomFilter === "all"
-                                ? "border-blue-500 shadow-md bg-blue-50"
-                                : "border-blue-100 hover:border-blue-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span
-                                className={`text-sm font-medium ${
-                                  roomFilter === "all"
-                                    ? "text-blue-700"
-                                    : "text-slate-600"
-                                }`}
-                              >
-                                Total
-                              </span>
-                              <span className="text-xl font-bold text-blue-900">
-                                {rooms.length}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            onClick={() => setRoomFilter("available")}
-                            className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              roomFilter === "available"
-                                ? "border-green-500 shadow-md bg-green-100"
-                                : "border-green-200 hover:border-green-400"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span
-                                  className={`text-sm font-medium ${
-                                    roomFilter === "available"
-                                      ? "text-green-900"
-                                      : "text-green-700"
-                                  }`}
-                                >
-                                  Disponibles
-                                </span>
-                              </div>
-                              <span className="text-xl font-bold text-green-900">
-                                {
-                                  rooms.filter(
-                                    (r: any) =>
-                                      r.isActive &&
-                                      !r.isOccupied &&
-                                      !r.isMaintenance
-                                  ).length
-                                }
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            onClick={() => setRoomFilter("occupied")}
-                            className={`bg-orange-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              roomFilter === "occupied"
-                                ? "border-orange-500 shadow-md bg-orange-100"
-                                : "border-orange-100 hover:border-orange-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-orange-600" />
-                                <span
-                                  className={`text-sm font-medium ${
-                                    roomFilter === "occupied"
-                                      ? "text-orange-900"
-                                      : "text-orange-700"
-                                  }`}
-                                >
-                                  Occupées
-                                </span>
-                              </div>
-                              <span className="text-xl font-bold text-orange-900">
-                                {
-                                  rooms.filter(
-                                    (r) => r.isOccupied && !r.isMaintenance
-                                  ).length
-                                }
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            onClick={() => setRoomFilter("maintenance")}
-                            className={`bg-red-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              roomFilter === "maintenance"
-                                ? "border-red-500 shadow-md bg-red-100"
-                                : "border-red-100 hover:border-red-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Wrench className="h-4 w-4 text-red-600" />
-                                <span
-                                  className={`text-sm font-medium ${
-                                    roomFilter === "maintenance"
-                                      ? "text-red-900"
-                                      : "text-red-700"
-                                  }`}
-                                >
-                                  Maintenance
-                                </span>
-                              </div>
-                              <span className="text-xl font-bold text-red-900">
-                                {
-                                  rooms.filter(
-                                    (r: any) => r.isMaintenance || !r.isActive
-                                  ).length
-                                }
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
+                  {/* Filtres sur le côté */}
+                  <div className="lg:col-span-3">
+                    <RoomFilterSidebar
+                      roomFilter={roomFilter}
+                      setRoomFilter={setRoomFilter}
+                      rooms={rooms}
+                    />
                   </div>
 
                   {/* Salles au centre */}
@@ -1317,11 +1265,11 @@ export default function AdminPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                           <h4
-                                            className={`font-semibold text-sm sm:text-base leading-tight break-words ${style.textColor}`}
+                                            className={`font-semibold text-sm sm:text-base leading-tight truncate ${style.textColor}`}
                                           >
                                             {room.name}
                                           </h4>
-                                          <div className="flex items-center gap-2 text-xs">
+                                          <div className="flex items-center gap-2 text-xs flex-wrap">
                                             <span
                                               className={`${style.textColor} whitespace-nowrap`}
                                             >
@@ -1337,6 +1285,68 @@ export default function AdminPage() {
                                               </Badge>
                                             )}
                                           </div>
+                                          {/* Equipment icons */}
+                                          {((room.equipment &&
+                                            room.equipment.length > 0) ||
+                                            (room.features &&
+                                              room.features.length > 0)) && (
+                                            <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                                              {(
+                                                room.equipment ||
+                                                room.features ||
+                                                []
+                                              )
+                                                .slice(0, 4)
+                                                .map(
+                                                  (
+                                                    equipment: string,
+                                                    idx: number
+                                                  ) => {
+                                                    const IconComponent =
+                                                      getEquipmentIcon(
+                                                        equipment
+                                                      );
+                                                    return (
+                                                      <TooltipProvider
+                                                        key={idx}
+                                                      >
+                                                        <Tooltip
+                                                          delayDuration={200}
+                                                        >
+                                                          <TooltipTrigger
+                                                            asChild
+                                                          >
+                                                            <div className="p-0.5 bg-slate-100 rounded border border-slate-200 cursor-help">
+                                                              <IconComponent className="h-3 w-3 text-slate-600" />
+                                                            </div>
+                                                          </TooltipTrigger>
+                                                          <TooltipContent
+                                                            side="top"
+                                                            className="font-medium text-xs"
+                                                          >
+                                                            {equipment}
+                                                          </TooltipContent>
+                                                        </Tooltip>
+                                                      </TooltipProvider>
+                                                    );
+                                                  }
+                                                )}
+                                              {(
+                                                room.equipment ||
+                                                room.features ||
+                                                []
+                                              ).length > 4 && (
+                                                <span className="text-[10px] text-slate-500 px-1">
+                                                  +
+                                                  {(
+                                                    room.equipment ||
+                                                    room.features ||
+                                                    []
+                                                  ).length - 4}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                       <div className="flex items-center gap-1 flex-shrink-0">
@@ -1517,103 +1527,13 @@ export default function AdminPage() {
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-                  {/* Stats sur le côté */}
-                  <div className="lg:col-span-3 space-y-4">
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 rounded-xl p-5 sticky top-4"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Users className="h-5 w-5 text-purple-600" />
-                          <h3 className="font-semibold text-slate-900">
-                            Statistiques
-                          </h3>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div
-                            onClick={() => setUserFilter("all")}
-                            className={`bg-white rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              userFilter === "all"
-                                ? "border-purple-500 shadow-md bg-purple-50"
-                                : "border-purple-100 hover:border-purple-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span
-                                className={`text-sm font-medium ${
-                                  userFilter === "all"
-                                    ? "text-purple-700"
-                                    : "text-slate-600"
-                                }`}
-                              >
-                                Total
-                              </span>
-                              <span className="text-xl font-bold text-purple-900">
-                                {statsData.totalUsers}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            onClick={() => setUserFilter("active")}
-                            className={`bg-green-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              userFilter === "active"
-                                ? "border-green-500 shadow-md bg-green-100"
-                                : "border-green-200 hover:border-green-400"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span
-                                  className={`text-sm font-medium ${
-                                    userFilter === "active"
-                                      ? "text-green-900"
-                                      : "text-green-700"
-                                  }`}
-                                >
-                                  Actifs
-                                </span>
-                              </div>
-                              <span className="text-xl font-bold text-green-900">
-                                {statsData.activeUsers}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div
-                            onClick={() => setUserFilter("inactive")}
-                            className={`bg-gray-50 rounded-lg p-3 border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                              userFilter === "inactive"
-                                ? "border-gray-500 shadow-md bg-gray-100"
-                                : "border-gray-200 hover:border-gray-400"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-gray-600" />
-                                <span
-                                  className={`text-sm font-medium ${
-                                    userFilter === "inactive"
-                                      ? "text-gray-900"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  Inactifs
-                                </span>
-                              </div>
-                              <span className="text-xl font-bold text-gray-900">
-                                {statsData.inactiveUsers}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
+                  {/* Filtres sur le côté */}
+                  <div className="lg:col-span-3">
+                    <UserFilterSidebar
+                      userFilter={userFilter}
+                      setUserFilter={setUserFilter}
+                      users={users}
+                    />
                   </div>
 
                   {/* Utilisateurs au centre */}

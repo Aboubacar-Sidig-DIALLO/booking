@@ -38,11 +38,12 @@ import {
   Thermometer,
   Lightbulb,
   Table,
-  User,
   Plug,
   Phone,
   Users,
   Settings,
+  Laptop,
+  Sofa,
 } from "lucide-react";
 
 const RoomSchema = z.object({
@@ -129,10 +130,16 @@ export function RoomFormModal({
       Climatisation: Thermometer,
       "Éclairage dimmable": Lightbulb,
       "Tables mobiles": Table,
-      "Chaises confortables": User,
+      "Chaises confortables": Sofa,
+      "Chaise confortable": Sofa,
+      Chaise: Sofa,
+      Chaises: Sofa,
       "Prise électrique": Plug,
       Téléphone: Phone,
       Vidéoconférence: Users,
+      Laptop: Laptop,
+      Ordinateur: Laptop,
+      Portable: Laptop,
     };
     return iconMap[name] || Settings;
   };
