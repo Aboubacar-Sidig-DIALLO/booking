@@ -510,15 +510,19 @@ export function DateTimeRangePicker({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {/* Sélection rapide de date */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {[
                 { label: "Aujourd'hui", date: new Date() },
                 {
                   label: "Demain",
                   date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                },
+                {
+                  label: "Après-demain",
+                  date: new Date(Date.now() + 48 * 60 * 60 * 1000),
                 },
                 {
                   label: "Lundi",

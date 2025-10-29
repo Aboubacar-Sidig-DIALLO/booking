@@ -9,8 +9,7 @@ import DateTimeRangePicker, {
 } from "@/components/ui/datetime-range-picker";
 import { Button } from "@/components/ui/button";
 import ParticipantsPicker, { Participant } from "./ParticipantsPicker";
-import PrivacySelector, { Privacy } from "./PrivacySelector";
-import RecurrenceEditor from "./RecurrenceEditor";
+import { Privacy } from "./PrivacySelector";
 import { api } from "@/lib/api";
 import { useEffect, useState as useReactState, useCallback } from "react";
 import { useState } from "react";
@@ -31,7 +30,6 @@ import {
   Monitor,
   Coffee,
   Star,
-  AlertTriangle,
 } from "lucide-react";
 import AttendeeCountSelector from "./AttendeeCountSelector";
 import RoomSuggestions from "./RoomSuggestions";
@@ -50,18 +48,30 @@ type Step1Values = z.infer<typeof step1Schema>;
 const steps = [
   {
     id: 1,
-    title: "Salle & Créneau",
-    icon: MapPin,
-    description: "Choisissez votre espace et horaire",
+    title: "Participants",
+    icon: Users,
+    description: "Titre et nombre de participants",
   },
   {
     id: 2,
-    title: "Configuration",
-    icon: Users,
-    description: "Participants et options",
+    title: "Planification",
+    icon: Clock,
+    description: "Définissez le créneau horaire",
   },
   {
     id: 3,
+    title: "Suggestions intelligentes",
+    icon: MapPin,
+    description: "Choisissez votre espace",
+  },
+  {
+    id: 4,
+    title: "Ajout de participants",
+    icon: Users,
+    description: "Ajoutez les personnes invitées",
+  },
+  {
+    id: 5,
     title: "Confirmation",
     icon: CheckCircle,
     description: "Vérifiez et confirmez",
@@ -95,7 +105,7 @@ export default function BookingWizard() {
     form.setValue("to", v.to, { shouldValidate: false });
   };
 
-  const [step, setStep] = useReactState<1 | 2 | 3>(1);
+  const [step, setStep] = useReactState<1 | 2 | 3 | 4 | 5>(1);
   const [participants, setParticipants] = useReactState<Participant[]>([]);
   const [privacy, setPrivacy] = useReactState<Privacy>("public");
   const [recurrence, setRecurrence] = useReactState<string | null>(null);
@@ -118,7 +128,7 @@ export default function BookingWizard() {
       return;
     }
 
-    if (step === 3) {
+    if (step === 5) {
       // Vérifier l'authentification avant de soumettre
       if (status === "loading") {
         alert("Vérification de l'authentification en cours...");
@@ -213,44 +223,14 @@ export default function BookingWizard() {
   }, [participants.length, attendeeCount]);
 
   const nextStep = () => {
-    if (step === 2) {
-      const validation = validateStep2();
-      if (!validation.isValid) {
-        // Si l'alerte n'est pas déjà affichée, l'afficher
-        if (!showParticipantAlert) {
-          setShowParticipantAlert(true);
-          setAlertMessage(validation.message);
-          setAlertDetails(validation.details);
-        }
-
-        // Faire défiler vers l'alerte à chaque clic sur "Suivant"
-        setTimeout(() => {
-          const alertElement = document.querySelector(
-            "[data-participant-alert]"
-          );
-          if (alertElement) {
-            alertElement.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-        }, 100);
-
-        return;
-      } else {
-        // Validation réussie, masquer l'alerte et passer à l'étape suivante
-        setShowParticipantAlert(false);
-      }
-    }
-
-    if (step < 3) {
-      setStep((step + 1) as 1 | 2 | 3);
+    if (step < 5) {
+      setStep((step + 1) as 1 | 2 | 3 | 4 | 5);
     }
   };
 
   const prevStep = () => {
     if (step > 1) {
-      setStep((step - 1) as 1 | 2 | 3);
+      setStep((step - 1) as 1 | 2 | 3 | 4 | 5);
     }
   };
 
@@ -366,7 +346,7 @@ export default function BookingWizard() {
   const handleStepClick = (stepId: number) => {
     // Permettre la navigation seulement vers les étapes précédentes ou l'étape actuelle
     if (stepId <= step) {
-      setStep(stepId as 1 | 2 | 3);
+      setStep(stepId as 1 | 2 | 3 | 4 | 5);
       // Le scroll sera géré par le useEffect qui surveille [step]
     }
   };
@@ -416,7 +396,7 @@ export default function BookingWizard() {
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
             initial={{ width: "0%" }}
-            animate={{ width: `${((step - 1) / 2) * 100}%` }}
+            animate={{ width: `${((step - 1) / 4) * 100}%` }}
             transition={{ duration: 0.5 }}
           />
         </div>
@@ -520,7 +500,7 @@ export default function BookingWizard() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 items-start">
                   {/* Titre de la réunion */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-slate-700">
@@ -558,10 +538,23 @@ export default function BookingWizard() {
                         shouldValidate: true,
                       });
                     }}
+                    compact
                   />
                 </div>
               </div>
+              {/* Rien d'autre à l'étape 1 */}
+            </motion.div>
+          )}
 
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6 sm:space-y-8"
+            >
               {/* Section Créneau */}
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
@@ -600,7 +593,18 @@ export default function BookingWizard() {
                   )}
                 </div>
               </div>
+            </motion.div>
+          )}
 
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6 sm:space-y-8"
+            >
               {/* Suggestions de salles */}
               {showSuggestions && !showManualSelector && (
                 <RoomSuggestions
@@ -797,9 +801,9 @@ export default function BookingWizard() {
             </motion.div>
           )}
 
-          {step === 2 && (
+          {step === 4 && (
             <motion.div
-              key="step2"
+              key="step4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -813,104 +817,27 @@ export default function BookingWizard() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base sm:text-lg font-semibold text-slate-900">
-                      Configuration avancée
+                      Ajout de participants
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Personnalisez votre réservation
+                      Indiquez les personnes invitées (vous êtes ajouté par
+                      défaut)
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-4 sm:space-y-6">
-                  <ParticipantsPicker
-                    value={participants}
-                    onChange={setParticipants}
-                    maxParticipants={attendeeCount}
-                  />
-
-                  {/* Alerte pour participants manquants */}
-                  <AnimatePresence>
-                    {showParticipantAlert && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 shadow-lg"
-                        data-participant-alert
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
-                              <AlertTriangle className="h-4 w-4 text-white" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-semibold text-amber-900 mb-1">
-                              {alertMessage}
-                            </h4>
-                            <p className="text-xs text-amber-700 leading-relaxed mb-3">
-                              {alertDetails}
-                            </p>
-
-                            {/* Barre de progression */}
-                            {participants.length > 0 && (
-                              <div className="mb-3">
-                                <div className="flex justify-between text-xs text-amber-700 mb-1">
-                                  <span>
-                                    Participants ajoutés: {participants.length}
-                                  </span>
-                                  <span>Total requis: {attendeeCount}</span>
-                                </div>
-                                <div className="w-full bg-amber-200 rounded-full h-2">
-                                  <div
-                                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all duration-300"
-                                    style={{
-                                      width: `${Math.min((participants.length / attendeeCount) * 100, 100)}%`,
-                                    }}
-                                  ></div>
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setShowParticipantAlert(false)}
-                                className="text-xs bg-white hover:bg-amber-50 border-amber-300 text-amber-700"
-                              >
-                                Compris
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setShowParticipantAlert(false);
-                                  setStep(3);
-                                }}
-                                className="text-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                              >
-                                Continuer quand même
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <PrivacySelector value={privacy} onChange={setPrivacy} />
-                  <RecurrenceEditor
-                    value={recurrence}
-                    onChange={setRecurrence}
-                  />
-                </div>
+                <ParticipantsPicker
+                  value={participants}
+                  onChange={setParticipants}
+                  maxParticipants={attendeeCount}
+                />
               </div>
             </motion.div>
           )}
 
-          {step === 3 && (
+          {step === 5 && (
             <motion.div
-              key="step3"
+              key="step5"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -1025,11 +952,44 @@ export default function BookingWizard() {
           </div>
 
           <div className="flex items-center space-x-3 order-1 sm:order-2 w-full sm:w-auto">
-            {step < 3 ? (
+            {step < 5 ? (
               <Button
-                type={step === 1 ? "submit" : "button"}
-                onClick={step === 2 ? nextStep : undefined}
-                disabled={step === 1 && !form.formState.isValid}
+                type="button"
+                onClick={() => {
+                  if (step === 1) {
+                    const title = form.getValues("title");
+                    if (!title || title.trim().length === 0) {
+                      form.trigger("title");
+                      return;
+                    }
+                    setStep(2);
+                    return;
+                  }
+                  if (step === 2) {
+                    nextStep();
+                    return;
+                  }
+                  if (step === 3) {
+                    if (!selectedRoomId) {
+                      openManualSelectorAvailableOnly();
+                      setTimeout(
+                        () => window.scrollTo({ top: 0, behavior: "smooth" }),
+                        50
+                      );
+                      return;
+                    }
+                    nextStep();
+                    return;
+                  }
+                  if (step === 4) {
+                    nextStep();
+                  }
+                }}
+                disabled={
+                  (step === 1 &&
+                    !(form.getValues("title") || "").trim().length) ||
+                  (step === 3 && !selectedRoomId)
+                }
                 className="h-10 sm:h-12 px-6 sm:px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-sm sm:text-base cursor-pointer"
               >
                 {step === 1 ? "Continuer" : "Suivant"}

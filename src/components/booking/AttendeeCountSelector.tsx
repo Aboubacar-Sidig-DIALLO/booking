@@ -1,14 +1,15 @@
 "use client";
 
-import { Users, Minus, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface AttendeeCountSelectorProps {
   value: number;
   onChange: (count: number) => void;
   min?: number;
   max?: number;
+  compact?: boolean;
 }
 
 const QUICK_COUNTS = [2, 4, 6, 8, 12, 16, 20];
@@ -18,75 +19,83 @@ export default function AttendeeCountSelector({
   onChange,
   min = 1,
   max = 50,
+  compact = false,
 }: AttendeeCountSelectorProps) {
-  const handleIncrement = () => {
-    if (value < max) onChange(value + 1);
+  const handleInput = (val: string) => {
+    if (val === "") {
+      onChange(min);
+      return;
+    }
+    const parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) return;
+    const clamped = Math.max(min, Math.min(max, parsed));
+    onChange(clamped);
   };
 
-  const handleDecrement = () => {
-    if (value > min) onChange(value - 1);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <Users className="h-4 w-4 text-purple-600" />
-        <Label className="font-medium text-slate-900">
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-slate-700">
           Nombre de participants
         </Label>
+        <div className="relative">
+          <Input
+            type="number"
+            min={min}
+            max={max}
+            step={1}
+            inputMode="numeric"
+            value={value}
+            onChange={(e) => handleInput(e.target.value)}
+            className="h-12 pr-24 font-semibold"
+            aria-label="Nombre de participants"
+          />
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-500">
+            participants
+          </span>
+        </div>
       </div>
+    );
+  }
 
-      {/* Sélecteur principal */}
-      <div className="flex items-center justify-center space-x-4 bg-white rounded-xl border border-slate-200 p-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleDecrement}
-          disabled={value <= min}
-          className="h-10 w-10 rounded-full border-slate-300 hover:bg-slate-50"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-
-        <div className="text-center min-w-[80px]">
-          <div className="text-2xl font-bold text-slate-900">{value}</div>
-          <div className="text-xs text-slate-500">
-            {value === 1 ? "personne" : "personnes"}
+  return (
+    <div
+      className={`bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm`}
+    >
+      <div
+        className={`flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 justify-between`}
+      >
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Users className="h-4 w-4 text-white" />
+          </div>
+          <div className="min-w-0">
+            <Label className="font-semibold text-slate-900 block">
+              Nombre de participants
+            </Label>
+            <div className="mt-1.5 text-[11px] sm:text-xs text-slate-500">
+              Entre {min} et {max}.
+            </div>
           </div>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleIncrement}
-          disabled={value >= max}
-          className="h-10 w-10 rounded-full border-slate-300 hover:bg-slate-50"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Sélection rapide */}
-      <div className="space-y-2">
-        <Label className="text-sm text-slate-700">
-          {" "}
-          Nombre de participants courants{" "}
-        </Label>
-        <div className="flex flex-wrap gap-2">
-          {QUICK_COUNTS.map((count) => (
-            <Button
-              key={count}
-              type="button"
-              variant={value === count ? "default" : "outline"}
-              size="sm"
-              onClick={() => onChange(count)}
-              className="h-8 px-3 text-xs"
-            >
-              {count}
-            </Button>
-          ))}
+        <div className={`w-full sm:w-auto sm:min-w-[260px]`}>
+          <div className="relative">
+            <Input
+              type="number"
+              min={min}
+              max={max}
+              step={1}
+              inputMode="numeric"
+              value={value}
+              onChange={(e) => handleInput(e.target.value)}
+              className="h-11 sm:h-12 pr-24 text-base sm:text-lg font-semibold"
+              aria-label="Nombre de participants"
+            />
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-500">
+              participants
+            </span>
+          </div>
         </div>
       </div>
     </div>
