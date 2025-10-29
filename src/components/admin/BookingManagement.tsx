@@ -15,8 +15,10 @@ import {
   Building2,
   Eye,
   Edit,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -47,6 +49,7 @@ import { BookingFilterSidebar } from "./BookingFilterSidebar";
 export function BookingManagement() {
   const router = useRouter();
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [roomSearch, setRoomSearch] = useState("");
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
     null
   );
@@ -129,6 +132,14 @@ export function BookingManagement() {
     return new Date(start) <= now && new Date(end) >= now;
   };
 
+  const visibleBookings = (bookings || []).filter((b: any) =>
+    roomSearch.trim()
+      ? (b.room?.name || "")
+          .toLowerCase()
+          .includes(roomSearch.trim().toLowerCase())
+      : true
+  );
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
@@ -157,21 +168,44 @@ export function BookingManagement() {
                       : `Réservations ${selectedStatus.toLowerCase()}`}
                   </CardDescription>
                 </div>
-                {bookings.length > 0 && (
-                  <Button
-                    onClick={handleNewBooking}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nouvelle réservation
-                  </Button>
-                )}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-72">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </div>
+                    <Input
+                      value={roomSearch}
+                      onChange={(e) => setRoomSearch(e.target.value)}
+                      placeholder="Rechercher par salle..."
+                      className="pl-9 h-9 rounded-xl bg-white/80 backdrop-blur border-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-transparent transition-shadow shadow-sm focus-visible:shadow-md"
+                    />
+                    {roomSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setRoomSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 rounded-md p-1"
+                        aria-label="Effacer la recherche"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {bookings.length > 0 && (
+                    <Button
+                      onClick={handleNewBooking}
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nouvelle réservation
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
               {isLoadingBookings ? (
                 <BookingSkeleton />
-              ) : bookings.length === 0 ? (
+              ) : visibleBookings.length === 0 ? (
                 <EmptyState
                   icon={Calendar}
                   title={`Aucune réservation ${selectedStatus !== "all" ? selectedStatus.toLowerCase() : ""}`}
@@ -188,7 +222,7 @@ export function BookingManagement() {
                 />
               ) : (
                 <div className="space-y-3">
-                  {bookings.map((booking, index) => (
+                  {visibleBookings.map((booking, index) => (
                     <motion.div
                       key={booking.id}
                       initial={{ opacity: 0, y: 20 }}

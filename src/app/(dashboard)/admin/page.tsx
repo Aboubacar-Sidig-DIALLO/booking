@@ -27,6 +27,7 @@ import {
   useDeleteUser,
 } from "@/hooks/use-admin-queries";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { LoadingDots } from "@/components/ui/LoadingDots";
 import { RoomSkeleton } from "@/components/admin/RoomSkeleton";
 import { UserSkeleton } from "@/components/admin/UserSkeleton";
@@ -72,6 +73,7 @@ import {
   Video,
   Wifi,
   Phone,
+  Search,
   Square as Whiteboard,
   Thermometer,
   Lightbulb,
@@ -428,6 +430,7 @@ export default function AdminPage() {
   const [userFilter, setUserFilter] = useState<"all" | "active" | "inactive">(
     "all"
   );
+  const [userSearch, setUserSearch] = useState("");
 
   // État pour le filtre des salles
   const [roomFilter, setRoomFilter] = useState<
@@ -456,15 +459,16 @@ export default function AdminPage() {
 
   // Optimisation : Utilisateurs filtrés avec useMemo
   const filteredUsers = useMemo(() => {
-    if (userFilter === "all") return users;
+    let base = users as any[];
     if (userFilter === "active") {
-      return users.filter((user: any) => user.status === "active");
+      base = users.filter((user: any) => user.status === "active");
+    } else if (userFilter === "inactive") {
+      base = users.filter((user: any) => user.status !== "active");
     }
-    if (userFilter === "inactive") {
-      return users.filter((user: any) => user.status !== "active");
-    }
-    return users;
-  }, [users, userFilter]);
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter((u: any) => (u.name || "").toLowerCase().includes(q));
+  }, [users, userFilter, userSearch]);
 
   // Optimisation : Salles filtrées avec useMemo
   const filteredRooms = useMemo(() => {
@@ -1552,20 +1556,41 @@ export default function AdminPage() {
                               Gérez les utilisateurs et leurs permissions
                             </CardDescription>
                           </div>
-                          {users.length > 0 && (
-                            <Button
-                              onClick={handleAddUser}
-                              className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white cursor-pointer w-full sm:w-auto text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-6"
-                            >
-                              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                              <span className="hidden md:inline">
-                                Ajouter un utilisateur
-                              </span>
-                              <span className="md:hidden">
-                                Nouvel utilisateur
-                              </span>
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="relative w-full sm:w-72">
+                              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <Search className="h-4 w-4 text-slate-400" />
+                              </div>
+                              <Input
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                                placeholder="Rechercher un utilisateur..."
+                                className="pl-9 h-9 rounded-xl bg-white/80 backdrop-blur border-slate-200 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-transparent transition-shadow shadow-sm focus-visible:shadow-md"
+                              />
+                              {userSearch && (
+                                <button
+                                  type="button"
+                                  onClick={() => setUserSearch("")}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 rounded-md p-1"
+                                  aria-label="Effacer la recherche"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            {users.length > 0 && (
+                              <Button
+                                onClick={handleAddUser}
+                                className="bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:cursor-pointer text-white cursor-pointer text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-xl"
+                              >
+                                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                                <span className="hidden md:inline">
+                                  Ajouter
+                                </span>
+                                <span className="md:hidden">Ajouter</span>
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
@@ -1632,7 +1657,7 @@ export default function AdminPage() {
                               {filteredUsers.map((user, index) => {
                                 const userInitials = user.name
                                   .split(" ")
-                                  .map((n) => n[0])
+                                  .map((n: string) => n[0])
                                   .join("")
                                   .toUpperCase()
                                   .slice(0, 2);
