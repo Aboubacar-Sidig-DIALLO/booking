@@ -14,6 +14,7 @@ import { useEffect, useState as useReactState, useCallback } from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import {
   MapPin,
   Users,
@@ -79,6 +80,8 @@ const steps = [
 
 export default function BookingWizard() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const roomParam = searchParams?.get("room");
 
   const [range, setRange] = useState<DateTimeRange>(() => ({
     from: new Date().toISOString().slice(0, 16),
@@ -90,7 +93,7 @@ export default function BookingWizard() {
     defaultValues: {
       attendeeCount: 2,
       title: "",
-      roomId: "",
+      roomId: roomParam || "",
       from: range.from,
       to: range.to,
     },
@@ -110,7 +113,7 @@ export default function BookingWizard() {
   const [recurrence, setRecurrence] = useReactState<string | null>(null);
   const [submitting, setSubmitting] = useReactState(false);
   const [attendeeCount, setAttendeeCount] = useState(2);
-  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [selectedRoomId, setSelectedRoomId] = useState<string>(roomParam || "");
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showManualSelector, setShowManualSelector] = useState(false);
@@ -221,24 +224,37 @@ export default function BookingWizard() {
     return { isValid: true };
   }, [participants.length, attendeeCount]);
 
+  // Vérifier si une salle est déjà sélectionnée (via URL ou manuellement)
+  const hasRoomSelected = !!selectedRoomId;
+
   const nextStep = () => {
     if (step < 5) {
-      setStep((step + 1) as 1 | 2 | 3 | 4 | 5);
+      // Si on est à l'étape 2 et qu'une salle est déjà sélectionnée, sauter l'étape 3
+      if (step === 2 && hasRoomSelected) {
+        setStep(4);
+      } else {
+        setStep((step + 1) as 1 | 2 | 3 | 4 | 5);
+      }
     }
   };
 
   const prevStep = () => {
     if (step > 1) {
-      setStep((step - 1) as 1 | 2 | 3 | 4 | 5);
+      // Si on est à l'étape 4 et qu'une salle était déjà sélectionnée, revenir à l'étape 2
+      if (step === 4 && hasRoomSelected) {
+        setStep(2);
+      } else {
+        setStep((step - 1) as 1 | 2 | 3 | 4 | 5);
+      }
     }
   };
 
-  // Déclencher les suggestions quand les critères changent
+  // Déclencher les suggestions quand les critères changent (seulement si pas de salle pré-sélectionnée)
   useEffect(() => {
-    if (attendeeCount > 0 && range.from && range.to) {
+    if (!hasRoomSelected && attendeeCount > 0 && range.from && range.to) {
       setShowSuggestions(true);
     }
-  }, [attendeeCount, range.from, range.to]);
+  }, [attendeeCount, range.from, range.to, hasRoomSelected]);
 
   // Scroll automatique vers le haut lors du changement d'étape
   useEffect(() => {
@@ -329,6 +345,14 @@ export default function BookingWizard() {
     }
   };
 
+  // Charger les détails de la salle si elle est fournie via l'URL
+  useEffect(() => {
+    if (roomParam && !selectedRoom) {
+      handleRoomSelect(roomParam, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomParam]);
+
   // Fonction pour ouvrir le sélecteur avec toutes les salles (disponibles + occupées)
   const openManualSelectorWithAll = () => {
     setShowUnavailableByDefault(true);
@@ -344,8 +368,13 @@ export default function BookingWizard() {
   // Fonction pour gérer le clic sur les étapes de la timeline
   const handleStepClick = (stepId: number) => {
     // Permettre la navigation seulement vers les étapes précédentes ou l'étape actuelle
-    if (stepId <= step) {
-      setStep(stepId as 1 | 2 | 3 | 4 | 5);
+    if (stepId <= step || (hasRoomSelected && stepId === 4 && step >= 2)) {
+      // Si une salle est sélectionnée et qu'on clique sur l'étape 4, autoriser la navigation
+      if (hasRoomSelected && stepId === 4 && step >= 2) {
+        setStep(4);
+      } else if (stepId <= step) {
+        setStep(stepId as 1 | 2 | 3 | 4 | 5);
+      }
       // Le scroll sera géré par le useEffect qui surveille [step]
     }
   };
@@ -395,80 +424,110 @@ export default function BookingWizard() {
           <motion.div
             className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
             initial={{ width: "0%" }}
-            animate={{ width: `${((step - 1) / 4) * 100}%` }}
+            animate={{
+              width: hasRoomSelected
+                ? step === 1
+                  ? "0%"
+                  : step === 2
+                    ? "33%"
+                    : step === 4
+                      ? "66%"
+                      : step === 5
+                        ? "100%"
+                        : "66%"
+                : `${((step - 1) / 4) * 100}%`,
+            }}
             transition={{ duration: 0.5 }}
           />
         </div>
 
         <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10 px-2">
-          {steps.map((stepItem, index) => {
-            const Icon = stepItem.icon;
-            const isActive = step === stepItem.id;
-            const isCompleted = step > stepItem.id;
+          {steps
+            .filter((stepItem) => !(hasRoomSelected && stepItem.id === 3))
+            .map((stepItem, index) => {
+              const Icon = stepItem.icon;
+              // Ajuster la logique pour tenir compte de l'étape 3 masquée
+              let adjustedStep = step;
+              if (hasRoomSelected && step >= 4) {
+                // Si une salle est sélectionnée et qu'on est à l'étape 4 ou 5,
+                // considérer qu'on a complété les étapes précédentes
+                adjustedStep = step === 4 ? 4 : 5;
+              }
+              const isActive = adjustedStep === stepItem.id;
+              // Pour isCompleted, si on a une salle sélectionnée et qu'on est à l'étape 4,
+              // l'étape 2 est complétée (on a sauté l'étape 3)
+              const isCompleted = hasRoomSelected
+                ? (stepItem.id === 1 && adjustedStep >= 2) ||
+                  (stepItem.id === 2 && adjustedStep >= 4) ||
+                  (stepItem.id === 4 && adjustedStep >= 5) ||
+                  (stepItem.id === 5 && adjustedStep > 5)
+                : step > stepItem.id;
 
-            const isClickable = stepItem.id <= step;
+              const isClickable =
+                stepItem.id <= adjustedStep ||
+                (hasRoomSelected && stepItem.id === 4 && adjustedStep >= 2);
 
-            return (
-              <div
-                key={stepItem.id}
-                className="flex flex-col items-center space-y-2 sm:space-y-3 flex-1 min-w-0"
-              >
-                <motion.button
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => handleStepClick(stepItem.id)}
-                  disabled={!isClickable}
-                  className={`relative h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 bg-white ${
-                    isActive
-                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
-                      : isCompleted
-                        ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:from-emerald-500 hover:to-green-600 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 hover:ring-2 hover:ring-emerald-200"
-                        : "bg-slate-100 text-slate-400"
-                  } ${
-                    isClickable && !isActive && !isCompleted
-                      ? "cursor-pointer hover:bg-gradient-to-br hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105"
-                      : isClickable
-                        ? "cursor-pointer"
-                        : "cursor-not-allowed opacity-60"
-                  }`}
+              return (
+                <div
+                  key={stepItem.id}
+                  className="flex flex-col items-center space-y-2 sm:space-y-3 flex-1 min-w-0"
                 >
-                  <Icon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
-                  {isCompleted && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-3 w-3 sm:h-4 sm:w-4 bg-green-500 rounded-full flex items-center justify-center"
-                    >
-                      <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
-                    </motion.div>
-                  )}
-                </motion.button>
-                <div className="text-center px-1">
-                  <h3
-                    className={`text-xs sm:text-sm font-semibold leading-tight transition-colors duration-200 ${
+                  <motion.button
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => handleStepClick(stepItem.id)}
+                    disabled={!isClickable}
+                    className={`relative h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 bg-white ${
                       isActive
-                        ? "text-slate-900"
+                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                        : isCompleted
+                          ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/25 hover:from-emerald-500 hover:to-green-600 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 hover:ring-2 hover:ring-emerald-200"
+                          : "bg-slate-100 text-slate-400"
+                    } ${
+                      isClickable && !isActive && !isCompleted
+                        ? "cursor-pointer hover:bg-gradient-to-br hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105"
                         : isClickable
-                          ? "text-slate-600 hover:text-slate-800"
-                          : "text-slate-500"
+                          ? "cursor-pointer"
+                          : "cursor-not-allowed opacity-60"
                     }`}
                   >
-                    <span className="hidden sm:inline">{stepItem.title}</span>
-                    <span className="sm:hidden">
-                      {stepItem.title.split(" ")[0]}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-tight hidden sm:block">
-                    {stepItem.description}
-                    <span className="block text-xs text-blue-500 mt-1 opacity-75 h-2 w-full">
-                      {isClickable && !isActive && "Cliquer pour revenir"}
-                    </span>
-                  </p>
+                    <Icon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                    {isCompleted && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 h-3 w-3 sm:h-4 sm:w-4 bg-green-500 rounded-full flex items-center justify-center"
+                      >
+                        <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                  <div className="text-center px-1">
+                    <h3
+                      className={`text-xs sm:text-sm font-semibold leading-tight transition-colors duration-200 ${
+                        isActive
+                          ? "text-slate-900"
+                          : isClickable
+                            ? "text-slate-600 hover:text-slate-800"
+                            : "text-slate-500"
+                      }`}
+                    >
+                      <span className="hidden sm:inline">{stepItem.title}</span>
+                      <span className="sm:hidden">
+                        {stepItem.title.split(" ")[0]}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-tight hidden sm:block">
+                      {stepItem.description}
+                      <span className="block text-xs text-blue-500 mt-1 opacity-75 h-2 w-full">
+                        {isClickable && !isActive && "Cliquer pour revenir"}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
 
@@ -968,7 +1027,7 @@ export default function BookingWizard() {
                     nextStep();
                     return;
                   }
-                  if (step === 3) {
+                  if (step === 3 && !hasRoomSelected) {
                     if (!selectedRoomId) {
                       openManualSelectorAvailableOnly();
                       setTimeout(

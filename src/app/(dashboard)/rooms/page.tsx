@@ -393,12 +393,6 @@ export default function RoomsPage() {
                   <Filter className="h-4 w-4 mr-1.5" />
                   <span className="hidden sm:inline">Filtres</span>
                 </Button>
-                <Link href="/bookings/new">
-                  <Button className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl font-semibold text-indigo-700 bg-white hover:bg-indigo-50 shadow-md cursor-pointer hover:cursor-pointer">
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Nouvelle réservation
-                  </Button>
-                </Link>
               </div>
             </div>
 
@@ -654,53 +648,115 @@ export default function RoomsPage() {
       {/* Section principale des salles */}
       <div className="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 6 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden"
-              >
-                <div className="p-5 border-b border-slate-100/60">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <BaseSkeleton className="h-10 w-10 rounded-xl bg-slate-200" />
-                      <div className="flex-1 min-w-0">
-                        <BaseSkeleton className="h-5 w-40 mb-2 bg-slate-200" />
-                        <BaseSkeleton className="h-4 w-28 bg-slate-200" />
-                        <div className="mt-3 flex items-center gap-2">
-                          <BaseSkeleton className="h-6 w-20 rounded-full bg-slate-200" />
-                          <BaseSkeleton className="h-6 w-24 rounded-full bg-slate-200" />
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden"
+                >
+                  <div className="flex h-full">
+                    {/* Colonne principale - Gauche */}
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <div className="pb-3 pt-4 px-4 border-b border-slate-100/60">
+                        <div className="flex items-start gap-2.5">
+                          <BaseSkeleton className="h-7 w-7 rounded-lg bg-slate-200" />
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <BaseSkeleton className="h-4 w-32 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-24 bg-slate-200" />
+                            <div className="flex items-center gap-1.5">
+                              <BaseSkeleton className="h-5 w-16 rounded-full bg-slate-200" />
+                              <BaseSkeleton className="h-5 w-20 rounded-full bg-slate-200" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-4 pb-4 flex-1 flex flex-col space-y-3">
+                        <BaseSkeleton className="h-3 w-full bg-slate-200" />
+                        <BaseSkeleton className="h-3 w-3/4 bg-slate-200" />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <BaseSkeleton className="h-3 w-20 bg-slate-200" />
+                            <BaseSkeleton className="h-4 w-6 rounded-full bg-slate-200" />
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                              <BaseSkeleton
+                                key={i}
+                                className="h-6 w-16 rounded-lg bg-slate-200"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100/60">
+                          <BaseSkeleton className="h-8 flex-1 rounded-lg bg-slate-200" />
+                          <BaseSkeleton className="h-8 flex-1 rounded-lg bg-slate-200" />
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <BaseSkeleton className="h-8 w-8 rounded-lg bg-slate-200" />
-                      <BaseSkeleton className="h-8 w-8 rounded-lg bg-slate-200" />
+                    {/* Colonne droite */}
+                    <div className="w-20 flex-shrink-0 flex flex-col items-center justify-between border-l border-slate-100/60 bg-gradient-to-b from-slate-50/50 to-transparent">
+                      <div className="flex flex-col items-center gap-1.5 pt-4">
+                        <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
+                        <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
+                      </div>
+                      <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-blue-50 to-indigo-50/50 border-t border-l border-blue-100/50 mx-3 w-[calc(100%-1.5rem)]">
+                        <BaseSkeleton className="h-5 w-5 rounded bg-slate-200 mb-1" />
+                        <BaseSkeleton className="h-5 w-8 bg-slate-200" />
+                        <BaseSkeleton className="h-2.5 w-12 bg-slate-200" />
+                      </div>
+                      <div className="w-full pb-4">
+                        <BaseSkeleton className="h-1.5 rounded-full mx-3 bg-slate-200" />
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="p-5 space-y-4">
-                  <BaseSkeleton className="h-4 w-full bg-slate-200" />
-                  <div className="grid grid-cols-2 gap-3">
-                    <BaseSkeleton className="h-4 w-24 bg-slate-200" />
-                    <BaseSkeleton className="h-4 w-20 bg-slate-200" />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <BaseSkeleton
-                        key={i}
-                        className="h-7 w-24 rounded-xl bg-slate-200"
-                      />
-                    ))}
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <BaseSkeleton className="h-8 w-20 rounded-lg bg-slate-200" />
-                    <BaseSkeleton className="h-8 w-24 rounded-lg bg-slate-200" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/80 backdrop-blur-sm border-0 shadow-md rounded-xl overflow-hidden border-l-4 border-l-transparent"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-4">
+                      <BaseSkeleton className="h-10 w-10 rounded-lg bg-slate-200 flex-shrink-0" />
+                      <div className="flex-1 min-w-0 flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1.5">
+                            <BaseSkeleton className="h-4 w-32 bg-slate-200" />
+                            <BaseSkeleton className="h-5 w-16 rounded-full bg-slate-200" />
+                            <BaseSkeleton className="h-5 w-20 rounded-full bg-slate-200" />
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <BaseSkeleton className="h-3 w-24 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-20 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-40 bg-slate-200 hidden md:block" />
+                          </div>
+                        </div>
+                        <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <BaseSkeleton
+                              key={i}
+                              className="h-8 w-8 rounded-md bg-slate-200"
+                            />
+                          ))}
+                          <BaseSkeleton className="h-5 w-5 rounded-full bg-slate-200" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <BaseSkeleton className="h-8 w-8 rounded-full bg-slate-200" />
+                        <BaseSkeleton className="h-8 w-16 rounded-lg bg-slate-200" />
+                        <BaseSkeleton className="h-8 w-20 rounded-lg bg-slate-200" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         ) : filteredAndSortedRooms.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -858,18 +914,21 @@ export default function RoomsPage() {
                                             </span>
 
                                             {/* Tooltip */}
-                                            {isHovered && (
-                                              <motion.div
-                                                initial={{ opacity: 0, y: 3 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 3 }}
-                                                transition={{ duration: 0.15 }}
-                                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
-                                              >
-                                                {equipmentConfig.description}
-                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
-                                              </motion.div>
-                                            )}
+                                            {isHovered &&
+                                              viewMode !== "grid" && (
+                                                <motion.div
+                                                  initial={{ opacity: 0, y: 3 }}
+                                                  animate={{ opacity: 1, y: 0 }}
+                                                  exit={{ opacity: 0, y: 3 }}
+                                                  transition={{
+                                                    duration: 0.15,
+                                                  }}
+                                                  className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
+                                                >
+                                                  {equipmentConfig.description}
+                                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
+                                                </motion.div>
+                                              )}
                                           </motion.div>
                                         );
                                       })}
@@ -905,18 +964,21 @@ export default function RoomsPage() {
 
                                         {/* Tooltip pour les équipements supplémentaires */}
                                         {hoveredEquipment ===
-                                          `${room.id}-more-${room.equipment.length}` && (
-                                          <motion.div
-                                            initial={{ opacity: 0, y: 3 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 3 }}
-                                            transition={{ duration: 0.15 }}
-                                            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
-                                          >
-                                            {room.equipment.slice(4).join(", ")}
-                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
-                                          </motion.div>
-                                        )}
+                                          `${room.id}-more-${room.equipment.length}` &&
+                                          viewMode !== "grid" && (
+                                            <motion.div
+                                              initial={{ opacity: 0, y: 3 }}
+                                              animate={{ opacity: 1, y: 0 }}
+                                              exit={{ opacity: 0, y: 3 }}
+                                              transition={{ duration: 0.15 }}
+                                              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
+                                            >
+                                              {room.equipment
+                                                .slice(4)
+                                                .join(", ")}
+                                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
+                                            </motion.div>
+                                          )}
                                       </motion.div>
                                     )}
                                   </div>
