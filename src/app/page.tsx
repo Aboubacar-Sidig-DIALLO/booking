@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,7 +9,6 @@ import {
   Calendar,
   Shield,
   Zap,
-  CheckCircle,
   ArrowRight,
   Star,
   Globe,
@@ -176,52 +173,14 @@ const testimonials = [
 
 export default function HomePage() {
   const { tenant, isLoading: tenantLoading } = useTenant();
-  const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient || tenantLoading) {
+  if (tenantLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Chargement...</p>
         </div>
-      </div>
-    );
-  }
-
-  // Si un tenant est détecté, rediriger vers le dashboard
-  if (tenant) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="p-8">
-            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">
-              Bienvenue sur {tenant.name}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Vous êtes connecté à votre organisation
-            </p>
-            <div className="space-y-3">
-              <Link href="/dashboard" className="block">
-                <Button className="w-full">
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Aller au Dashboard
-                </Button>
-              </Link>
-              <Link href="/setup" className="block">
-                <Button variant="outline" className="w-full">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configuration
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }

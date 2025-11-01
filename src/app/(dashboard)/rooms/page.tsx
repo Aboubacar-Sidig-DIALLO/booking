@@ -652,9 +652,9 @@ export default function RoomsPage() {
       </AnimatePresence>
 
       {/* Section principale des salles */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Array.from({ length: 6 }).map((_, idx) => (
               <div
                 key={idx}
@@ -731,7 +731,7 @@ export default function RoomsPage() {
             className="space-y-6"
           >
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
                 {filteredAndSortedRooms.map((room, index) => {
                   const statusConfig = getStatusConfig(room.status);
                   const typeConfig = getTypeConfig(room.type);
@@ -750,228 +750,263 @@ export default function RoomsPage() {
                       whileHover={{ y: -4, scale: 1.02 }}
                       className="group"
                     >
-                      <Card className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg flex-shrink-0">
-                                <Building2 className="h-5 w-5 text-white" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <CardTitle className="text-lg font-bold text-slate-900 mb-1 line-clamp-1">
-                                  {room.name}
-                                </CardTitle>
-                                <CardDescription className="text-sm text-slate-500 mb-2">
-                                  {room.location}
-                                </CardDescription>
-                                <div className="flex items-center gap-2">
-                                  <Badge
-                                    variant={statusConfig.variant}
-                                    className="text-xs"
-                                  >
-                                    <StatusIcon className="h-3 w-3 mr-1" />
-                                    {statusConfig.label}
-                                  </Badge>
-                                  <Badge
-                                    variant="outline"
-                                    className={`text-xs ${typeConfig.color} text-nowrap`}
-                                  >
-                                    {typeConfig.icon} {room.type}
-                                  </Badge>
+                      <Card className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden group">
+                        <div className="flex h-full">
+                          {/* Colonne principale - Gauche */}
+                          <div className="flex-1 flex flex-col min-w-0">
+                            <CardHeader className="pb-3 pt-4 px-4">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                  <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                                    <Building2 className="h-4 w-4 text-white" />
+                                  </div>
+                                  <div className="flex-1 min-w-0 space-y-1.5">
+                                    <div>
+                                      <CardTitle className="text-base font-bold text-slate-900 line-clamp-1 leading-tight">
+                                        {room.name}
+                                      </CardTitle>
+                                      <CardDescription className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                                        {room.location}
+                                      </CardDescription>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <Badge
+                                        variant={statusConfig.variant}
+                                        className="text-[10px] px-1.5 py-0.5 h-5 font-semibold leading-none"
+                                      >
+                                        <StatusIcon className="h-2.5 w-2.5 mr-0.5" />
+                                        {statusConfig.label}
+                                      </Badge>
+                                      <Badge
+                                        variant="outline"
+                                        className={`text-[10px] px-1.5 py-0.5 h-5 ${typeConfig.color} text-nowrap font-semibold leading-none border-opacity-50`}
+                                      >
+                                        <span className="text-[9px]">
+                                          {typeConfig.icon}
+                                        </span>{" "}
+                                        {room.type}
+                                      </Badge>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-1 ml-2">
+                            </CardHeader>
+
+                            <CardContent className="px-4 pb-4 flex-1 flex flex-col space-y-3">
+                              {/* Description et Capacité - Compact */}
+                              <div className="space-y-2">
+                                {room.description && (
+                                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                                    {room.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Équipements - Optimisé */}
+                              {room.equipment.length > 0 && (
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="text-[10px] font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
+                                      <Monitor className="h-2.5 w-2.5 text-blue-500" />
+                                      Équipements
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full font-semibold">
+                                      {room.equipment.length}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {room.equipment
+                                      .slice(0, 4)
+                                      .map((item, idx) => {
+                                        const equipmentConfig =
+                                          getEquipmentIcon(item);
+                                        const EquipmentIcon =
+                                          equipmentConfig.icon;
+                                        const equipmentId = `${room.id}-${item}-${idx}`;
+                                        const isHovered =
+                                          hoveredEquipment === equipmentId;
+
+                                        return (
+                                          <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{
+                                              delay: idx * 0.05,
+                                              type: "spring",
+                                              stiffness: 300,
+                                              damping: 25,
+                                            }}
+                                            whileHover={{
+                                              scale: 1.08,
+                                              y: -1,
+                                              transition: { duration: 0.15 },
+                                            }}
+                                            className={`group/eq relative flex items-center gap-1 px-2 py-1 rounded-lg ${equipmentConfig.bgColor} ${equipmentConfig.borderColor} border hover:shadow-sm transition-all duration-200 cursor-pointer`}
+                                            onMouseEnter={() =>
+                                              setHoveredEquipment(equipmentId)
+                                            }
+                                            onMouseLeave={() =>
+                                              setHoveredEquipment(null)
+                                            }
+                                          >
+                                            <EquipmentIcon
+                                              className={`h-2.5 w-2.5 ${equipmentConfig.color} flex-shrink-0`}
+                                            />
+                                            <span className="text-[10px] font-semibold text-slate-700 group-hover/eq:text-slate-900 transition-colors leading-none">
+                                              {item}
+                                            </span>
+
+                                            {/* Tooltip */}
+                                            {isHovered && (
+                                              <motion.div
+                                                initial={{ opacity: 0, y: 3 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 3 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
+                                              >
+                                                {equipmentConfig.description}
+                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
+                                              </motion.div>
+                                            )}
+                                          </motion.div>
+                                        );
+                                      })}
+                                    {room.equipment.length > 4 && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{
+                                          delay: 0.2,
+                                          type: "spring",
+                                          stiffness: 300,
+                                          damping: 25,
+                                        }}
+                                        whileHover={{
+                                          scale: 1.08,
+                                          y: -1,
+                                          transition: { duration: 0.15 },
+                                        }}
+                                        className="group/more relative flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
+                                        onMouseEnter={() =>
+                                          setHoveredEquipment(
+                                            `${room.id}-more-${room.equipment.length}`
+                                          )
+                                        }
+                                        onMouseLeave={() =>
+                                          setHoveredEquipment(null)
+                                        }
+                                      >
+                                        <Plus className="h-2.5 w-2.5 text-slate-600 flex-shrink-0" />
+                                        <span className="text-[10px] font-semibold text-slate-600 group-hover/more:text-slate-800 transition-colors leading-none">
+                                          +{room.equipment.length - 4}
+                                        </span>
+
+                                        {/* Tooltip pour les équipements supplémentaires */}
+                                        {hoveredEquipment ===
+                                          `${room.id}-more-${room.equipment.length}` && (
+                                          <motion.div
+                                            initial={{ opacity: 0, y: 3 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 3 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
+                                          >
+                                            {room.equipment.slice(4).join(", ")}
+                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
+                                          </motion.div>
+                                        )}
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Actions - Compact et optimisé */}
+                              <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100/60">
+                                <Link
+                                  href={`/rooms/${room.id}`}
+                                  className="flex-1"
+                                >
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full h-8 text-xs font-semibold cursor-pointer hover:bg-slate-50 transition-colors border-slate-200"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1.5" />
+                                    Voir
+                                  </Button>
+                                </Link>
+                                <Link
+                                  href={`/bookings/new?room=${room.id}`}
+                                  className="flex-1"
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="w-full h-8 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                                    disabled={room.status === "occupée"}
+                                  >
+                                    Réserver
+                                  </Button>
+                                </Link>
+                              </div>
+                            </CardContent>
+                          </div>
+
+                          {/* Colonne droite - Optimisée et moderne */}
+                          <div className="w-20 flex-shrink-0 flex flex-col items-center justify-between border-l border-slate-100/60 bg-gradient-to-b from-slate-50/50 to-transparent">
+                            {/* Actions rapides en haut */}
+                            <div className="flex flex-col items-center gap-1.5 pt-4">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => toggleFavorite(room.id)}
-                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
+                                className="h-9 w-9 p-0 hover:bg-red-50 cursor-pointer transition-all rounded-full group/fav"
                               >
                                 <Heart
-                                  className={`h-4 w-4 ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400"}`}
+                                  className={`h-4 w-4 transition-all ${room.isFavorite ? "text-red-500 fill-current scale-110" : "text-slate-400 group-hover/fav:text-red-400"}`}
                                 />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
+                                className="h-9 w-9 p-0 hover:bg-slate-100 cursor-pointer transition-colors rounded-full"
                               >
                                 <MoreVertical className="h-4 w-4 text-slate-400" />
                               </Button>
                             </div>
-                          </div>
-                        </CardHeader>
 
-                        <CardContent className="space-y-4">
-                          {/* Description */}
-                          <p className="text-sm text-slate-600 line-clamp-2">
-                            {room.description}
-                          </p>
-
-                          {/* Détails */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Users className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium">
-                                {room.capacity} places
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Équipements */}
-                          <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                <div className="p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md">
-                                  <Monitor className="h-2.5 w-2.5 text-white" />
-                                </div>
-                                Équipements
-                              </div>
-                              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                                {room.equipment.length}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {room.equipment.slice(0, 4).map((item, idx) => {
-                                const equipmentConfig = getEquipmentIcon(item);
-                                const EquipmentIcon = equipmentConfig.icon;
-                                const equipmentId = `${room.id}-${item}-${idx}`;
-                                const isHovered =
-                                  hoveredEquipment === equipmentId;
-
-                                return (
-                                  <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    transition={{
-                                      delay: idx * 0.1,
-                                      type: "spring",
-                                      stiffness: 200,
-                                      damping: 20,
-                                    }}
-                                    whileHover={{
-                                      scale: 1.05,
-                                      y: -2,
-                                      transition: { duration: 0.2 },
-                                    }}
-                                    className={`group relative flex items-center gap-1.5 px-3 py-2 rounded-xl ${equipmentConfig.bgColor} ${equipmentConfig.borderColor} border hover:shadow-md transition-all duration-300 cursor-pointer`}
-                                    onMouseEnter={() =>
-                                      setHoveredEquipment(equipmentId)
-                                    }
-                                    onMouseLeave={() =>
-                                      setHoveredEquipment(null)
-                                    }
-                                  >
-                                    <div
-                                      className={`p-1 rounded-md ${equipmentConfig.bgColor.replace("50", "100")}`}
-                                    >
-                                      <EquipmentIcon
-                                        className={`h-3 w-3 ${equipmentConfig.color}`}
-                                      />
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
-                                      {item}
-                                    </span>
-
-                                    {/* Tooltip */}
-                                    {isHovered && (
-                                      <motion.div
-                                        initial={{ opacity: 0, y: 5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 5 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded-md whitespace-nowrap z-20"
-                                      >
-                                        {equipmentConfig.description}
-                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
-                                      </motion.div>
-                                    )}
-                                  </motion.div>
-                                );
-                              })}
-                              {room.equipment.length > 4 && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  transition={{
-                                    delay: 0.4,
-                                    type: "spring",
-                                    stiffness: 200,
-                                    damping: 20,
-                                  }}
-                                  whileHover={{
-                                    scale: 1.05,
-                                    y: -2,
-                                    transition: { duration: 0.2 },
-                                  }}
-                                  className="group relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 hover:shadow-md transition-all duration-300 cursor-pointer"
-                                  onMouseEnter={() =>
-                                    setHoveredEquipment(
-                                      `${room.id}-more-${room.equipment.length}`
-                                    )
-                                  }
-                                  onMouseLeave={() => setHoveredEquipment(null)}
-                                >
-                                  <div className="p-1 rounded-md bg-slate-200">
-                                    <Plus className="h-3 w-3 text-slate-600" />
+                            {/* Indicateur de capacité - Central et visuel */}
+                            <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-blue-50 to-indigo-50/50 border-t border-l border-blue-100/50">
+                              <div className="flex flex-col items-center">
+                                <Users className="h-5 w-5 text-blue-600 mb-1" />
+                                <div className="text-center">
+                                  <div className="text-lg font-bold text-slate-900 leading-none">
+                                    {room.capacity}
                                   </div>
-                                  <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">
-                                    +{room.equipment.length - 4}
-                                  </span>
+                                  <div className="text-[9px] text-slate-500 font-medium uppercase tracking-tight mt-0.5">
+                                    places
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
-                                  {/* Tooltip pour les équipements supplémentaires */}
-                                  {hoveredEquipment ===
-                                    `${room.id}-more-${room.equipment.length}` && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 5 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: 5 }}
-                                      transition={{ duration: 0.2 }}
-                                      className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded-md whitespace-nowrap z-20"
-                                    >
-                                      {room.equipment.slice(4).join(", ")}
-                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-900"></div>
-                                    </motion.div>
-                                  )}
-                                </motion.div>
-                              )}
+                            {/* Indicateur de statut visuel - En bas */}
+                            <div className="w-full pb-4">
+                              <div
+                                className={`h-1.5 rounded-full mx-3 ${room.status === "disponible" ? "bg-gradient-to-r from-green-400 to-emerald-500" : "bg-gradient-to-r from-red-400 to-pink-500"} shadow-sm`}
+                              />
                             </div>
                           </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                            <div className="flex items-center gap-2">
-                              <Link href={`/rooms/${room.id}`}>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 cursor-pointer hover:cursor-pointer"
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  Voir
-                                </Button>
-                              </Link>
-                            </div>
-                            <Link href={`/bookings/new?room=${room.id}`}>
-                              <Button
-                                size="sm"
-                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8 cursor-pointer hover:cursor-pointer"
-                                disabled={room.status === "occupée"}
-                              >
-                                Réserver
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
+                        </div>
                       </Card>
                     </motion.div>
                   );
                 })}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {filteredAndSortedRooms.map((room, index) => {
                   const statusConfig = getStatusConfig(room.status);
                   const typeConfig = getTypeConfig(room.type);
@@ -983,103 +1018,91 @@ export default function RoomsPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
-                        duration: 0.5,
-                        delay: index * 0.05,
+                        duration: 0.4,
+                        delay: index * 0.03,
                         ease: "easeOut",
                       }}
                       whileHover={{ x: 4 }}
                       className="group"
                     >
-                      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-                        <CardContent className="p-4 sm:p-6">
-                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg flex-shrink-0">
-                                <Building2 className="h-5 w-5 text-white" />
-                              </div>
+                      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden border-l-4 border-l-transparent hover:border-l-blue-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            {/* Icône */}
+                            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <Building2 className="h-4 w-4 text-white" />
+                            </div>
+
+                            {/* Informations principales */}
+                            <div className="flex-1 min-w-0 flex items-center gap-4">
                               <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                                  <h3 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+                                <div className="flex items-center gap-3 mb-1.5">
+                                  <h3 className="text-base font-bold text-slate-900 truncate">
                                     {room.name}
                                   </h3>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge
-                                      variant={statusConfig.variant}
-                                      className="text-xs"
-                                    >
-                                      <StatusIcon className="h-3 w-3 mr-1" />
-                                      {statusConfig.label}
-                                    </Badge>
-                                    <Badge
-                                      variant="outline"
-                                      className={`text-xs ${typeConfig.color}`}
-                                    >
-                                      {typeConfig.icon} {room.type}
-                                    </Badge>
-                                  </div>
+                                  <Badge
+                                    variant={statusConfig.variant}
+                                    className="text-[10px] px-1.5 py-0.5 h-5 font-semibold leading-none"
+                                  >
+                                    <StatusIcon className="h-2.5 w-2.5 mr-0.5" />
+                                    {statusConfig.label}
+                                  </Badge>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-1.5 py-0.5 h-5 ${typeConfig.color} font-semibold leading-none text-nowrap`}
+                                  >
+                                    {typeConfig.icon} {room.type}
+                                  </Badge>
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-slate-600 mb-3">
+                                <div className="flex items-center gap-4 text-xs text-slate-600">
                                   <div className="flex items-center gap-1">
-                                    <Users className="h-4 w-4 text-blue-500" />
-                                    <span>{room.capacity} places</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="h-4 w-4 text-green-500" />
+                                    <MapPin className="h-3 w-3 text-green-500" />
                                     <span className="truncate">
                                       {room.location}
                                     </span>
                                   </div>
-                                </div>
-
-                                {/* Équipements pour la vue liste */}
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="p-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md">
-                                      <Monitor className="h-2.5 w-2.5 text-white" />
-                                    </div>
-                                    <span className="text-xs font-semibold text-slate-600">
-                                      Équipements
-                                    </span>
-                                    <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                                      {room.equipment.length}
+                                  <div className="flex items-center gap-1">
+                                    <Users className="h-3 w-3 text-blue-500" />
+                                    <span className="font-semibold">
+                                      {room.capacity} places
                                     </span>
                                   </div>
-                                  <div className="flex flex-wrap items-center gap-1.5">
+                                  {room.description && (
+                                    <span className="text-slate-500 truncate hidden md:inline">
+                                      {room.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Équipements compacts */}
+                              {room.equipment.length > 0 && (
+                                <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
+                                  <div className="flex items-center gap-1">
                                     {room.equipment
-                                      .slice(0, 4)
+                                      .slice(0, 3)
                                       .map((item, idx) => {
                                         const equipmentConfig =
                                           getEquipmentIcon(item);
                                         const EquipmentIcon =
                                           equipmentConfig.icon;
-                                        const equipmentId = `${room.id}-list-${item}-${idx}`;
+                                        const equipmentId = `${room.id}-list-compact-${item}-${idx}`;
                                         const isHovered =
                                           hoveredEquipment === equipmentId;
 
                                         return (
                                           <motion.div
                                             key={idx}
-                                            initial={{
-                                              opacity: 0,
-                                              scale: 0.8,
-                                              x: -10,
-                                            }}
-                                            animate={{
-                                              opacity: 1,
-                                              scale: 1,
-                                              x: 0,
-                                            }}
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
                                             transition={{
                                               delay: idx * 0.05,
                                               type: "spring",
                                               stiffness: 300,
                                               damping: 25,
                                             }}
-                                            whileHover={{
-                                              scale: 1.1,
-                                              transition: { duration: 0.15 },
-                                            }}
-                                            className={`group relative flex items-center gap-1 px-2 py-1.5 rounded-lg ${equipmentConfig.bgColor} ${equipmentConfig.borderColor} border hover:shadow-sm transition-all duration-200 cursor-pointer`}
+                                            whileHover={{ scale: 1.1 }}
+                                            className="relative"
                                             onMouseEnter={() =>
                                               setHoveredEquipment(equipmentId)
                                             }
@@ -1088,118 +1111,65 @@ export default function RoomsPage() {
                                             }
                                           >
                                             <div
-                                              className={`p-0.5 rounded-sm ${equipmentConfig.bgColor.replace("50", "100")}`}
+                                              className={`p-1.5 rounded-md ${equipmentConfig.bgColor} ${equipmentConfig.borderColor} border cursor-pointer transition-all hover:shadow-sm`}
                                             >
                                               <EquipmentIcon
-                                                className={`h-2.5 w-2.5 ${equipmentConfig.color}`}
+                                                className={`h-3 w-3 ${equipmentConfig.color}`}
                                               />
                                             </div>
-                                            <span className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
-                                              {item}
-                                            </span>
-
-                                            {/* Tooltip compact */}
                                             {isHovered && (
                                               <motion.div
-                                                initial={{ opacity: 0, y: 3 }}
+                                                initial={{ opacity: 0, y: 5 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 3 }}
-                                                transition={{ duration: 0.15 }}
-                                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-slate-900 text-white text-xs rounded-md whitespace-nowrap z-20"
+                                                exit={{ opacity: 0, y: 5 }}
+                                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded-md whitespace-nowrap z-20 shadow-lg"
                                               >
-                                                {equipmentConfig.description}
-                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-slate-900"></div>
+                                                {item}
+                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[3px] border-r-[3px] border-t-[3px] border-transparent border-t-slate-900"></div>
                                               </motion.div>
                                             )}
                                           </motion.div>
                                         );
                                       })}
-                                    {room.equipment.length > 4 && (
-                                      <motion.div
-                                        initial={{
-                                          opacity: 0,
-                                          scale: 0.8,
-                                          x: -10,
-                                        }}
-                                        animate={{ opacity: 1, scale: 1, x: 0 }}
-                                        transition={{
-                                          delay: 0.2,
-                                          type: "spring",
-                                          stiffness: 300,
-                                          damping: 25,
-                                        }}
-                                        whileHover={{
-                                          scale: 1.1,
-                                          transition: { duration: 0.15 },
-                                        }}
-                                        className="group relative flex items-center gap-1 px-2 py-1.5 rounded-lg bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
-                                        onMouseEnter={() =>
-                                          setHoveredEquipment(
-                                            `${room.id}-list-more-${room.equipment.length}`
-                                          )
-                                        }
-                                        onMouseLeave={() =>
-                                          setHoveredEquipment(null)
-                                        }
-                                      >
-                                        <div className="p-0.5 rounded-sm bg-slate-200">
-                                          <Plus className="h-2.5 w-2.5 text-slate-600" />
-                                        </div>
-                                        <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">
-                                          +{room.equipment.length - 4}
-                                        </span>
-
-                                        {/* Tooltip pour les équipements supplémentaires */}
-                                        {hoveredEquipment ===
-                                          `${room.id}-list-more-${room.equipment.length}` && (
-                                          <motion.div
-                                            initial={{ opacity: 0, y: 3 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 3 }}
-                                            transition={{ duration: 0.15 }}
-                                            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-slate-900 text-white text-xs rounded-md whitespace-nowrap z-20"
-                                          >
-                                            {room.equipment.slice(4).join(", ")}
-                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-slate-900"></div>
-                                          </motion.div>
-                                        )}
-                                      </motion.div>
+                                    {room.equipment.length > 3 && (
+                                      <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full font-semibold">
+                                        +{room.equipment.length - 3}
+                                      </span>
                                     )}
                                   </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
-                            <div className="flex items-center justify-end sm:justify-start lg:justify-end gap-2 flex-shrink-0">
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => toggleFavorite(room.id)}
-                                className="h-8 w-8 p-0 cursor-pointer hover:cursor-pointer"
+                                className="h-8 w-8 p-0 hover:bg-red-50 cursor-pointer transition-colors rounded-full"
                               >
                                 <Heart
-                                  className={`h-4 w-4 ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400"}`}
+                                  className={`h-4 w-4 transition-all ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400 group-hover:text-red-400"}`}
                                 />
                               </Button>
                               <Link href={`/rooms/${room.id}`}>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-8 cursor-pointer hover:cursor-pointer"
+                                  className="h-8 px-3 text-xs font-semibold cursor-pointer hover:bg-slate-50 transition-colors border-slate-200"
                                 >
-                                  <Eye className="h-3 w-3 mr-1" />
+                                  <Eye className="h-3 w-3 mr-1.5" />
                                   <span className="hidden sm:inline">Voir</span>
                                 </Button>
                               </Link>
                               <Link href={`/bookings/new?room=${room.id}`}>
                                 <Button
                                   size="sm"
-                                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-8 cursor-pointer hover:cursor-pointer"
+                                  className="h-8 px-3 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
                                   disabled={room.status === "occupée"}
                                 >
-                                  <span className="hidden sm:inline">
-                                    Réserver
-                                  </span>
-                                  <span className="sm:hidden">Réserver</span>
+                                  Réserver
                                 </Button>
                               </Link>
                             </div>
