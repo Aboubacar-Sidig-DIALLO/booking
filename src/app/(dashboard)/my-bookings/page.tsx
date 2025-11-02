@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { EmptyState } from "@/components/common/EmptyState";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 const bookings = [
   {
@@ -199,6 +200,7 @@ const getPriorityConfig = (priority: string) => {
 };
 
 export default function MyBookingsPage() {
+  const theme = useThemeColor();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -325,11 +327,13 @@ export default function MyBookingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+    <div
+      className={`min-h-screen bg-gradient-to-br ${theme.bgFrom} via-white ${theme.bgTo}`}
+    >
       {/* Header moderne avec gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+      <div className={`relative overflow-hidden ${theme.headerBg}`}>
         <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-indigo-600/90 to-purple-600/90"></div>
+        <div className={`absolute inset-0 ${theme.headerBg} opacity-90`}></div>
 
         {/* Éléments décoratifs */}
         <div className="absolute top-0 left-0 w-full h-full">
@@ -354,7 +358,7 @@ export default function MyBookingsPage() {
                   Mes réservations
                 </h1>
               </div>
-              <p className="text-blue-100 text-lg sm:text-xl max-w-2xl">
+              <p className={`${theme.textLight} text-lg sm:text-xl max-w-2xl`}>
                 Gérez et suivez toutes vos réservations de salles en un seul
                 endroit
               </p>
@@ -412,7 +416,9 @@ export default function MyBookingsPage() {
               </Button>
 
               <Link href="/bookings/new">
-                <Button className="bg-gradient-to-r from-white to-blue-50 text-blue-600 hover:from-blue-50 hover:to-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold">
+                <Button
+                  className={`bg-gradient-to-r from-white to-white/90 ${theme.text} hover:from-white hover:to-white shadow-lg hover:shadow-xl h-12 px-6 rounded-xl font-semibold`}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nouvelle réservation
                 </Button>
@@ -434,7 +440,7 @@ export default function MyBookingsPage() {
                 placeholder="Rechercher une réservation..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 ${theme.focusRing} focus:border-transparent`}
               />
             </div>
 
@@ -672,7 +678,9 @@ export default function MyBookingsPage() {
                         <CardHeader className="pb-4">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg flex-shrink-0">
+                              <div
+                                className={`p-2 ${theme.iconBg} rounded-xl shadow-lg flex-shrink-0`}
+                              >
                                 <Building2 className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -860,7 +868,9 @@ export default function MyBookingsPage() {
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg flex-shrink-0">
+                              <div
+                                className={`p-2 ${theme.iconBg} rounded-xl shadow-lg flex-shrink-0`}
+                              >
                                 <Building2 className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">

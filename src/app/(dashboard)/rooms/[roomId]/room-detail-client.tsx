@@ -309,7 +309,7 @@ export default function RoomDetailClient({ roomId }: { roomId: string }) {
         <Button
           variant="outline"
           onClick={() => router.back()}
-          className="rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all"
+          className="rounded-lg border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
@@ -459,7 +459,7 @@ export default function RoomDetailClient({ roomId }: { roomId: string }) {
                           )
                         );
                       }}
-                      className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-md transition-all"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-md transition-all cursor-pointer"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -477,7 +477,7 @@ export default function RoomDetailClient({ roomId }: { roomId: string }) {
                           )
                         );
                       }}
-                      className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-md transition-all"
+                      className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-md transition-all cursor-pointer"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -586,7 +586,7 @@ export default function RoomDetailClient({ roomId }: { roomId: string }) {
                                 if (firstBooking)
                                   handleBookingClick(firstBooking);
                               }}
-                              className="text-[10px] text-slate-600 hover:text-slate-800 px-1.5 py-0.5 font-semibold hover:bg-slate-100 rounded transition-all"
+                              className="text-[10px] text-slate-600 hover:text-slate-800 px-1.5 py-0.5 font-semibold hover:bg-slate-100 rounded transition-all cursor-pointer"
                             >
                               +{dayBookings.length - 2} autre(s)
                             </motion.button>

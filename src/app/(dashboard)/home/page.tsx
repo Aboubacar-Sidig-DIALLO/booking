@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { setThemeForNavigation } from "@/hooks/useThemeColor";
 import {
   Card,
   CardContent,
@@ -85,8 +87,18 @@ const recentBookings = [
 ];
 
 function HomeContent() {
+  const router = useRouter();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [quickSearch, setQuickSearch] = useState("");
+
+  // Gestionnaire de navigation avec thème
+  const handleQuickActionClick = (
+    path: string,
+    theme: "blue" | "green" | "purple" | "pink"
+  ) => {
+    setThemeForNavigation(theme);
+    router.push(path);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -251,93 +263,95 @@ function HomeContent() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Link href="/bookings/new">
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 cursor-pointer hover:shadow-lg transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <Plus className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-900">
-                              Nouvelle réservation
-                            </h3>
-                            <p className="text-sm text-slate-600">
-                              Réserver une salle rapidement
-                            </p>
-                          </div>
+                    <motion.div
+                      onClick={() =>
+                        handleQuickActionClick("/bookings/new", "blue")
+                      }
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 cursor-pointer hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                          <Plus className="h-5 w-5 text-white" />
                         </div>
-                      </motion.div>
-                    </Link>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            Nouvelle réservation
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Réserver une salle rapidement
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
 
-                    <Link href="/rooms">
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 cursor-pointer hover:shadow-lg transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                            <Building2 className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-900">
-                              Explorer les salles
-                            </h3>
-                            <p className="text-sm text-slate-600">
-                              Voir toutes les salles disponibles
-                            </p>
-                          </div>
+                    <motion.div
+                      onClick={() => handleQuickActionClick("/rooms", "green")}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 cursor-pointer hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-white" />
                         </div>
-                      </motion.div>
-                    </Link>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            Explorer les salles
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Voir toutes les salles disponibles
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
 
-                    <Link href="/my-bookings">
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200 cursor-pointer hover:shadow-lg transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
-                            <Calendar className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-900">
-                              Mes réservations
-                            </h3>
-                            <p className="text-sm text-slate-600">
-                              Gérer mes réservations
-                            </p>
-                          </div>
+                    <motion.div
+                      onClick={() =>
+                        handleQuickActionClick("/my-bookings", "purple")
+                      }
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200 cursor-pointer hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                          <Calendar className="h-5 w-5 text-white" />
                         </div>
-                      </motion.div>
-                    </Link>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            Mes réservations
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Gérer mes réservations
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
 
-                    <Link href="/favorites">
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-200 cursor-pointer hover:shadow-lg transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
-                            <Heart className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-slate-900">
-                              Mes favoris
-                            </h3>
-                            <p className="text-sm text-slate-600">
-                              Salles préférées
-                            </p>
-                          </div>
+                    <motion.div
+                      onClick={() =>
+                        handleQuickActionClick("/favorites", "pink")
+                      }
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-200 cursor-pointer hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
+                          <Heart className="h-5 w-5 text-white" />
                         </div>
-                      </motion.div>
-                    </Link>
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            Mes favoris
+                          </h3>
+                          <p className="text-sm text-slate-600">
+                            Salles préférées
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
                 </CardContent>
               </Card>

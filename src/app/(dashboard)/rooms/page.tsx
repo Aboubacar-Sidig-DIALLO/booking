@@ -51,6 +51,7 @@ import Link from "next/link";
 import { Skeleton as BaseSkeleton } from "@/components/common/Skeleton";
 import { useRouter } from "next/navigation";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 type UiRoom = {
   id: string | number;
@@ -223,6 +224,7 @@ const getEquipmentIcon = (equipment: string) => {
 
 export default function RoomsPage() {
   const router = useRouter();
+  const theme = useThemeColor();
   const [dbRooms, setDbRooms] = useState<UiRoom[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -378,9 +380,11 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50/50 to-slate-100/30">
+    <div
+      className={`min-h-screen bg-gradient-to-br ${theme.bgFrom} via-white ${theme.bgTo}`}
+    >
       {/* Header moderne, élégant, avec espaces optimisés */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
+      <div className={`relative overflow-hidden ${theme.headerBg}`}>
         <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_20%_0%,rgba(255,255,255,0.18),transparent)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(70%_50%_at_100%_10%,rgba(255,255,255,0.08),transparent)]"></div>
 
@@ -421,7 +425,9 @@ export default function RoomsPage() {
                 <h1 className="font-bold tracking-tight text-white text-[clamp(1.65rem,2.5vw,2.75rem)] leading-tight">
                   Nos salles
                 </h1>
-                <p className="mt-1 text-slate-200/90 text-sm sm:text-base max-w-xl">
+                <p
+                  className={`mt-1 ${theme.textLight} text-sm sm:text-base max-w-xl`}
+                >
                   Découvrez et réservez des espaces confortables, lumineux et
                   parfaitement équipés.
                 </p>
@@ -516,7 +522,7 @@ export default function RoomsPage() {
                   placeholder="Rechercher une salle..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  className={`w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 ${theme.focusRing} focus:border-transparent`}
                 />
               </div>
 
@@ -529,7 +535,7 @@ export default function RoomsPage() {
                     value={sortBy}
                     onValueChange={(value: any) => setSortBy(value)}
                   >
-                    <SelectTrigger className="h-9 w-32">
+                    <SelectTrigger className="h-9 w-32 cursor-pointer">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -622,7 +628,7 @@ export default function RoomsPage() {
                     Statut
                   </label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-10 rounded-lg">
+                    <SelectTrigger className="h-10 rounded-lg cursor-pointer">
                       <SelectValue placeholder="Tous les statuts" />
                     </SelectTrigger>
                     <SelectContent>
@@ -639,7 +645,7 @@ export default function RoomsPage() {
                     Type
                   </label>
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="h-10 rounded-lg">
+                    <SelectTrigger className="h-10 rounded-lg cursor-pointer">
                       <SelectValue placeholder="Tous les types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -665,7 +671,7 @@ export default function RoomsPage() {
                     value={capacityFilter}
                     onValueChange={setCapacityFilter}
                   >
-                    <SelectTrigger className="h-10 rounded-lg">
+                    <SelectTrigger className="h-10 rounded-lg cursor-pointer">
                       <SelectValue placeholder="Toutes les capacités" />
                     </SelectTrigger>
                     <SelectContent>
@@ -927,7 +933,11 @@ export default function RoomsPage() {
                 : "Aucune salle disponible pour le moment."}
             </p>
             {hasActiveFilters && (
-              <Button onClick={clearFilters} variant="outline">
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                className="cursor-pointer"
+              >
                 <X className="h-4 w-4 mr-2" />
                 Effacer les filtres
               </Button>

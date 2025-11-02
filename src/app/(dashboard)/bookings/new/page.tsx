@@ -5,10 +5,15 @@ import BookingWizard from "@/components/booking/BookingWizard";
 import { Calendar, Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 export default function NewBookingPage() {
+  const theme = useThemeColor();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div
+      className={`min-h-screen bg-gradient-to-br from-slate-50 via-white ${theme.bgTo}`}
+    >
       {/* Header moderne et élégant avec effet de flou */}
       <div className="sticky top-0 z-20 border-b border-slate-200/60 shadow-sm">
         {/* Fond flouté avec overlay */}
@@ -36,7 +41,7 @@ export default function NewBookingPage() {
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                  className="h-12 w-12 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25"
+                  className={`h-12 w-12 ${theme.iconBg} rounded-2xl flex items-center justify-center shadow-lg`}
                 >
                   <Plus className="h-6 w-6 text-white" />
                 </motion.div>
@@ -72,7 +77,7 @@ export default function NewBookingPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full border-slate-300 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
+                className={`rounded-full border-slate-300 ${theme.hoverBorder} ${theme.hoverBg} transition-all duration-200`}
               >
                 <Calendar className="h-4 w-4 mr-2" />
                 Aide
@@ -93,7 +98,7 @@ export default function NewBookingPage() {
           {/* Header de la carte moderne */}
           <div className="relative overflow-hidden">
             {/* Gradient de fond avec pattern moderne */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700"></div>
+            <div className={`absolute inset-0 ${theme.headerBg}`}></div>
             <div className="absolute inset-0 opacity-20">
               <div
                 className="absolute inset-0"
@@ -129,7 +134,7 @@ export default function NewBookingPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      className="text-blue-100 font-medium"
+                      className={`${theme.textLight} font-medium`}
                     >
                       ✨ Trouvez la salle parfaite en quelques clics
                     </motion.p>
