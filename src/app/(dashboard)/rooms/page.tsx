@@ -50,6 +50,7 @@ import {
 import Link from "next/link";
 import { Skeleton as BaseSkeleton } from "@/components/common/Skeleton";
 import { useRouter } from "next/navigation";
+import { useFavorites } from "@/hooks/useFavorites";
 
 type UiRoom = {
   id: string | number;
@@ -72,30 +73,30 @@ const getStatusConfig = (status: string) => {
       return {
         icon: CheckCircle2,
         variant: "success" as const,
-        color: "bg-gradient-to-r from-green-500 to-emerald-500",
+        color: "bg-gradient-to-r from-slate-600 to-slate-700",
         textColor: "text-white",
-        bgColor: "bg-green-50",
-        borderColor: "border-green-200",
+        bgColor: "bg-slate-50",
+        borderColor: "border-slate-200",
         label: "Disponible",
       };
     case "occupée":
       return {
         icon: AlertCircle,
         variant: "warning" as const,
-        color: "bg-gradient-to-r from-red-500 to-pink-500",
+        color: "bg-gradient-to-r from-slate-400 to-slate-500",
         textColor: "text-white",
-        bgColor: "bg-red-50",
-        borderColor: "border-red-200",
+        bgColor: "bg-slate-50",
+        borderColor: "border-slate-200",
         label: "Occupée",
       };
     default:
       return {
         icon: AlertCircle,
         variant: "secondary" as const,
-        color: "bg-gradient-to-r from-gray-500 to-slate-500",
+        color: "bg-gradient-to-r from-slate-500 to-slate-600",
         textColor: "text-white",
-        bgColor: "bg-gray-50",
-        borderColor: "border-gray-200",
+        bgColor: "bg-slate-50",
+        borderColor: "border-slate-200",
         label: status,
       };
   }
@@ -104,19 +105,19 @@ const getStatusConfig = (status: string) => {
 const getTypeConfig = (type: string) => {
   switch (type) {
     case "conférence":
-      return { color: "bg-blue-100 text-blue-800", icon: "🎯" };
+      return { color: "bg-slate-100 text-slate-800", icon: "🎯" };
     case "réunion":
-      return { color: "bg-green-100 text-green-800", icon: "👥" };
+      return { color: "bg-slate-100 text-slate-800", icon: "👥" };
     case "atelier":
-      return { color: "bg-purple-100 text-purple-800", icon: "🎨" };
+      return { color: "bg-slate-100 text-slate-800", icon: "🎨" };
     case "formation":
-      return { color: "bg-orange-100 text-orange-800", icon: "📚" };
+      return { color: "bg-slate-100 text-slate-800", icon: "📚" };
     case "vip":
-      return { color: "bg-yellow-100 text-yellow-800", icon: "⭐" };
+      return { color: "bg-slate-100 text-slate-800", icon: "⭐" };
     case "téléconférence":
-      return { color: "bg-indigo-100 text-indigo-800", icon: "📹" };
+      return { color: "bg-slate-100 text-slate-800", icon: "📹" };
     default:
-      return { color: "bg-gray-100 text-gray-800", icon: "🏢" };
+      return { color: "bg-slate-100 text-slate-800", icon: "🏢" };
   }
 };
 
@@ -132,79 +133,79 @@ const getEquipmentIcon = (equipment: string) => {
   } = {
     Écran: {
       icon: Monitor,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Écran haute résolution",
     },
     WiFi: {
       icon: Wifi,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Connexion internet haut débit",
     },
     Projecteur: {
       icon: Projector,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      borderColor: "border-purple-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Projecteur HD",
     },
     Café: {
       icon: Coffee,
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-      borderColor: "border-amber-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Machine à café",
     },
     Caméra: {
       icon: Camera,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      borderColor: "border-indigo-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Caméra HD",
     },
     Micro: {
       icon: Mic,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      borderColor: "border-red-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Microphone professionnel",
     },
     Sonorisation: {
       icon: Volume2,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
-      borderColor: "border-pink-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Système audio",
     },
     TV: {
       icon: Tv,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50",
-      borderColor: "border-cyan-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Téléviseur 4K",
     },
     Climatisation: {
       icon: AirVent,
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
-      borderColor: "border-teal-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Climatisation réversible",
     },
     "Éclairage LED": {
       icon: Lightbulb,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
-      borderColor: "border-yellow-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Éclairage LED dimmable",
     },
     "Tableau blanc": {
       icon: Calendar,
-      color: "text-gray-600",
-      bgColor: "bg-gray-50",
-      borderColor: "border-gray-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Tableau blanc interactif",
     },
   };
@@ -212,9 +213,9 @@ const getEquipmentIcon = (equipment: string) => {
   return (
     equipmentMap[equipment] || {
       icon: Monitor,
-      color: "text-gray-600",
-      bgColor: "bg-gray-50",
-      borderColor: "border-gray-200",
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
       description: "Équipement disponible",
     }
   );
@@ -234,13 +235,29 @@ export default function RoomsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [hoveredEquipment, setHoveredEquipment] = useState<string | null>(null);
 
-  // Charger depuis la base
+  // Gestion des favoris
+  const {
+    isFavorite,
+    toggleFavorite,
+    favoritesCount,
+    loading: favoritesLoading,
+  } = useFavorites();
+
+  // Charger depuis la base - ATTENDRE que les favoris soient chargés avant d'afficher
   useEffect(() => {
     const load = async () => {
+      // Ne charger les salles que si les favoris sont déjà chargés ou si on attend
+      if (favoritesLoading) {
+        // Attendre que les favoris soient chargés
+        return;
+      }
+
       setLoading(true);
       try {
         const res = await fetch("/api/rooms");
         const data = await res.json();
+
+        // Maintenant que les favoris sont chargés, on peut utiliser isFavorite avec certitude
         const mapped: UiRoom[] = (data || []).map((r: any) => ({
           id: r.id,
           name: r.name,
@@ -248,12 +265,12 @@ export default function RoomsPage() {
           equipment: (r.features || [])
             .map((f: any) => f.feature?.name)
             .filter(Boolean),
-          status: "disponible", // statut temps-réel géré ailleurs; ici on n'invente rien
+          status: "disponible",
           nextBooking: undefined,
           location: r.location || r.site?.name || "",
           type: "réunion",
           occupancy: undefined,
-          isFavorite: false,
+          isFavorite: isFavorite(r.id), // Les favoris sont maintenant chargés, statut garanti
           rating: undefined,
           description: r.description || "",
         }));
@@ -265,7 +282,8 @@ export default function RoomsPage() {
       }
     };
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favoritesLoading]); // Dépend de favoritesLoading pour s'exécuter quand les favoris sont prêts
 
   // Filtrer et trier les salles
   const filteredAndSortedRooms = useMemo(() => {
@@ -327,15 +345,42 @@ export default function RoomsPage() {
     capacityFilter !== "all" ||
     searchQuery !== "";
 
-  const toggleFavorite = (id: string | number) => {
-    // Logique pour basculer le favori
-    console.log("Toggle favorite:", id);
+  const handleToggleFavorite = async (
+    id: string | number,
+    e?: React.MouseEvent
+  ) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    // Mise à jour optimiste immédiate pour une réactivité fluide
+    const currentStatus = isFavorite(id);
+    const newFavoriteStatus = !currentStatus;
+
+    // Mettre à jour immédiatement pour un feedback instantané
+    setDbRooms((prev) =>
+      prev.map((room) =>
+        room.id === id ? { ...room, isFavorite: newFavoriteStatus } : room
+      )
+    );
+
+    // Appeler l'API pour persister le changement de manière asynchrone
+    // Le hook useFavorites gère déjà la mise à jour optimiste et le rollback en cas d'erreur
+    toggleFavorite(id).catch((error) => {
+      // En cas d'erreur, le hook rollback automatiquement, mais on force une mise à jour
+      console.error("Error toggling favorite:", error);
+      setDbRooms((prev) =>
+        prev.map((room) => ({
+          ...room,
+          isFavorite: isFavorite(room.id),
+        }))
+      );
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50/50 to-slate-100/30">
       {/* Header moderne, élégant, avec espaces optimisés */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-600">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
         <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_20%_0%,rgba(255,255,255,0.18),transparent)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(70%_50%_at_100%_10%,rgba(255,255,255,0.08),transparent)]"></div>
 
@@ -376,7 +421,7 @@ export default function RoomsPage() {
                 <h1 className="font-bold tracking-tight text-white text-[clamp(1.65rem,2.5vw,2.75rem)] leading-tight">
                   Nos salles
                 </h1>
-                <p className="mt-1 text-indigo-100/90 text-sm sm:text-base max-w-xl">
+                <p className="mt-1 text-slate-200/90 text-sm sm:text-base max-w-xl">
                   Découvrez et réservez des espaces confortables, lumineux et
                   parfaitement équipés.
                 </p>
@@ -412,31 +457,29 @@ export default function RoomsPage() {
             ) : (
               <div className="flex flex-wrap gap-1.5 sm:gap-2 text-[12px] sm:text-[13px]">
                 <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-slate-300" />
                   <span>
                     {dbRooms.filter((r) => r.status === "disponible").length}{" "}
                     disponibles
                   </span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
-                  <AlertCircle className="h-3.5 w-3.5 text-amber-300" />
+                  <AlertCircle className="h-3.5 w-3.5 text-slate-300" />
                   <span>
                     {dbRooms.filter((r) => r.status === "occupée").length}{" "}
                     occupées
                   </span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
-                  <Users className="h-3.5 w-3.5 text-sky-300" />
+                  <Users className="h-3.5 w-3.5 text-slate-300" />
                   <span>
                     {dbRooms.reduce((sum, r) => sum + (r.capacity || 0), 0)}{" "}
                     places au total
                   </span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 bg-white/10 text-white/90">
-                  <Heart className="h-3.5 w-3.5 text-rose-300" />
-                  <span>
-                    {dbRooms.filter((r) => r.isFavorite).length} favoris
-                  </span>
+                  <Heart className="h-3.5 w-3.5 text-slate-300" />
+                  <span>{favoritesCount} favoris</span>
                 </div>
               </div>
             )}
@@ -473,7 +516,7 @@ export default function RoomsPage() {
                   placeholder="Rechercher une salle..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-transparent"
                 />
               </div>
 
@@ -700,7 +743,118 @@ export default function RoomsPage() {
                         <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
                         <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
                       </div>
-                      <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-blue-50 to-indigo-50/50 border-t border-l border-blue-100/50 mx-3 w-[calc(100%-1.5rem)]">
+                      <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-slate-50 to-slate-100/50 border-t border-l border-slate-200/50 mx-3 w-[calc(100%-1.5rem)]">
+                        <BaseSkeleton className="h-5 w-5 rounded bg-slate-200 mb-1" />
+                        <BaseSkeleton className="h-5 w-8 bg-slate-200" />
+                        <BaseSkeleton className="h-2.5 w-12 bg-slate-200" />
+                      </div>
+                      <div className="w-full pb-4">
+                        <BaseSkeleton className="h-1.5 rounded-full mx-3 bg-slate-200" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white/80 backdrop-blur-sm border-0 shadow-md rounded-xl overflow-hidden border-l-4 border-l-transparent"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center gap-4">
+                      <BaseSkeleton className="h-10 w-10 rounded-lg bg-slate-200 flex-shrink-0" />
+                      <div className="flex-1 min-w-0 flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1.5">
+                            <BaseSkeleton className="h-4 w-32 bg-slate-200" />
+                            <BaseSkeleton className="h-5 w-16 rounded-full bg-slate-200" />
+                            <BaseSkeleton className="h-5 w-20 rounded-full bg-slate-200" />
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <BaseSkeleton className="h-3 w-24 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-20 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-40 bg-slate-200 hidden md:block" />
+                          </div>
+                        </div>
+                        <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <BaseSkeleton
+                              key={i}
+                              className="h-8 w-8 rounded-md bg-slate-200"
+                            />
+                          ))}
+                          <BaseSkeleton className="h-5 w-5 rounded-full bg-slate-200" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <BaseSkeleton className="h-8 w-8 rounded-full bg-slate-200" />
+                        <BaseSkeleton className="h-8 w-16 rounded-lg bg-slate-200" />
+                        <BaseSkeleton className="h-8 w-20 rounded-lg bg-slate-200" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : favoritesLoading || (dbRooms.length === 0 && !loading) ? (
+          // Afficher les skeletons pendant le chargement des favoris OU si on n'a pas encore de salles
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="h-full bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-2xl overflow-hidden"
+                >
+                  <div className="flex h-full">
+                    {/* Colonne principale - Gauche */}
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <div className="pb-3 pt-4 px-4 border-b border-slate-100/60">
+                        <div className="flex items-start gap-2.5">
+                          <BaseSkeleton className="h-7 w-7 rounded-lg bg-slate-200" />
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <BaseSkeleton className="h-4 w-32 bg-slate-200" />
+                            <BaseSkeleton className="h-3 w-24 bg-slate-200" />
+                            <div className="flex items-center gap-1.5">
+                              <BaseSkeleton className="h-5 w-16 rounded-full bg-slate-200" />
+                              <BaseSkeleton className="h-5 w-20 rounded-full bg-slate-200" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-4 pb-4 flex-1 flex flex-col space-y-3">
+                        <BaseSkeleton className="h-3 w-full bg-slate-200" />
+                        <BaseSkeleton className="h-3 w-3/4 bg-slate-200" />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <BaseSkeleton className="h-3 w-20 bg-slate-200" />
+                            <BaseSkeleton className="h-4 w-6 rounded-full bg-slate-200" />
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                              <BaseSkeleton
+                                key={i}
+                                className="h-6 w-16 rounded-lg bg-slate-200"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100/60">
+                          <BaseSkeleton className="h-8 flex-1 rounded-lg bg-slate-200" />
+                          <BaseSkeleton className="h-8 flex-1 rounded-lg bg-slate-200" />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Colonne droite */}
+                    <div className="w-20 flex-shrink-0 flex flex-col items-center justify-between border-l border-slate-100/60 bg-gradient-to-b from-slate-50/50 to-transparent">
+                      <div className="flex flex-col items-center gap-1.5 pt-4">
+                        <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
+                        <BaseSkeleton className="h-9 w-9 rounded-full bg-slate-200" />
+                      </div>
+                      <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-slate-50 to-slate-100/50 border-t border-l border-slate-200/50 mx-3 w-[calc(100%-1.5rem)]">
                         <BaseSkeleton className="h-5 w-5 rounded bg-slate-200 mb-1" />
                         <BaseSkeleton className="h-5 w-8 bg-slate-200" />
                         <BaseSkeleton className="h-2.5 w-12 bg-slate-200" />
@@ -813,7 +967,7 @@ export default function RoomsPage() {
                             <CardHeader className="pb-3 pt-4 px-4">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                                  <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                                  <div className="p-1.5 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg shadow-md flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                                     <Building2 className="h-4 w-4 text-white" />
                                   </div>
                                   <div className="flex-1 min-w-0 space-y-1.5">
@@ -863,7 +1017,7 @@ export default function RoomsPage() {
                                 <div className="flex-1">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="text-[10px] font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
-                                      <Monitor className="h-2.5 w-2.5 text-blue-500" />
+                                      <Monitor className="h-2.5 w-2.5 text-slate-600" />
                                       Équipements
                                     </div>
                                     <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full font-semibold">
@@ -1006,7 +1160,7 @@ export default function RoomsPage() {
                                 >
                                   <Button
                                     size="sm"
-                                    className="w-full h-8 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                                    className="w-full h-8 text-xs font-semibold bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
                                     disabled={room.status === "occupée"}
                                   >
                                     Réserver
@@ -1020,16 +1174,40 @@ export default function RoomsPage() {
                           <div className="w-20 flex-shrink-0 flex flex-col items-center justify-between border-l border-slate-100/60 bg-gradient-to-b from-slate-50/50 to-transparent">
                             {/* Actions rapides en haut */}
                             <div className="flex flex-col items-center gap-1.5 pt-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleFavorite(room.id)}
-                                className="h-9 w-9 p-0 hover:bg-red-50 cursor-pointer transition-all rounded-full group/fav"
+                              <motion.button
+                                onClick={(e) =>
+                                  handleToggleFavorite(room.id, e)
+                                }
+                                className="h-9 w-9 p-0 hover:bg-slate-100 cursor-pointer transition-all rounded-full group/fav flex items-center justify-center"
+                                aria-label={
+                                  room.isFavorite
+                                    ? "Retirer des favoris"
+                                    : "Ajouter aux favoris"
+                                }
+                                whileTap={{ scale: 0.85 }}
+                                whileHover={{ scale: 1.1 }}
                               >
-                                <Heart
-                                  className={`h-4 w-4 transition-all ${room.isFavorite ? "text-red-500 fill-current scale-110" : "text-slate-400 group-hover/fav:text-red-400"}`}
-                                />
-                              </Button>
+                                <motion.div
+                                  key={room.isFavorite ? "filled" : "unfilled"}
+                                  initial={{ scale: 0.9 }}
+                                  animate={{
+                                    scale: room.isFavorite ? 1.15 : 1,
+                                  }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 500,
+                                    damping: 25,
+                                  }}
+                                >
+                                  <Heart
+                                    className={`h-4 w-4 transition-all duration-300 ease-out ${
+                                      room.isFavorite
+                                        ? "text-slate-700 fill-current"
+                                        : "text-slate-400 group-hover/fav:text-slate-600"
+                                    }`}
+                                  />
+                                </motion.div>
+                              </motion.button>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1040,9 +1218,9 @@ export default function RoomsPage() {
                             </div>
 
                             {/* Indicateur de capacité - Central et visuel */}
-                            <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-blue-50 to-indigo-50/50 border-t border-l border-blue-100/50">
+                            <div className="flex flex-col items-center gap-1.5 px-2 py-3 rounded-tl-lg bg-gradient-to-br from-slate-50 to-slate-100/50 border-t border-l border-slate-200/50">
                               <div className="flex flex-col items-center">
-                                <Users className="h-5 w-5 text-blue-600 mb-1" />
+                                <Users className="h-5 w-5 text-slate-700 mb-1" />
                                 <div className="text-center">
                                   <div className="text-lg font-bold text-slate-900 leading-none">
                                     {room.capacity}
@@ -1057,7 +1235,7 @@ export default function RoomsPage() {
                             {/* Indicateur de statut visuel - En bas */}
                             <div className="w-full pb-4">
                               <div
-                                className={`h-1.5 rounded-full mx-3 ${room.status === "disponible" ? "bg-gradient-to-r from-green-400 to-emerald-500" : "bg-gradient-to-r from-red-400 to-pink-500"} shadow-sm`}
+                                className={`h-1.5 rounded-full mx-3 ${room.status === "disponible" ? "bg-gradient-to-r from-slate-600 to-slate-700" : "bg-gradient-to-r from-slate-400 to-slate-500"} shadow-sm`}
                               />
                             </div>
                           </div>
@@ -1087,11 +1265,11 @@ export default function RoomsPage() {
                       whileHover={{ x: 4 }}
                       className="group"
                     >
-                      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden border-l-4 border-l-transparent hover:border-l-blue-500">
+                      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden border-l-4 border-l-transparent hover:border-l-slate-500">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             {/* Icône */}
-                            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-sm flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="p-2 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg shadow-sm flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                               <Building2 className="h-4 w-4 text-white" />
                             </div>
 
@@ -1118,13 +1296,13 @@ export default function RoomsPage() {
                                 </div>
                                 <div className="flex items-center gap-4 text-xs text-slate-600">
                                   <div className="flex items-center gap-1">
-                                    <MapPin className="h-3 w-3 text-green-500" />
+                                    <MapPin className="h-3 w-3 text-slate-500" />
                                     <span className="truncate">
                                       {room.location}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Users className="h-3 w-3 text-blue-500" />
+                                    <Users className="h-3 w-3 text-slate-600" />
                                     <span className="font-semibold">
                                       {room.capacity} places
                                     </span>
@@ -1205,16 +1383,40 @@ export default function RoomsPage() {
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleFavorite(room.id)}
-                                className="h-8 w-8 p-0 hover:bg-red-50 cursor-pointer transition-colors rounded-full"
+                              <motion.button
+                                onClick={(e) =>
+                                  handleToggleFavorite(room.id, e)
+                                }
+                                className="h-8 w-8 p-0 hover:bg-slate-100 cursor-pointer transition-colors rounded-full flex items-center justify-center"
+                                aria-label={
+                                  room.isFavorite
+                                    ? "Retirer des favoris"
+                                    : "Ajouter aux favoris"
+                                }
+                                whileTap={{ scale: 0.85 }}
+                                whileHover={{ scale: 1.1 }}
                               >
-                                <Heart
-                                  className={`h-4 w-4 transition-all ${room.isFavorite ? "text-red-500 fill-current" : "text-slate-400 group-hover:text-red-400"}`}
-                                />
-                              </Button>
+                                <motion.div
+                                  key={room.isFavorite ? "filled" : "unfilled"}
+                                  initial={{ scale: 0.9 }}
+                                  animate={{
+                                    scale: room.isFavorite ? 1.15 : 1,
+                                  }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 500,
+                                    damping: 25,
+                                  }}
+                                >
+                                  <Heart
+                                    className={`h-4 w-4 transition-all duration-300 ease-out ${
+                                      room.isFavorite
+                                        ? "text-slate-700 fill-current"
+                                        : "text-slate-400 group-hover:text-slate-600"
+                                    }`}
+                                  />
+                                </motion.div>
+                              </motion.button>
                               <Link href={`/rooms/${room.id}`}>
                                 <Button
                                   size="sm"
@@ -1228,7 +1430,7 @@ export default function RoomsPage() {
                               <Link href={`/bookings/new?room=${room.id}`}>
                                 <Button
                                   size="sm"
-                                  className="h-8 px-3 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+                                  className="h-8 px-3 text-xs font-semibold bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white cursor-pointer hover:cursor-pointer shadow-sm hover:shadow-md transition-all disabled:opacity-50"
                                   disabled={room.status === "occupée"}
                                 >
                                   Réserver

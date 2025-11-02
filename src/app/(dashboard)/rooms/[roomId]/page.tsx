@@ -1,22 +1,25 @@
 import { Suspense } from "react";
-import RoomTimelineClient from "./timeline-client";
+import RoomDetailClient from "./room-detail-client";
 import { Skeleton } from "@/components/common/Skeleton";
 
-type Props = { params: { roomId: string } };
+type Props = { params: Promise<{ roomId: string }> };
 
-export default function RoomDetailPage({ params }: Props) {
+export default async function RoomDetailPage({ params }: Props) {
+  const { roomId } = await params;
+
   return (
-    <main className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Salle #{params.roomId}</h1>
-        <p className="text-neutral-600 dark:text-neutral-300">
-          Disponibilités et réservations
-        </p>
-      </div>
-      <Suspense fallback={<Skeleton className="h-40 w-full" />}>
-        {/* composant client avec Query + motion */}
-        <RoomTimelineClient roomId={params.roomId} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50/50 to-slate-100/30">
+      <Suspense
+        fallback={
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        }
+      >
+        <RoomDetailClient roomId={roomId} />
       </Suspense>
-    </main>
+    </div>
   );
 }
